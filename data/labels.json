@@ -1,0 +1,2614 @@
+{
+ "windows|disable_telemetry": {
+  "name": "Disable telemetry",
+  "on": "Disables telemetry",
+  "state": "Telemetry disabled",
+  "subj": "telemetry settings"
+ },
+ "windows|disable_actioncenter": {
+  "name": "Disable Action Center",
+  "on": "Turns off the Action Center notification panel",
+  "state": "Action Center off",
+  "subj": "Action Center setting"
+ },
+ "windows|disable_background": {
+  "name": "Block background apps",
+  "on": "Stops Store apps running in the background",
+  "state": "Background apps blocked",
+  "subj": "background apps setting"
+ },
+ "windows|disable_cortana": {
+  "name": "Disable Cortana",
+  "on": "Disables Cortana",
+  "state": "Cortana disabled",
+  "subj": "Cortana settings"
+ },
+ "windows|disable_defender": {
+  "name": "Disable Defender",
+  "on": "Disables Defender",
+  "state": "Defender disabled",
+  "subj": "Defender settings",
+  "risk": "high"
+ },
+ "windows|disable_extensions": {
+  "name": "Hide file extensions",
+  "on": "Hides file name extensions (.txt, .exe) in File Explorer",
+  "state": "File extensions hidden",
+  "subj": "file extension setting"
+ },
+ "windows|disable_firewall": {
+  "name": "Disable Windows Firewall",
+  "on": "Turns Windows Firewall off for every network profile",
+  "state": "Firewall off",
+  "subj": "firewall",
+  "off": "Runs the undo command: turns Windows Firewall back on for every profile",
+  "risk": "high"
+ },
+ "windows|disable_hibernate": {
+  "name": "Disable hibernation",
+  "on": "Turns hibernation off and deletes hiberfil.sys",
+  "state": "Hibernation off",
+  "subj": "hibernation",
+  "off": "Runs the undo command: turns hibernation back on"
+ },
+ "windows|disable_hidden": {
+  "name": "Don't show hidden files",
+  "on": "Hides hidden and system files in File Explorer",
+  "state": "Hidden files not shown",
+  "subj": "hidden files setting"
+ },
+ "windows|disable_remote": {
+  "name": "Disable Remote Desktop",
+  "on": "Turns off Remote Desktop connections to this PC",
+  "state": "Remote Desktop off",
+  "subj": "Remote Desktop setting",
+  "risk": "medium"
+ },
+ "windows|disable_restore": {
+  "name": "Disable System Restore",
+  "on": "Turns off System Restore",
+  "state": "System Restore off",
+  "subj": "System Restore setting",
+  "risk": "medium"
+ },
+ "windows|disable_search": {
+  "name": "Disable Windows Search indexing",
+  "on": "Disables and stops the Windows Search service",
+  "state": "Search indexing off",
+  "subj": "start type of the Windows Search service (and starts it again)"
+ },
+ "windows|disable_sleep": {
+  "name": "Disable sleep",
+  "on": "Sets sleep to Never and turns hibernation off",
+  "state": "Sleep and hibernation off",
+  "subj": "sleep",
+  "off": "Runs the undo command: sets the Windows sleep timers back to their usual values and turns hibernation on"
+ },
+ "windows|disable_storeauto": {
+  "name": "Disable Store auto-updates",
+  "on": "Stops the Microsoft Store updating apps by itself",
+  "state": "Store auto-updates off",
+  "subj": "Store update setting"
+ },
+ "windows|disable_xbox": {
+  "name": "Disable Xbox services",
+  "on": "Disables the Xbox background services",
+  "state": "Xbox services disabled",
+  "subj": "Xbox service settings"
+ },
+ "windows|high_performance": {
+  "name": "Switch to the High performance plan",
+  "on": "Makes High performance the active power plan",
+  "state": "High performance plan active",
+  "subj": "power plan",
+  "off": "Runs the undo command: makes Balanced the active power plan"
+ },
+ "windows|disable_cstates": {
+  "name": "Disable CPU core parking (High performance plan)",
+  "on": "Keeps all cores unparked in the High performance plan",
+  "state": "Core parking off in that plan",
+  "subj": "core parking",
+  "off": "Runs the undo command: writes the usual core-parking values to the High performance plan",
+  "risk": "medium"
+ },
+ "windows|processor_priority": {
+  "name": "Prioritize foreground programs",
+  "on": "Gives the program you are using a larger share of processor time",
+  "state": "Foreground programs prioritized",
+  "subj": "processor scheduling setting"
+ },
+ "windows|disable_core_parking": {
+  "name": "Disable CPU core parking",
+  "on": "Keeps every CPU core unparked in the active power plan",
+  "state": "Core parking off",
+  "subj": "core parking setting"
+ },
+ "windows|disable_boost": {
+  "name": "Disable CPU turbo boost",
+  "on": "Turns off processor boost in the active power plan",
+  "state": "Turbo boost off",
+  "subj": "boost mode setting"
+ },
+ "windows|disable_cooling": {
+  "name": "Use active CPU cooling",
+  "on": "Sets the cooling policy to Active: fans speed up before the CPU slows down",
+  "state": "Cooling policy: active",
+  "subj": "cooling policy",
+  "desc": "Sets the processor cooling policy of the active plan to Active (fans first, then slowing the CPU)."
+ },
+ "windows|disable_hetero": {
+  "name": "Disable heterogeneous CPU scheduling",
+  "on": "Turns off hybrid-core aware scheduling",
+  "state": "Hetero scheduling off",
+  "subj": "scheduling setting"
+ },
+ "windows|disable_idle": {
+  "name": "Disable CPU idle states",
+  "on": "Stops the CPU entering idle states in the active power plan",
+  "state": "CPU idle states off",
+  "subj": "processor idle setting",
+  "risk": "medium"
+ },
+ "windows|disable_maxstate": {
+  "name": "Maximum processor state 100 %",
+  "on": "Sets the maximum processor state of the active plan to 100 %",
+  "state": "Max processor state 100 %",
+  "subj": "maximum processor state"
+ },
+ "windows|disable_minstate": {
+  "name": "Minimum processor state 100 %",
+  "on": "Keeps the CPU at full speed (minimum processor state 100 %)",
+  "state": "Min processor state 100 %",
+  "subj": "minimum processor state"
+ },
+ "windows|disable_mitigations": {
+  "name": "Disable Spectre and Meltdown mitigations",
+  "on": "Turns off the CPU security mitigations for Spectre and Meltdown",
+  "state": "Mitigations off",
+  "subj": "mitigation settings",
+  "risk": "high"
+ },
+ "windows|disable_pwrthrottle": {
+  "name": "Disable power throttling",
+  "on": "Stops Windows slowing down background apps to save power",
+  "state": "Power throttling off",
+  "subj": "power throttling setting"
+ },
+ "windows|disable_virt": {
+  "name": "Disable virtualization-based security",
+  "on": "Turns off virtualization-based security",
+  "state": "VBS off",
+  "subj": "VBS setting",
+  "risk": "high"
+ },
+ "windows|disable_sechealth": {
+  "name": "Disable the Security Health service",
+  "on": "Disables and stops the Windows Security Health service",
+  "state": "Security Health service off",
+  "subj": "start type of the Security Health service (and starts it again)",
+  "risk": "high"
+ },
+ "windows|disable_speech": {
+  "name": "Disable online speech recognition",
+  "on": "Turns off online speech recognition and its data collection",
+  "state": "Online speech off",
+  "subj": "speech privacy setting"
+ },
+ "windows|disable_copilot": {
+  "name": "Disable Copilot",
+  "on": "Disables Copilot",
+  "state": "Copilot disabled",
+  "subj": "Copilot settings"
+ },
+ "windows|disable_recall": {
+  "name": "Disable Recall",
+  "on": "Disables Recall",
+  "state": "Recall disabled",
+  "subj": "Recall settings"
+ },
+ "windows|disable_widgets_win11": {
+  "name": "Disable widgets",
+  "on": "Turns off Windows 11 widgets by policy",
+  "state": "Widgets off",
+  "subj": "widgets policy"
+ },
+ "windows|disable_edge_bg_win11": {
+  "name": "Stop Edge running in the background",
+  "on": "Stops Microsoft Edge keeping processes running after you close it",
+  "state": "Edge background mode off",
+  "subj": "Edge background policy"
+ },
+ "windows|disable_onedrive_win11": {
+  "name": "Disable OneDrive sync",
+  "on": "Turns off OneDrive file sync by policy",
+  "state": "OneDrive sync off",
+  "subj": "OneDrive policy"
+ },
+ "windows|remove_teams": {
+  "name": "Remove Microsoft Teams",
+  "on": "Uninstalls the Microsoft Teams app",
+  "state": "Teams app removed",
+  "subj": "Teams",
+  "off": "Can't be undone automatically: reinstall Teams from the Microsoft Store",
+  "risk": "medium"
+ },
+ "windows|remove_phone_link": {
+  "name": "Remove Phone Link",
+  "on": "Uninstalls the Phone Link app",
+  "state": "Phone Link removed",
+  "subj": "Phone Link",
+  "off": "Can't be undone automatically: reinstall Phone Link from the Microsoft Store",
+  "risk": "medium"
+ },
+ "windows|disable_spotlight": {
+  "name": "Disable Spotlight",
+  "on": "Disables Spotlight",
+  "state": "Spotlight disabled",
+  "subj": "Spotlight settings"
+ },
+ "windows|disable_suggested_content": {
+  "name": "Disable suggested content",
+  "on": "Disables suggested content",
+  "state": "Suggested content disabled",
+  "subj": "suggested content settings"
+ },
+ "windows|disable_stickers": {
+  "name": "Disable desktop stickers",
+  "on": "Turns off the desktop stickers feature",
+  "state": "Desktop stickers off",
+  "subj": "stickers setting"
+ },
+ "windows|disable_tabs_explorer": {
+  "name": "Disable File Explorer tabs",
+  "on": "Opens folders in separate windows instead of tabs",
+  "state": "Explorer tabs off",
+  "subj": "Explorer tabs setting"
+ },
+ "windows|remove_chat": {
+  "name": "Hide the Chat icon",
+  "on": "Removes the Teams Chat icon from the taskbar",
+  "state": "Chat icon hidden",
+  "subj": "taskbar Chat setting"
+ },
+ "windows|remove_dev_home": {
+  "name": "Remove Dev Home",
+  "on": "Uninstalls the Dev Home app",
+  "state": "Dev Home removed",
+  "subj": "Dev Home",
+  "off": "Can't be undone automatically: reinstall Dev Home from the Microsoft Store",
+  "risk": "medium"
+ },
+ "windows|disable_co_creator": {
+  "name": "Disable Paint Cocreator",
+  "on": "Turns off Cocreator and the AI features in Paint",
+  "state": "Paint AI features off",
+  "subj": "Paint AI setting"
+ },
+ "windows|enable_compact_mode": {
+  "name": "Use compact view in File Explorer",
+  "on": "Uses compact spacing between items in File Explorer",
+  "state": "Compact view on",
+  "subj": "Explorer spacing setting"
+ },
+ "windows|left_align_taskbar_win11": {
+  "name": "Left-align the taskbar",
+  "on": "Moves the Windows 11 taskbar icons to the left",
+  "state": "Taskbar aligned left",
+  "subj": "taskbar alignment"
+ },
+ "windows|disable_start_recommended": {
+  "name": "Hide Recommended in Start",
+  "on": "Hides the Recommended section of the Start menu",
+  "state": "Recommended hidden",
+  "subj": "Start Recommended setting"
+ },
+ "windows|disable_snap_layouts": {
+  "name": "Disable snap layouts",
+  "on": "Disables snap layouts",
+  "state": "Snap layouts disabled",
+  "subj": "snap layouts settings"
+ },
+ "windows|disable_search_highlights": {
+  "name": "Disable search highlights",
+  "on": "Disables search highlights",
+  "state": "Search highlights disabled",
+  "subj": "search highlights settings"
+ },
+ "windows|disable_animations": {
+  "name": "Disable animations",
+  "on": "Disables animations",
+  "state": "Animations disabled",
+  "subj": "animations settings"
+ },
+ "windows|disable_transparency": {
+  "name": "Disable transparency",
+  "on": "Disables transparency",
+  "state": "Transparency disabled",
+  "subj": "transparency settings"
+ },
+ "windows|disable_shadows": {
+  "name": "Disable window shadows",
+  "on": "Disables window shadows",
+  "state": "Window shadows disabled",
+  "subj": "window shadows settings"
+ },
+ "windows|disable_snap": {
+  "name": "Disable window snap",
+  "on": "Disables window snap",
+  "state": "Window snap disabled",
+  "subj": "window snap settings"
+ },
+ "windows|performance_mode": {
+  "name": "Visual effects: adjust for performance",
+  "on": "Switches visual effects to the 'adjust for best performance' preset",
+  "state": "Visual effects set for performance",
+  "subj": "visual effects preset"
+ },
+ "windows|disable_thumb_preview": {
+  "name": "Disable thumbnail preview",
+  "on": "Disables thumbnail preview",
+  "state": "Thumbnail preview disabled",
+  "subj": "thumbnail preview settings"
+ },
+ "windows|disable_aero_peek": {
+  "name": "Disable Aero Peek",
+  "on": "Disables Aero Peek",
+  "state": "Aero Peek disabled",
+  "subj": "Aero Peek settings"
+ },
+ "windows|disable_menu_anim": {
+  "name": "Disable menu animations",
+  "on": "Disables menu animations",
+  "state": "Menu animations disabled",
+  "subj": "menu animations settings"
+ },
+ "windows|disable_combo_anim": {
+  "name": "Disable drop-down list animation",
+  "on": "Turns off the slide animation of drop-down lists",
+  "state": "Drop-down animation off",
+  "subj": "drop-down animation setting"
+ },
+ "windows|disable_tooltip_anim": {
+  "name": "Disable tooltip animation",
+  "on": "Disables tooltip animation",
+  "state": "Tooltip animation disabled",
+  "subj": "tooltip animation settings"
+ },
+ "windows|disable_cursor_shadow": {
+  "name": "Disable cursor shadow",
+  "on": "Disables cursor shadow",
+  "state": "Cursor shadow disabled",
+  "subj": "cursor shadow settings"
+ },
+ "windows|disable_listbox_smooth": {
+  "name": "Disable smooth scrolling in lists",
+  "on": "Makes lists jump instead of scrolling smoothly",
+  "state": "Smooth list scrolling off",
+  "subj": "list scrolling setting"
+ },
+ "windows|disable_font_smoothing": {
+  "name": "Disable ClearType font smoothing",
+  "on": "Turns off font smoothing (text looks sharper but jagged)",
+  "state": "Font smoothing off",
+  "subj": "font smoothing setting",
+  "risk": "medium"
+ },
+ "windows|disable_taskbar_glow": {
+  "name": "Disable taskbar glow",
+  "on": "Disables taskbar glow",
+  "state": "Taskbar glow disabled",
+  "subj": "taskbar glow settings"
+ },
+ "windows|disable_window_border": {
+  "name": "Disable window border shadow",
+  "on": "Disables window border shadow",
+  "state": "Window border shadow disabled",
+  "subj": "window border shadow settings"
+ },
+ "windows|best_performance": {
+  "name": "Turn off all visual effects",
+  "on": "Turns off animations, Aero Peek, thumbnails and other visual effects",
+  "state": "Visual effects off",
+  "subj": "visual effects settings"
+ },
+ "windows|enable_end_task": {
+  "name": "Add End task to the taskbar menu",
+  "on": "Adds End task to the right-click menu of taskbar buttons",
+  "state": "End task in taskbar menu",
+  "subj": "taskbar End task setting"
+ },
+ "windows|disable_folder_discovery": {
+  "name": "Disable automatic folder type discovery",
+  "on": "Stops File Explorer changing a folder's view based on its contents",
+  "state": "Folder discovery off",
+  "subj": "folder view settings"
+ },
+ "windows|disable_home_gallery": {
+  "name": "Hide Home and Gallery in File Explorer",
+  "on": "Removes Home and Gallery from the File Explorer navigation pane",
+  "state": "Home and Gallery hidden",
+  "subj": "Explorer navigation setting"
+ },
+ "windows|enable_classic_menu": {
+  "name": "Use the classic right-click menu",
+  "on": "Brings back the full Windows 10 style right-click menu on Windows 11",
+  "state": "Classic right-click menu",
+  "subj": "right-click menu style"
+ },
+ "windows|enable_start_layout": {
+  "name": "Use the previous Start layout",
+  "on": "Brings back the earlier Windows 11 Start menu layout",
+  "state": "Previous Start layout",
+  "subj": "Start layout setting"
+ },
+ "windows|disable_start_bing": {
+  "name": "Remove Bing results from Start search",
+  "on": "Stops Start search showing web results from Bing",
+  "state": "No Bing results in Start",
+  "subj": "Start search setting"
+ },
+ "windows|enable_dark_theme": {
+  "name": "Use dark mode",
+  "on": "Switches apps and Windows to dark mode",
+  "state": "Dark mode on",
+  "subj": "app and system colour mode"
+ },
+ "windows|set_taskbar_left": {
+  "name": "Left-align taskbar icons",
+  "on": "Moves the Windows 11 taskbar icons to the left",
+  "state": "Taskbar aligned left",
+  "subj": "taskbar alignment"
+ },
+ "windows|hide_taskbar_search": {
+  "name": "Hide taskbar search icon",
+  "on": "Hides taskbar search icon",
+  "state": "Taskbar search icon hidden",
+  "subj": "taskbar search icon settings"
+ },
+ "windows|hide_taskbar_taskview": {
+  "name": "Hide taskbar task view icon",
+  "on": "Hides taskbar task view icon",
+  "state": "Taskbar task view icon hidden",
+  "subj": "taskbar task view icon settings"
+ },
+ "windows|enable_numlock": {
+  "name": "Turn on Num Lock at startup",
+  "on": "Switches Num Lock on when Windows starts",
+  "state": "Num Lock on at startup",
+  "subj": "Num Lock setting"
+ },
+ "windows|enable_scrollbars": {
+  "name": "Always show scrollbars",
+  "on": "Keeps scrollbars visible instead of hiding them",
+  "state": "Scrollbars always visible",
+  "subj": "scrollbar setting"
+ },
+ "windows|disable_sticky_keys": {
+  "name": "Disable the Sticky Keys shortcut",
+  "on": "Stops pressing Shift five times from turning on Sticky Keys",
+  "state": "Sticky Keys shortcut off",
+  "subj": "Sticky Keys setting"
+ },
+ "windows|enable_battery_pct": {
+  "name": "Show battery percentage",
+  "on": "Shows the battery percentage next to the battery icon",
+  "state": "Battery percentage shown",
+  "subj": "battery icon setting"
+ },
+ "gaming|timer_resolution": {
+  "name": "Use the platform tick timer",
+  "on": "Sets the boot option useplatformtick to yes",
+  "state": "Platform tick on (after restart)",
+  "subj": "boot timer option",
+  "off": "Runs the undo command: removes the useplatformtick boot option",
+  "risk": "medium"
+ },
+ "gaming|game_mode": {
+  "name": "Enable Game Mode",
+  "on": "Turns on Windows Game Mode",
+  "state": "Game Mode on",
+  "subj": "Game Mode setting"
+ },
+ "gaming|hags": {
+  "name": "Enable hardware-accelerated GPU scheduling",
+  "on": "Turns on hardware-accelerated GPU scheduling (restart needed)",
+  "state": "GPU scheduling on",
+  "subj": "GPU scheduling setting"
+ },
+ "gaming|disable_fullscreen_optimizations": {
+  "name": "Disable fullscreen optimizations",
+  "on": "Disables fullscreen optimizations",
+  "state": "Fullscreen optimizations disabled",
+  "subj": "fullscreen optimizations settings"
+ },
+ "gaming|disable_game_dvr": {
+  "name": "Disable Game DVR",
+  "on": "Turns off Game DVR background recording",
+  "state": "Background recording off",
+  "subj": "recording settings"
+ },
+ "gaming|disable_game_bar": {
+  "name": "Disable Xbox Game Bar",
+  "on": "Turns off the Xbox Game Bar overlay and its shortcuts",
+  "state": "Game Bar off",
+  "subj": "Game Bar settings"
+ },
+ "gaming|disable_memory_integrity": {
+  "name": "Disable Memory Integrity",
+  "on": "Turns off Core isolation Memory Integrity (restart needed)",
+  "state": "Memory Integrity off",
+  "subj": "Memory Integrity setting",
+  "risk": "high"
+ },
+ "gaming|disable_vbs": {
+  "name": "Disable virtualization-based security (VBS)",
+  "on": "Turns off virtualization-based security (restart needed)",
+  "state": "VBS off",
+  "subj": "VBS setting",
+  "risk": "high"
+ },
+ "gaming|enable_vrr": {
+  "name": "Enable variable refresh rate",
+  "on": "Turns on variable refresh rate for supported displays",
+  "state": "VRR on",
+  "subj": "VRR setting"
+ },
+ "gaming|optimize_games": {
+  "name": "Disable the dynamic tick",
+  "on": "Sets the boot option disabledynamictick to yes",
+  "state": "Dynamic tick off (after restart)",
+  "subj": "boot timer option",
+  "off": "Runs the undo command: removes the disabledynamictick boot option",
+  "risk": "medium"
+ },
+ "gaming|msi_mode": {
+  "name": "Enable MSI interrupts for GPU and network",
+  "on": "Turns on message-signaled interrupts for display and network devices that support them",
+  "state": "MSI mode on (after restart)",
+  "subj": "interrupt mode",
+  "off": "Runs the undo command: turns MSI mode off again for those devices",
+  "risk": "medium"
+ },
+ "gaming|disable_hpet": {
+  "name": "Don't force the HPET timer",
+  "on": "Sets the boot option useplatformclock to false",
+  "state": "HPET not forced (after restart)",
+  "subj": "boot timer option",
+  "off": "Runs the undo command: removes the useplatformclock boot option",
+  "risk": "medium"
+ },
+ "gaming|disable_spectre_meltdown": {
+  "name": "Disable Spectre and Meltdown mitigations",
+  "on": "Turns off the CPU security mitigations for Spectre and Meltdown",
+  "state": "Mitigations off",
+  "subj": "mitigation settings",
+  "risk": "high"
+ },
+ "gaming|disable_tpm": {
+  "name": "Disable Credential Guard",
+  "on": "Turns off Credential Guard and related TPM-based protection",
+  "state": "Credential Guard off",
+  "subj": "Credential Guard setting",
+  "risk": "high"
+ },
+ "gaming|disable_prefetch": {
+  "name": "Disable prefetch",
+  "on": "Disables prefetch",
+  "state": "Prefetch disabled",
+  "subj": "prefetch settings"
+ },
+ "gpu|gpu_perf_mode": {
+  "name": "Enable hardware-accelerated GPU scheduling",
+  "on": "Turns on hardware-accelerated GPU scheduling (HwSchMode = 2)",
+  "state": "GPU scheduling on",
+  "subj": "GPU scheduling setting"
+ },
+ "gpu|disable_fxaa": {
+  "name": "Disable post-process FX",
+  "on": "Disables post-process FX",
+  "state": "Post-process FX disabled",
+  "subj": "post-process FX settings"
+ },
+ "gpu|disable_gpu_power_save": {
+  "name": "Disable GPU power saving",
+  "on": "Disables GPU power saving",
+  "state": "GPU power saving disabled",
+  "subj": "GPU power saving settings"
+ },
+ "gpu|disable_vsync": {
+  "name": "Disable VSync",
+  "on": "Disables VSync",
+  "state": "VSync disabled",
+  "subj": "VSync settings"
+ },
+ "gpu|gpu_priority": {
+  "name": "Raise GPU priority",
+  "on": "Sets a higher GPU scheduling preference for applications",
+  "state": "GPU priority raised",
+  "subj": "GPU preference value"
+ },
+ "gpu|disable_gpu_timeout": {
+  "name": "Lengthen the GPU timeout (TdrDelay)",
+  "on": "Waits 8 s instead of 2 s before Windows resets a stuck graphics driver",
+  "state": "GPU timeout 8 s",
+  "subj": "GPU timeout"
+ },
+ "gpu|force_multi_gpu": {
+  "name": "Enable multi-GPU rendering",
+  "on": "Allows explicit multi-GPU rendering for apps that support it",
+  "state": "Multi-GPU rendering allowed",
+  "subj": "multi-GPU setting"
+ },
+ "gpu|enable_gpu_accel": {
+  "name": "Force GPU acceleration for windows",
+  "on": "Makes window rendering always use the GPU",
+  "state": "GPU acceleration forced",
+  "subj": "hardware acceleration setting"
+ },
+ "gpu|gpu_tdr_delay": {
+  "name": "Extend the GPU hang timeout",
+  "on": "Gives the graphics driver 8 s instead of 2 s before Windows resets it",
+  "state": "GPU timeout 8 s",
+  "subj": "GPU timeout"
+ },
+ "gpu|disable_storage_sense": {
+  "name": "Disable storage Sense",
+  "on": "Disables storage Sense",
+  "state": "Storage Sense disabled",
+  "subj": "storage Sense settings"
+ },
+ "gpu|disable_tray_notifications": {
+  "name": "Disable the notification center",
+  "on": "Turns off the notification center and calendar flyout",
+  "state": "Notification center off",
+  "subj": "notification center setting"
+ },
+ "gpu|enable_bsod_verbose": {
+  "name": "Show details on blue screens",
+  "on": "Shows technical details on blue screens instead of the sad face",
+  "state": "Detailed blue screens",
+  "subj": "blue screen setting"
+ },
+ "gpu|enable_cross_device": {
+  "name": "Enable clipboard history and cross-device resume",
+  "on": "Turns on clipboard history and resuming activities on other devices",
+  "state": "Clipboard history on",
+  "subj": "clipboard settings"
+ },
+ "gpu|disable_logon_blur": {
+  "name": "No blur on the sign-in screen",
+  "on": "Shows the sign-in background without the blur effect",
+  "state": "Sign-in blur off",
+  "subj": "sign-in blur setting"
+ },
+ "gpu|enable_logon_verbose": {
+  "name": "Show detailed startup and shutdown messages",
+  "on": "Shows what Windows is doing during startup, sign-in and shutdown",
+  "state": "Verbose status messages",
+  "subj": "status message setting"
+ },
+ "gpu|disable_outlook_new": {
+  "name": "Block the new Outlook",
+  "on": "Stops the new Outlook app replacing classic Outlook",
+  "state": "New Outlook blocked",
+  "subj": "Outlook setting"
+ },
+ "gpu|disable_mouse_accel": {
+  "name": "Disable mouse acceleration",
+  "on": "Disables mouse acceleration",
+  "state": "Mouse acceleration disabled",
+  "subj": "mouse acceleration settings"
+ },
+ "gpu|disable_multiplane_overlay": {
+  "name": "Disable multiplane overlay (MPO)",
+  "on": "Turns off MPO, which can fix flicker and stutter in some games",
+  "state": "MPO off",
+  "subj": "MPO setting"
+ },
+ "gpu|disable_s0_network": {
+  "name": "No network during Modern Standby",
+  "on": "Disconnects the network while the PC is in Modern Standby",
+  "state": "Network off in standby",
+  "subj": "standby network setting"
+ },
+ "gpu|enable_s3_sleep": {
+  "name": "Use S3 sleep instead of Modern Standby",
+  "on": "Switches the PC to classic S3 sleep (restart needed)",
+  "state": "S3 sleep",
+  "subj": "sleep mode setting",
+  "risk": "medium"
+ },
+ "gpu|disable_settings_home": {
+  "name": "Hide the Settings home page",
+  "on": "Removes the Home page from the Settings app",
+  "state": "Settings home hidden",
+  "subj": "Settings home setting"
+ },
+ "gpu|disable_fullscreen_opt": {
+  "name": "Disable fullscreen optimizations",
+  "on": "Disables fullscreen optimizations",
+  "state": "Fullscreen optimizations disabled",
+  "subj": "fullscreen optimizations settings"
+ },
+ "gpu|set_utc_time": {
+  "name": "Keep the hardware clock in UTC",
+  "on": "Makes Windows read the PC clock as UTC (useful when dual-booting Linux)",
+  "state": "Hardware clock read as UTC",
+  "subj": "clock setting"
+ },
+ "gpu|disable_rdp_warnings": {
+  "name": "Disable Remote Desktop unsigned-file warnings",
+  "on": "Stops warnings when opening unsigned Remote Desktop files",
+  "state": "RDP warnings off",
+  "subj": "RDP warning setting",
+  "risk": "medium"
+ },
+ "gpu|disable_defender": {
+  "name": "Disable Windows Defender",
+  "on": "Disables Windows Defender",
+  "state": "Windows Defender disabled",
+  "subj": "Windows Defender settings",
+  "risk": "high"
+ },
+ "gpu|disable_firewall": {
+  "name": "Disable Windows Firewall",
+  "on": "Turns Windows Firewall off for every network profile",
+  "state": "Firewall off",
+  "subj": "firewall",
+  "off": "Runs the undo command: turns Windows Firewall back on for every profile",
+  "risk": "high"
+ },
+ "gpu|disable_remote_assist": {
+  "name": "Disable Remote Assistance",
+  "on": "Turns off incoming Remote Desktop and Remote Assistance connections",
+  "state": "Remote Assistance off",
+  "subj": "remote connection settings",
+  "risk": "medium"
+ },
+ "power|disk_timeout": {
+  "name": "Never turn off hard disks",
+  "on": "Sets the hard-disk sleep timer to Never (plugged in)",
+  "state": "Disks never sleep",
+  "subj": "hard-disk timeout"
+ },
+ "power|display_timeout": {
+  "name": "Never turn off the display",
+  "on": "Sets the screen-off timer to Never (plugged in)",
+  "state": "Display never turns off",
+  "subj": "display timeout"
+ },
+ "power|ultimate_power": {
+  "name": "Add and use the Ultimate Performance plan",
+  "on": "Creates the Ultimate Performance plan if needed and makes it active",
+  "state": "Ultimate Performance plan active",
+  "subj": "power plan",
+  "off": "Runs the undo command: makes Balanced the active power plan (the Ultimate plan stays in the list)"
+ },
+ "power|disable_wifi_sense": {
+  "name": "Disable Wi-Fi Sense",
+  "on": "Turns off Wi-Fi Sense hotspot sharing",
+  "state": "Wi-Fi Sense off",
+  "subj": "Wi-Fi Sense setting"
+ },
+ "power|disable_adaptive_bright": {
+  "name": "Disable adaptive brightness",
+  "on": "Disables adaptive brightness",
+  "state": "Adaptive brightness disabled",
+  "subj": "adaptive brightness settings"
+ },
+ "power|disable_hybrid_sleep": {
+  "name": "Disable hybrid sleep",
+  "on": "Turns hybrid sleep and hibernation off",
+  "state": "Hybrid sleep off",
+  "subj": "hybrid sleep",
+  "off": "Runs the undo command: turns hibernation and hybrid sleep back on"
+ },
+ "power|power_button_action": {
+  "name": "Power button does nothing",
+  "on": "Makes the power button do nothing (plugged in)",
+  "state": "Power button: do nothing",
+  "subj": "power button action"
+ },
+ "power|lid_close_action": {
+  "name": "Closing the lid does nothing",
+  "on": "Keeps the laptop running when the lid is closed (plugged in)",
+  "state": "Lid close: do nothing",
+  "subj": "lid close action"
+ },
+ "power|disable_hiberboot": {
+  "name": "Disable Fast Startup",
+  "on": "Turns Fast Startup (hiberboot) and hibernation off",
+  "state": "Fast Startup off",
+  "subj": "Fast Startup",
+  "off": "Runs the undo command: turns Fast Startup and hibernation back on"
+ },
+ "power|enable_fast_startup": {
+  "name": "Enable fast startup",
+  "on": "Enables fast startup",
+  "state": "Fast startup enabled",
+  "subj": "fast startup settings"
+ },
+ "power|disable_wake_timers": {
+  "name": "Disable wake timers",
+  "on": "Disables wake timers",
+  "state": "Wake timers disabled",
+  "subj": "wake timers settings"
+ },
+ "power|disable_connected_standby": {
+  "name": "Disable Modern Standby",
+  "on": "Turns off Modern Standby so S3 sleep can be used (restart needed)",
+  "state": "Modern Standby off",
+  "subj": "standby setting",
+  "risk": "medium"
+ },
+ "power|disable_bw_saving": {
+  "name": "Disable bandwidth saving",
+  "on": "Disables bandwidth saving",
+  "state": "Bandwidth saving disabled",
+  "subj": "bandwidth saving settings"
+ },
+ "power|disable_throttle_state": {
+  "name": "Disable processor throttle states",
+  "on": "Stops Windows lowering CPU speed with throttle states",
+  "state": "Throttle states off",
+  "subj": "throttle setting"
+ },
+ "power|disable_usb_power_save": {
+  "name": "Disable USB hub power saving",
+  "on": "Stops USB root hubs being powered down to save energy",
+  "state": "USB hub power saving off",
+  "subj": "USB hub power setting"
+ },
+ "power|disable_selective_suspend": {
+  "name": "Disable USB selective suspend",
+  "on": "Disables USB selective suspend",
+  "state": "USB selective suspend disabled",
+  "subj": "USB selective suspend settings"
+ },
+ "power|usb_dma": {
+  "name": "Enable DMA protection for USB devices",
+  "on": "Turns on DMA remapping protection for external devices",
+  "state": "DMA protection on",
+  "subj": "DMA protection policy"
+ },
+ "power|disable_sleep": {
+  "name": "Disable sleep",
+  "on": "Sets sleep to Never and turns hibernation off",
+  "state": "Sleep and hibernation off",
+  "subj": "sleep",
+  "off": "Runs the undo command: sets the Windows sleep timers back to their usual values and turns hibernation on"
+ },
+ "power|disable_hibernate": {
+  "name": "Disable hibernation",
+  "on": "Turns hibernation off and deletes hiberfil.sys",
+  "state": "Hibernation off",
+  "subj": "hibernation",
+  "off": "Runs the undo command: turns hibernation back on"
+ },
+ "power|disable_store_auto": {
+  "name": "Disable Store auto-updates",
+  "on": "Stops the Microsoft Store updating apps by itself",
+  "state": "Store auto-updates off",
+  "subj": "Store update setting"
+ },
+ "network|disable_teredo": {
+  "name": "Disable Teredo",
+  "on": "Turns the Teredo IPv6 tunnel off",
+  "state": "Teredo off",
+  "subj": "Teredo",
+  "off": "Runs the undo command: sets Teredo back to its default state"
+ },
+ "network|disable_ipv6": {
+  "name": "Disable IPv6",
+  "on": "Disables IPv6",
+  "state": "IPv6 disabled",
+  "subj": "IPv6 settings",
+  "risk": "medium"
+ },
+ "network|prefer_ipv4": {
+  "name": "Prefer IPv4 over IPv6",
+  "on": "Makes Windows try IPv4 before IPv6 when both work",
+  "state": "IPv4 preferred",
+  "subj": "IPv6 preference setting"
+ },
+ "network|disable_nagle": {
+  "name": "Disable Nagle's algorithm",
+  "on": "Sends small TCP packets at once on every network interface",
+  "state": "Nagle's algorithm off",
+  "subj": "TCP acknowledgement settings",
+  "off": "Runs the undo command: removes the TcpAckFrequency and TCPNoDelay values again"
+ },
+ "network|enable_tcp_nodelay": {
+  "name": "Enable TCP no-delay",
+  "on": "Sends TCP packets immediately without waiting to combine them",
+  "state": "TCP no-delay on",
+  "subj": "TCP delay setting"
+ },
+ "network|disable_rss": {
+  "name": "Disable receive-side scaling",
+  "on": "Turns RSS off in the TCP stack",
+  "state": "RSS off",
+  "subj": "RSS",
+  "off": "Runs the undo command: turns RSS back on",
+  "risk": "medium"
+ },
+ "network|disable_rsc": {
+  "name": "Disable receive segment coalescing",
+  "on": "Turns RSC off in the TCP stack",
+  "state": "RSC off",
+  "subj": "RSC",
+  "off": "Runs the undo command: turns RSC back on"
+ },
+ "network|disable_autotuninglevel": {
+  "name": "Disable TCP auto-tuning",
+  "on": "Sets the TCP receive window auto-tuning level to disabled",
+  "state": "Auto-tuning off",
+  "subj": "auto-tuning",
+  "off": "Runs the undo command: sets auto-tuning back to normal",
+  "risk": "medium"
+ },
+ "network|disable_qos": {
+  "name": "Remove the QoS bandwidth reserve",
+  "on": "Sets the reservable QoS bandwidth to 0 %",
+  "state": "QoS reserve 0 %",
+  "subj": "QoS bandwidth policy"
+ },
+ "network|use_cloudflare_dns": {
+  "name": "Use Cloudflare DNS",
+  "on": "Sets 1.1.1.1 and 1.0.0.1 as the DNS servers of every physical adapter",
+  "state": "DNS: 1.1.1.1 / 1.0.0.1",
+  "subj": "DNS servers",
+  "off": "Runs the undo command: sets the adapters back to automatic DNS (from your router); a DNS address you had typed in yourself is not brought back"
+ },
+ "network|disable_ecn": {
+  "name": "Disable ECN",
+  "on": "Turns Explicit Congestion Notification off",
+  "state": "ECN off",
+  "subj": "ECN",
+  "off": "Runs the undo command: sets ECN back to its default"
+ },
+ "network|disable_timestamps": {
+  "name": "Disable TCP timestamps",
+  "on": "Turns TCP timestamps off",
+  "state": "TCP timestamps off",
+  "subj": "TCP timestamps",
+  "off": "Runs the undo command: turns TCP timestamps back on"
+ },
+ "privacy|privacy_location": {
+  "name": "Block app access to location",
+  "on": "Stops apps using your location",
+  "state": "App access to location blocked",
+  "subj": "location permission"
+ },
+ "privacy|privacy_camera": {
+  "name": "Block app access to camera",
+  "on": "Stops apps using your camera",
+  "state": "App access to camera blocked",
+  "subj": "camera permission"
+ },
+ "privacy|privacy_microphone": {
+  "name": "Block app access to microphone",
+  "on": "Stops apps using your microphone",
+  "state": "App access to microphone blocked",
+  "subj": "microphone permission"
+ },
+ "privacy|privacy_notifications": {
+  "name": "Block app access to notifications",
+  "on": "Stops apps using your notifications",
+  "state": "App access to notifications blocked",
+  "subj": "notifications permission"
+ },
+ "privacy|privacy_account_info": {
+  "name": "Block app access to account info",
+  "on": "Stops apps using your account info",
+  "state": "App access to account info blocked",
+  "subj": "account info permission"
+ },
+ "privacy|privacy_contacts": {
+  "name": "Block app access to contacts",
+  "on": "Stops apps using your contacts",
+  "state": "App access to contacts blocked",
+  "subj": "contacts permission"
+ },
+ "privacy|privacy_calendar": {
+  "name": "Block app access to calendar",
+  "on": "Stops apps using your calendar",
+  "state": "App access to calendar blocked",
+  "subj": "calendar permission"
+ },
+ "privacy|privacy_phone_calls": {
+  "name": "Block app access to phone calls",
+  "on": "Stops apps using your phone calls",
+  "state": "App access to phone calls blocked",
+  "subj": "phone calls permission"
+ },
+ "privacy|privacy_call_history": {
+  "name": "Block app access to call history",
+  "on": "Stops apps using your call history",
+  "state": "App access to call history blocked",
+  "subj": "call history permission"
+ },
+ "privacy|privacy_email": {
+  "name": "Block app access to email",
+  "on": "Stops apps using your email",
+  "state": "App access to email blocked",
+  "subj": "email permission"
+ },
+ "privacy|privacy_tasks": {
+  "name": "Block app access to tasks",
+  "on": "Stops apps using your tasks",
+  "state": "App access to tasks blocked",
+  "subj": "tasks permission"
+ },
+ "privacy|privacy_messaging": {
+  "name": "Block app access to messaging",
+  "on": "Stops apps using your messaging",
+  "state": "App access to messaging blocked",
+  "subj": "messaging permission"
+ },
+ "privacy|privacy_radios": {
+  "name": "Block app access to radios",
+  "on": "Stops apps using your radios",
+  "state": "App access to radios blocked",
+  "subj": "radios permission"
+ },
+ "privacy|privacy_bluetooth": {
+  "name": "Block app access to Bluetooth sync",
+  "on": "Stops apps using your Bluetooth sync",
+  "state": "App access to Bluetooth sync blocked",
+  "subj": "Bluetooth sync permission"
+ },
+ "privacy|privacy_app_diagnostics": {
+  "name": "Block app access to app diagnostics",
+  "on": "Stops apps using your app diagnostics",
+  "state": "App access to app diagnostics blocked",
+  "subj": "app diagnostics permission"
+ },
+ "privacy|privacy_documents": {
+  "name": "Block app access to documents library",
+  "on": "Stops apps using your documents library",
+  "state": "App access to documents library blocked",
+  "subj": "documents library permission"
+ },
+ "privacy|privacy_pictures": {
+  "name": "Block app access to pictures library",
+  "on": "Stops apps using your pictures library",
+  "state": "App access to pictures library blocked",
+  "subj": "pictures library permission"
+ },
+ "privacy|privacy_videos": {
+  "name": "Block app access to videos library",
+  "on": "Stops apps using your videos library",
+  "state": "App access to videos library blocked",
+  "subj": "videos library permission"
+ },
+ "privacy|privacy_filesystem": {
+  "name": "Block app access to file system",
+  "on": "Stops apps using your file system",
+  "state": "App access to file system blocked",
+  "subj": "file system permission"
+ },
+ "privacy|privacy_eyetracker": {
+  "name": "Block app access to eye tracker",
+  "on": "Stops apps using your eye tracker",
+  "state": "App access to eye tracker blocked",
+  "subj": "eye tracker permission"
+ },
+ "privacy|privacy_activity": {
+  "name": "Block app access to activity history",
+  "on": "Stops apps using your activity history",
+  "state": "App access to activity history blocked",
+  "subj": "activity history permission"
+ },
+ "privacy|privacy_screenshots": {
+  "name": "Block borderless screenshots by apps",
+  "on": "Stops apps taking screenshots without the yellow border",
+  "state": "Borderless screenshots blocked",
+  "subj": "screenshot permission"
+ },
+ "privacy|privacy_background_apps": {
+  "name": "Block background apps",
+  "on": "Stops apps running in the background",
+  "state": "Background apps blocked",
+  "subj": "background apps permission"
+ },
+ "brave|disable_rewards": {
+  "name": "Disable Brave Rewards",
+  "on": "Disables Brave Rewards",
+  "state": "Brave Rewards disabled",
+  "subj": "Brave Rewards settings"
+ },
+ "brave|disable_wallet": {
+  "name": "Disable Brave Wallet",
+  "on": "Disables Brave Wallet",
+  "state": "Brave Wallet disabled",
+  "subj": "Brave Wallet settings"
+ },
+ "brave|disable_vpn": {
+  "name": "Disable Brave VPN",
+  "on": "Disables Brave VPN",
+  "state": "Brave VPN disabled",
+  "subj": "Brave VPN settings"
+ },
+ "brave|disable_ai_chat": {
+  "name": "Disable Brave AI chat",
+  "on": "Disables Brave AI chat",
+  "state": "Brave AI chat disabled",
+  "subj": "Brave AI chat settings"
+ },
+ "brave|disable_stats_ping": {
+  "name": "Disable Brave stats ping",
+  "on": "Disables Brave stats ping",
+  "state": "Brave stats ping disabled",
+  "subj": "Brave stats ping settings"
+ },
+ "brave|disable_metrics": {
+  "name": "Disable metrics reporting",
+  "on": "Disables metrics reporting",
+  "state": "Metrics reporting disabled",
+  "subj": "metrics reporting settings"
+ },
+ "brave|disable_search_suggest": {
+  "name": "Disable search suggestions",
+  "on": "Disables search suggestions",
+  "state": "Search suggestions disabled",
+  "subj": "search suggestions settings"
+ },
+ "brave|disable_error_pages": {
+  "name": "Disable alternate error pages",
+  "on": "Disables alternate error pages",
+  "state": "Alternate error pages disabled",
+  "subj": "alternate error pages settings"
+ },
+ "brave|disable_network_prediction": {
+  "name": "Disable network prediction",
+  "on": "Disables network prediction",
+  "state": "Network prediction disabled",
+  "subj": "network prediction settings"
+ },
+ "brave|disable_background_mode": {
+  "name": "Disable background mode",
+  "on": "Disables background mode",
+  "state": "Background mode disabled",
+  "subj": "background mode settings"
+ },
+ "brave|disable_sync": {
+  "name": "Disable sync",
+  "on": "Disables sync",
+  "state": "Sync disabled",
+  "subj": "sync settings"
+ },
+ "brave|disable_password_manager": {
+  "name": "Disable password manager",
+  "on": "Disables password manager",
+  "state": "Password manager disabled",
+  "subj": "password manager settings"
+ },
+ "brave|disable_autofill_address": {
+  "name": "Disable autofill address",
+  "on": "Disables autofill address",
+  "state": "Autofill address disabled",
+  "subj": "autofill address settings"
+ },
+ "brave|disable_autofill_card": {
+  "name": "Disable autofill credit card",
+  "on": "Disables autofill credit card",
+  "state": "Autofill credit card disabled",
+  "subj": "autofill credit card settings"
+ },
+ "brave|set_homepage_newtab": {
+  "name": "Brave: use the New Tab page as home",
+  "on": "Sets the Brave home page to the New Tab page",
+  "state": "Home page is New Tab",
+  "subj": "Brave home page policy"
+ },
+ "brave|set_restore_newtab": {
+  "name": "Brave: open a new tab on startup",
+  "on": "Makes Brave start with a new tab instead of the last session",
+  "state": "Starts with a new tab",
+  "subj": "Brave startup policy"
+ },
+ "brave|enable_safe_browsing": {
+  "name": "Enable safe browsing",
+  "on": "Enables safe browsing",
+  "state": "Safe browsing enabled",
+  "subj": "safe browsing settings"
+ },
+ "brave|enable_https_only": {
+  "name": "Enable HTTPS only mode",
+  "on": "Enables HTTPS only mode",
+  "state": "HTTPS only mode enabled",
+  "subj": "HTTPS only mode settings"
+ },
+ "brave|apply_all_debloat": {
+  "name": "Brave: apply every debloat setting",
+  "on": "Applies all the Brave policies on this page at once",
+  "state": "All Brave policies applied",
+  "subj": "Brave policies"
+ },
+ "personalize|tb_tint": {
+  "name": "Show the accent colour on Start and taskbar",
+  "on": "Tints Start, the taskbar and Action Center with the accent colour",
+  "state": "Accent colour on Start and taskbar",
+  "subj": "accent colour setting"
+ },
+ "personalize|dwm_tint": {
+  "name": "Mirror the accent tint to the window manager",
+  "on": "Sets the DWM copy of the accent-tint flag, read by some apps and the lock screen",
+  "state": "DWM tint flag on",
+  "subj": "DWM tint flag"
+ },
+ "personalize|accent_blue": {
+  "name": "Accent colour: Windows blue",
+  "on": "Sets the Windows accent colour to Windows blue and restarts Explorer",
+  "state": "Accent colour Windows blue",
+  "subj": "accent colour",
+  "off": "Runs the undo command: sets the Windows default accent colour and restarts Explorer (your own earlier colour is not saved)"
+ },
+ "personalize|accent_teal": {
+  "name": "Accent colour: teal",
+  "on": "Sets the Windows accent colour to teal and restarts Explorer",
+  "state": "Accent colour teal",
+  "subj": "accent colour",
+  "off": "Runs the undo command: sets the Windows default accent colour and restarts Explorer (your own earlier colour is not saved)"
+ },
+ "personalize|accent_green": {
+  "name": "Accent colour: green",
+  "on": "Sets the Windows accent colour to green and restarts Explorer",
+  "state": "Accent colour green",
+  "subj": "accent colour",
+  "off": "Runs the undo command: sets the Windows default accent colour and restarts Explorer (your own earlier colour is not saved)"
+ },
+ "personalize|accent_lime": {
+  "name": "Accent colour: lime",
+  "on": "Sets the Windows accent colour to lime and restarts Explorer",
+  "state": "Accent colour lime",
+  "subj": "accent colour",
+  "off": "Runs the undo command: sets the Windows default accent colour and restarts Explorer (your own earlier colour is not saved)"
+ },
+ "personalize|accent_gold": {
+  "name": "Accent colour: gold",
+  "on": "Sets the Windows accent colour to gold and restarts Explorer",
+  "state": "Accent colour gold",
+  "subj": "accent colour",
+  "off": "Runs the undo command: sets the Windows default accent colour and restarts Explorer (your own earlier colour is not saved)"
+ },
+ "personalize|accent_orange": {
+  "name": "Accent colour: orange",
+  "on": "Sets the Windows accent colour to orange and restarts Explorer",
+  "state": "Accent colour orange",
+  "subj": "accent colour",
+  "off": "Runs the undo command: sets the Windows default accent colour and restarts Explorer (your own earlier colour is not saved)"
+ },
+ "personalize|accent_red": {
+  "name": "Accent colour: red",
+  "on": "Sets the Windows accent colour to red and restarts Explorer",
+  "state": "Accent colour red",
+  "subj": "accent colour",
+  "off": "Runs the undo command: sets the Windows default accent colour and restarts Explorer (your own earlier colour is not saved)"
+ },
+ "personalize|accent_pink": {
+  "name": "Accent colour: pink",
+  "on": "Sets the Windows accent colour to pink and restarts Explorer",
+  "state": "Accent colour pink",
+  "subj": "accent colour",
+  "off": "Runs the undo command: sets the Windows default accent colour and restarts Explorer (your own earlier colour is not saved)"
+ },
+ "personalize|accent_purple": {
+  "name": "Accent colour: purple",
+  "on": "Sets the Windows accent colour to purple and restarts Explorer",
+  "state": "Accent colour purple",
+  "subj": "accent colour",
+  "off": "Runs the undo command: sets the Windows default accent colour and restarts Explorer (your own earlier colour is not saved)"
+ },
+ "personalize|accent_gray": {
+  "name": "Accent colour: graphite",
+  "on": "Sets the Windows accent colour to graphite and restarts Explorer",
+  "state": "Accent colour graphite",
+  "subj": "accent colour",
+  "off": "Runs the undo command: sets the Windows default accent colour and restarts Explorer (your own earlier colour is not saved)"
+ },
+ "personalize|small_icons": {
+  "name": "Use small taskbar icons",
+  "on": "Uses small taskbar buttons and restarts Explorer",
+  "state": "Small taskbar icons",
+  "subj": "taskbar size",
+  "off": "Runs the undo command: sets normal taskbar icons and restarts Explorer"
+ },
+ "personalize|taskbar_no_combine": {
+  "name": "Never combine taskbar buttons",
+  "on": "Gives every window its own taskbar button",
+  "state": "Taskbar buttons never combined",
+  "subj": "taskbar combining setting",
+  "desc": "Forces each window to get its own taskbar button (TaskbarGlomLevel = 2)."
+ },
+ "personalize|clock_seconds": {
+  "name": "Show seconds in the taskbar clock",
+  "on": "Adds seconds to the taskbar clock",
+  "state": "Clock shows seconds",
+  "subj": "clock setting"
+ },
+ "personalize|tray_all_icons": {
+  "name": "Always show all tray icons",
+  "on": "Keeps every notification-area icon visible",
+  "state": "All tray icons visible",
+  "subj": "tray icon setting"
+ },
+ "personalize|start_recent": {
+  "name": "Show recently opened items in Start",
+  "on": "Shows recent files in Start and in taskbar jump lists",
+  "state": "Recent items shown",
+  "subj": "recent items setting",
+  "desc": "Shows recently opened items in Start and on the taskbar jump lists (Start_TrackDocs = 1)."
+ },
+ "personalize|start_frequent": {
+  "name": "Show most used apps in Start",
+  "on": "Lists your most used apps at the top of the Start app list",
+  "state": "Most used apps shown",
+  "subj": "most used apps setting",
+  "desc": "Shows your most frequently used apps at the top of the app list (Start_TrackProgs = 1)."
+ },
+ "personalize|desk_thispc": {
+  "name": "Show 'This PC' on the desktop",
+  "on": "Puts the This PC icon on the desktop",
+  "state": "This PC icon on the desktop",
+  "subj": "desktop icon setting",
+  "desc": "Shows the 'This PC' icon on the desktop. Applies immediately."
+ },
+ "personalize|desk_recyclebin": {
+  "name": "Show the Recycle Bin on the desktop",
+  "on": "Puts the Recycle Bin icon on the desktop",
+  "state": "Recycle Bin icon on the desktop",
+  "subj": "desktop icon setting",
+  "desc": "Shows the Recycle Bin icon on the desktop. Applies immediately."
+ },
+ "personalize|desk_userfiles": {
+  "name": "Show your user folder on the desktop",
+  "on": "Puts the user's files folder icon on the desktop",
+  "state": "User folder icon on the desktop",
+  "subj": "desktop icon setting",
+  "desc": "Shows the 'User's Files' folder icon on the desktop. Applies immediately."
+ },
+ "contextmenu|show_more_options": {
+  "name": "Use the classic right-click menu",
+  "on": "Brings back the full Windows 10 style right-click menu on Windows 11",
+  "state": "Classic right-click menu",
+  "subj": "right-click menu style"
+ },
+ "contextmenu|give_access_to": {
+  "name": "Remove \"Give access to\" from the right-click menu",
+  "on": "Removes \"Give access to\" from the right-click menu",
+  "state": "\"Give access to\" not in the right-click menu",
+  "subj": "\"Give access to\" menu entry"
+ },
+ "contextmenu|share": {
+  "name": "Remove \"Share\" from the right-click menu",
+  "on": "Removes \"Share\" from the right-click menu",
+  "state": "\"Share\" not in the right-click menu",
+  "subj": "\"Share\" menu entry"
+ },
+ "contextmenu|cast_to_device": {
+  "name": "Remove \"Cast to device\" from the right-click menu",
+  "on": "Removes \"Cast to device\" from the right-click menu",
+  "state": "\"Cast to device\" not in the right-click menu",
+  "subj": "\"Cast to device\" menu entry"
+ },
+ "contextmenu|scan_defender": {
+  "name": "Remove \"Scan with Defender\" from the right-click menu",
+  "on": "Removes \"Scan with Defender\" from the right-click menu",
+  "state": "\"Scan with Defender\" not in the right-click menu",
+  "subj": "\"Scan with Defender\" menu entry"
+ },
+ "contextmenu|pin_start": {
+  "name": "Remove \"Pin to Start\" from the right-click menu",
+  "on": "Removes \"Pin to Start\" from the right-click menu",
+  "state": "\"Pin to Start\" not in the right-click menu",
+  "subj": "\"Pin to Start\" menu entry"
+ },
+ "contextmenu|pin_taskbar": {
+  "name": "Remove \"Pin to taskbar\" from the right-click menu",
+  "on": "Removes \"Pin to taskbar\" from the right-click menu",
+  "state": "\"Pin to taskbar\" not in the right-click menu",
+  "subj": "\"Pin to taskbar\" menu entry"
+ },
+ "contextmenu|previous_versions": {
+  "name": "Remove \"Previous versions\" from the right-click menu",
+  "on": "Removes \"Previous versions\" from the right-click menu",
+  "state": "\"Previous versions\" not in the right-click menu",
+  "subj": "\"Previous versions\" menu entry"
+ },
+ "contextmenu|new_bing_search": {
+  "name": "Turn off web results in Windows search",
+  "on": "Stops the search box showing web suggestions",
+  "state": "No web results in search",
+  "subj": "search box setting"
+ },
+ "contextmenu|copy_path": {
+  "name": "Add \"Copy as path\" to the right-click menu",
+  "on": "Adds \"Copy as path\" to the right-click menu",
+  "state": "\"Copy as path\" in the right-click menu",
+  "subj": "right-click menu (the entry is removed again)"
+ },
+ "contextmenu|cmd_here": {
+  "name": "Add \"Open CMD here\" to the right-click menu",
+  "on": "Adds \"Open CMD here\" to the right-click menu",
+  "state": "\"Open CMD here\" in the right-click menu",
+  "subj": "right-click menu (the entry is removed again)"
+ },
+ "contextmenu|powershell_here": {
+  "name": "Add \"Open PowerShell here\" to the right-click menu",
+  "on": "Adds \"Open PowerShell here\" to the right-click menu",
+  "state": "\"Open PowerShell here\" in the right-click menu",
+  "subj": "right-click menu (the entry is removed again)"
+ },
+ "contextmenu|notepad": {
+  "name": "Add \"Open with Notepad\" to the right-click menu",
+  "on": "Adds \"Open with Notepad\" to the right-click menu",
+  "state": "\"Open with Notepad\" in the right-click menu",
+  "subj": "right-click menu (the entry is removed again)"
+ },
+ "contextmenu|take_ownership": {
+  "name": "Add \"Take ownership\" to the right-click menu",
+  "on": "Adds \"Take ownership\" to the right-click menu",
+  "state": "\"Take ownership\" in the right-click menu",
+  "subj": "right-click menu (the entry is removed again)"
+ },
+ "contextmenu|print": {
+  "name": "Remove \"Print\" from the right-click menu",
+  "on": "Removes \"Print\" from the right-click menu",
+  "state": "\"Print\" not in the right-click menu",
+  "subj": "\"Print\" menu entry"
+ },
+ "contextmenu|send_to": {
+  "name": "Remove \"Send to\" from the right-click menu",
+  "on": "Removes \"Send to\" from the right-click menu",
+  "state": "\"Send to\" not in the right-click menu",
+  "subj": "\"Send to\" menu entry"
+ },
+ "contextmenu|copy_to_folder": {
+  "name": "Remove \"Copy to folder\" from the right-click menu",
+  "on": "Removes \"Copy to folder\" from the right-click menu",
+  "state": "\"Copy to folder\" not in the right-click menu",
+  "subj": "\"Copy to folder\" menu entry"
+ },
+ "contextmenu|move_to_folder": {
+  "name": "Remove \"Move to folder\" from the right-click menu",
+  "on": "Removes \"Move to folder\" from the right-click menu",
+  "state": "\"Move to folder\" not in the right-click menu",
+  "subj": "\"Move to folder\" menu entry"
+ },
+ "privacy|activity_history_policy": {
+  "name": "Disable activity history (policy)",
+  "on": "Disables activity history (policy)",
+  "state": "Activity history (policy) disabled",
+  "subj": "activity history (policy) settings"
+ },
+ "privacy|location_all_users": {
+  "name": "Disable location for all users",
+  "on": "Disables location for all users",
+  "state": "Location for all users disabled",
+  "subj": "location for all users settings"
+ },
+ "privacy|maps_auto_update_off": {
+  "name": "Disable offline maps auto-update",
+  "on": "Disables offline maps auto-update",
+  "state": "Offline maps auto-update disabled",
+  "subj": "offline maps auto-update settings"
+ },
+ "privacy|feedback_notifications_off": {
+  "name": "Block feedback notifications (policy)",
+  "on": "Blocks feedback notifications (policy)",
+  "state": "Feedback notifications (policy) blocked",
+  "subj": "feedback notifications (policy) settings"
+ },
+ "privacy|feedback_frequency_never": {
+  "name": "Never ask for feedback",
+  "on": "Sets Windows feedback requests to Never",
+  "state": "Feedback requests: never",
+  "subj": "feedback frequency"
+ },
+ "privacy|error_reporting_off": {
+  "name": "Disable Windows error reporting",
+  "on": "Disables Windows error reporting",
+  "state": "Windows error reporting disabled",
+  "subj": "Windows error reporting settings"
+ },
+ "privacy|advertising_id_policy": {
+  "name": "Disable advertising ID (all users)",
+  "on": "Disables advertising ID (all users)",
+  "state": "Advertising ID (all users) disabled",
+  "subj": "advertising ID (all users) settings"
+ },
+ "privacy|tailored_experiences_off": {
+  "name": "Disable tailored experiences",
+  "on": "Disables tailored experiences",
+  "state": "Tailored experiences disabled",
+  "subj": "tailored experiences settings"
+ },
+ "privacy|inking_typing_off": {
+  "name": "Disable inking & typing personalisation",
+  "on": "Disables inking & typing personalisation",
+  "state": "Inking & typing personalisation disabled",
+  "subj": "inking & typing personalisation settings"
+ },
+ "privacy|typing_insights_off": {
+  "name": "Disable typing insights",
+  "on": "Disables typing insights",
+  "state": "Typing insights disabled",
+  "subj": "typing insights settings"
+ },
+ "privacy|limit_diagnostic_logs": {
+  "name": "Limit diagnostic log collection",
+  "on": "Sets the policy that limits diagnostic log collection",
+  "state": "Diagnostic logs limited",
+  "subj": "diagnostic log policy"
+ },
+ "privacy|limit_dump_collection": {
+  "name": "Limit crash-dump collection",
+  "on": "Sets the policy that limits crash-dump collection",
+  "state": "Crash dumps limited",
+  "subj": "crash-dump policy"
+ },
+ "privacy|autologger_diagtrack": {
+  "name": "Disable DiagTrack boot logger",
+  "on": "Disables DiagTrack boot logger",
+  "state": "DiagTrack boot logger disabled",
+  "subj": "DiagTrack boot logger settings"
+ },
+ "privacy|autologger_sqm": {
+  "name": "Disable SQM logger",
+  "on": "Disables SQM logger",
+  "state": "SQM logger disabled",
+  "subj": "SQM logger settings"
+ },
+ "privacy|autologger_setup_tel": {
+  "name": "Disable setup telemetry logger",
+  "on": "Disables setup telemetry logger",
+  "state": "Setup telemetry logger disabled",
+  "subj": "setup telemetry logger settings"
+ },
+ "privacy|autologger_oobe": {
+  "name": "Disable OOBE experience logger",
+  "on": "Disables OOBE experience logger",
+  "state": "OOBE experience logger disabled",
+  "subj": "OOBE experience logger settings"
+ },
+ "privacy|autologger_wifi": {
+  "name": "Disable Wi-Fi session trace",
+  "on": "Disables Wi-Fi session trace",
+  "state": "Wi-Fi session trace disabled",
+  "subj": "Wi-Fi session trace settings"
+ },
+ "privacy|autologger_lwtnet": {
+  "name": "Disable network lightweight trace",
+  "on": "Disables network lightweight trace",
+  "state": "Network lightweight trace disabled",
+  "subj": "network lightweight trace settings"
+ },
+ "network|ncsi_probe_off": {
+  "name": "Disable internet connectivity probes",
+  "on": "Disables internet connectivity probes",
+  "state": "Internet connectivity probes disabled",
+  "subj": "internet connectivity probes settings"
+ },
+ "network|delivery_optimization_p2p_off": {
+  "name": "Disable peer-to-peer update sharing",
+  "on": "Disables peer-to-peer update sharing",
+  "state": "Peer-to-peer update sharing disabled",
+  "subj": "peer-to-peer update sharing settings"
+ },
+ "network|nic_eee_off": {
+  "name": "Disable energy-efficient Ethernet",
+  "on": "Disables energy-efficient Ethernet",
+  "state": "Energy-efficient Ethernet disabled",
+  "subj": "energy-efficient Ethernet settings"
+ },
+ "network|nic_flow_control_off": {
+  "name": "Disable Ethernet flow control",
+  "on": "Disables Ethernet flow control",
+  "state": "Ethernet flow control disabled",
+  "subj": "Ethernet flow control settings"
+ },
+ "network|nic_interrupt_moderation_off": {
+  "name": "Disable interrupt moderation",
+  "on": "Disables interrupt moderation",
+  "state": "Interrupt moderation disabled",
+  "subj": "interrupt moderation settings"
+ },
+ "network|nic_wake_on_lan_off": {
+  "name": "Disable Wake-on-LAN",
+  "on": "Disables Wake-on-LAN",
+  "state": "Wake-on-LAN disabled",
+  "subj": "Wake-on-LAN settings"
+ },
+ "network|nic_vendor_power_saving_off": {
+  "name": "Disable NIC vendor power saving",
+  "on": "Disables NIC vendor power saving",
+  "state": "NIC vendor power saving disabled",
+  "subj": "NIC vendor power saving settings"
+ },
+ "network|nic_buffers_up": {
+  "name": "Use larger network adapter buffers",
+  "on": "Raises the receive and transmit buffers of the network adapters",
+  "state": "Larger adapter buffers",
+  "subj": "adapter buffer sizes"
+ },
+ "network|nic_lso_off": {
+  "name": "Disable large send offload",
+  "on": "Disables large send offload",
+  "state": "Large send offload disabled",
+  "subj": "large send offload settings"
+ },
+ "network|nic_no_power_off": {
+  "name": "Don't let Windows turn off the network adapter",
+  "on": "Stops Windows switching the adapter off to save power",
+  "state": "Adapter power saving off",
+  "subj": "adapter power settings"
+ },
+ "network|tcp_time_wait_30s": {
+  "name": "Shorten TCP TIME_WAIT to 30 seconds",
+  "on": "Frees closed TCP connections after 30 s instead of 120 s",
+  "state": "TIME_WAIT 30 s",
+  "subj": "TIME_WAIT setting"
+ },
+ "dns|doh_allow": {
+  "name": "Allow DNS-over-HTTPS",
+  "on": "Lets Windows upgrade DNS lookups to encrypted DNS-over-HTTPS where the server supports it",
+  "state": "DNS-over-HTTPS allowed",
+  "subj": "DNS-over-HTTPS policy"
+ },
+ "dns|llmnr_off": {
+  "name": "Disable LLMNR",
+  "on": "Disables LLMNR",
+  "state": "LLMNR disabled",
+  "subj": "LLMNR settings"
+ },
+ "dns|smart_multihomed_off": {
+  "name": "Disable smart multi-homed name resolution",
+  "on": "Disables smart multi-homed name resolution",
+  "state": "Smart multi-homed name resolution disabled",
+  "subj": "smart multi-homed name resolution settings"
+ },
+ "dns|mdns_off": {
+  "name": "Disable multicast DNS (mDNS)",
+  "on": "Disables multicast DNS (mDNS)",
+  "state": "Multicast DNS (mDNS) disabled",
+  "subj": "multicast DNS (mDNS) settings"
+ },
+ "dns|negative_cache_off": {
+  "name": "Don't cache failed DNS lookups",
+  "on": "Stops Windows remembering failed DNS lookups",
+  "state": "Failed lookups not cached",
+  "subj": "DNS cache setting"
+ },
+ "dns|netbios_off": {
+  "name": "Disable NetBIOS over TCP/IP",
+  "on": "Disables NetBIOS over TCP/IP",
+  "state": "NetBIOS over TCP/IP disabled",
+  "subj": "NetBIOS over TCP/IP settings"
+ },
+ "security|remote_assistance_off": {
+  "name": "Block Remote Assistance invitations",
+  "on": "Stops this PC accepting Remote Assistance invitations",
+  "state": "Remote Assistance blocked",
+  "subj": "Remote Assistance policy"
+ },
+ "security|autorun_off": {
+  "name": "Disable autorun on all drives",
+  "on": "Disables autorun on all drives",
+  "state": "Autorun on all drives disabled",
+  "subj": "autorun on all drives settings"
+ },
+ "security|wsh_off": {
+  "name": "Disable Windows Script Host",
+  "on": "Blocks .vbs and .js scripts run by Windows Script Host",
+  "state": "Windows Script Host off",
+  "subj": "Script Host setting"
+ },
+ "security|lsa_protection_on": {
+  "name": "Enable LSA protection",
+  "on": "Enables LSA protection",
+  "state": "LSA protection enabled",
+  "subj": "LSA protection settings"
+ },
+ "security|uac_always_notify": {
+  "name": "UAC: always notify",
+  "on": "Raises User Account Control to its highest level",
+  "state": "UAC at its highest level",
+  "subj": "UAC level"
+ },
+ "security|clear_pagefile_at_shutdown": {
+  "name": "Clear the page file at shutdown",
+  "on": "Wipes the page file every time Windows shuts down",
+  "state": "Page file cleared at shutdown",
+  "subj": "page file setting"
+ },
+ "security|smb1_off": {
+  "name": "Remove SMB 1.0 support",
+  "on": "Removes SMB 1.0 support",
+  "state": "SMB 1.0 support removed",
+  "subj": "SMB 1.0 support settings"
+ },
+ "security|powershell_v2_off": {
+  "name": "Remove PowerShell 2.0 engine",
+  "on": "Removes PowerShell 2.0 engine",
+  "state": "PowerShell 2.0 engine removed",
+  "subj": "PowerShell 2.0 engine settings"
+ },
+ "services|svc_wap_push": {
+  "name": "Disable WAP Push Message Routing",
+  "on": "Sets WAP Push Message Routing service to Disabled",
+  "state": "WAP Push Message Routing service disabled",
+  "subj": "start type of WAP Push Message Routing service"
+ },
+ "services|svc_diag_hub": {
+  "name": "Disable Diagnostics Hub Collector",
+  "on": "Sets Diagnostics Hub Collector service to Disabled",
+  "state": "Diagnostics Hub Collector service disabled",
+  "subj": "start type of Diagnostics Hub Collector service"
+ },
+ "services|svc_maps_broker": {
+  "name": "Disable Downloaded Maps Manager",
+  "on": "Sets Downloaded Maps Manager service to Disabled",
+  "state": "Downloaded Maps Manager service disabled",
+  "subj": "start type of Downloaded Maps Manager service"
+ },
+ "services|svc_geolocation": {
+  "name": "Disable Geolocation Service",
+  "on": "Sets Geolocation Service to Disabled",
+  "state": "Geolocation Service disabled",
+  "subj": "start type of Geolocation Service"
+ },
+ "services|svc_retail_demo": {
+  "name": "Disable Retail Demo Service",
+  "on": "Sets Retail Demo Service to Disabled",
+  "state": "Retail Demo Service disabled",
+  "subj": "start type of Retail Demo Service"
+ },
+ "services|svc_wer": {
+  "name": "Disable Windows Error Reporting Service",
+  "on": "Sets Windows Error Reporting Service to Disabled",
+  "state": "Windows Error Reporting Service disabled",
+  "subj": "start type of Windows Error Reporting Service"
+ },
+ "services|svc_wer_cpl": {
+  "name": "Disable Problem Reports Control Panel Support",
+  "on": "Sets Problem Reports Control Panel Support service to Disabled",
+  "state": "Problem Reports Control Panel Support service disabled",
+  "subj": "start type of Problem Reports Control Panel Support service"
+ },
+ "services|svc_pca": {
+  "name": "Disable Program Compatibility Assistant",
+  "on": "Sets Program Compatibility Assistant service to Disabled",
+  "state": "Program Compatibility Assistant service disabled",
+  "subj": "start type of Program Compatibility Assistant service"
+ },
+ "services|svc_spooler": {
+  "name": "Disable Print Spooler",
+  "on": "Sets Print Spooler service to Disabled",
+  "state": "Print Spooler service disabled",
+  "subj": "start type of Print Spooler service"
+ },
+ "services|svc_fax": {
+  "name": "Disable Fax Service",
+  "on": "Sets Fax Service to Disabled",
+  "state": "Fax Service disabled",
+  "subj": "start type of Fax Service"
+ },
+ "services|svc_wmp_share": {
+  "name": "Disable Windows Media Player Network Sharing",
+  "on": "Sets Windows Media Player Network Sharing service to Disabled",
+  "state": "Windows Media Player Network Sharing service disabled",
+  "subj": "start type of Windows Media Player Network Sharing service"
+ },
+ "services|svc_xbl_game_save": {
+  "name": "Disable Xbox Live Game Save",
+  "on": "Sets Xbox Live Game Save service to Disabled",
+  "state": "Xbox Live Game Save service disabled",
+  "subj": "start type of Xbox Live Game Save service"
+ },
+ "services|svc_gamedvr_user": {
+  "name": "Disable Game DVR & Broadcast User Service",
+  "on": "Sets Game DVR & Broadcast User Service to Disabled",
+  "state": "Game DVR & Broadcast User Service disabled",
+  "subj": "start type of Game DVR & Broadcast User Service"
+ },
+ "services|svc_capture": {
+  "name": "Disable Capture Service",
+  "on": "Sets Capture Service to Disabled",
+  "state": "Capture Service disabled",
+  "subj": "start type of Capture Service"
+ },
+ "services|svc_clipboard": {
+  "name": "Disable Clipboard User Service",
+  "on": "Sets Clipboard User Service to Disabled",
+  "state": "Clipboard User Service disabled",
+  "subj": "start type of Clipboard User Service"
+ },
+ "services|svc_phone": {
+  "name": "Disable Phone Service",
+  "on": "Sets Phone Service to Disabled",
+  "state": "Phone Service disabled",
+  "subj": "start type of Phone Service"
+ },
+ "services|svc_tapi": {
+  "name": "Disable Telephony (TAPI)",
+  "on": "Sets Telephony (TAPI) service to Disabled",
+  "state": "Telephony (TAPI) service disabled",
+  "subj": "start type of Telephony (TAPI) service"
+ },
+ "services|svc_payments_nfc": {
+  "name": "Disable Payments and NFC/SE Manager",
+  "on": "Sets Payments and NFC/SE Manager service to Disabled",
+  "state": "Payments and NFC/SE Manager service disabled",
+  "subj": "start type of Payments and NFC/SE Manager service"
+ },
+ "services|svc_wallet": {
+  "name": "Disable Wallet Service",
+  "on": "Sets Wallet Service to Disabled",
+  "state": "Wallet Service disabled",
+  "subj": "start type of Wallet Service"
+ },
+ "services|svc_messaging": {
+  "name": "Disable Messaging Service",
+  "on": "Sets Messaging Service to Disabled",
+  "state": "Messaging Service disabled",
+  "subj": "start type of Messaging Service"
+ },
+ "services|svc_contact_index": {
+  "name": "Disable Contact Data Indexing",
+  "on": "Sets Contact Data Indexing service to Disabled",
+  "state": "Contact Data Indexing service disabled",
+  "subj": "start type of Contact Data Indexing service"
+ },
+ "services|svc_sync_host": {
+  "name": "Disable Sync Host",
+  "on": "Sets Sync Host service to Disabled",
+  "state": "Sync Host service disabled",
+  "subj": "start type of Sync Host service"
+ },
+ "services|svc_hotspot": {
+  "name": "Disable Mobile Hotspot Service",
+  "on": "Sets Mobile Hotspot Service to Disabled",
+  "state": "Mobile Hotspot Service disabled",
+  "subj": "start type of Mobile Hotspot Service"
+ },
+ "services|svc_lltd": {
+  "name": "Disable Link-Layer Topology Discovery Mapper",
+  "on": "Sets Link-Layer Topology Discovery Mapper service to Disabled",
+  "state": "Link-Layer Topology Discovery Mapper service disabled",
+  "subj": "start type of Link-Layer Topology Discovery Mapper service"
+ },
+ "services|svc_ssdp": {
+  "name": "Disable SSDP Discovery",
+  "on": "Sets SSDP Discovery service to Disabled",
+  "state": "SSDP Discovery service disabled",
+  "subj": "start type of SSDP Discovery service"
+ },
+ "services|svc_upnp_host": {
+  "name": "Disable UPnP Device Host",
+  "on": "Sets UPnP Device Host service to Disabled",
+  "state": "UPnP Device Host service disabled",
+  "subj": "start type of UPnP Device Host service"
+ },
+ "services|svc_fd_host": {
+  "name": "Disable Function Discovery Provider Host",
+  "on": "Sets Function Discovery Provider Host service to Disabled",
+  "state": "Function Discovery Provider Host service disabled",
+  "subj": "start type of Function Discovery Provider Host service"
+ },
+ "services|svc_fd_publish": {
+  "name": "Disable Function Discovery Resource Publication",
+  "on": "Sets Function Discovery Resource Publication service to Disabled",
+  "state": "Function Discovery Resource Publication service disabled",
+  "subj": "start type of Function Discovery Resource Publication service"
+ },
+ "services|svc_ics": {
+  "name": "Disable Internet Connection Sharing",
+  "on": "Sets Internet Connection Sharing service to Disabled",
+  "state": "Internet Connection Sharing service disabled",
+  "subj": "start type of Internet Connection Sharing service"
+ },
+ "services|svc_netbios_helper": {
+  "name": "Disable TCP/IP NetBIOS Helper",
+  "on": "Sets TCP/IP NetBIOS Helper service to Disabled",
+  "state": "TCP/IP NetBIOS Helper service disabled",
+  "subj": "start type of TCP/IP NetBIOS Helper service"
+ },
+ "services|svc_biometrics": {
+  "name": "Disable Windows Biometric Service",
+  "on": "Sets Windows Biometric Service to Disabled",
+  "state": "Windows Biometric Service disabled",
+  "subj": "start type of Windows Biometric Service"
+ },
+ "services|svc_sensor": {
+  "name": "Disable Sensor Service",
+  "on": "Sets Sensor Service to Disabled",
+  "state": "Sensor Service disabled",
+  "subj": "start type of Sensor Service"
+ },
+ "services|svc_sensor_monitor": {
+  "name": "Disable Sensor Monitoring Service",
+  "on": "Sets Sensor Monitoring Service to Disabled",
+  "state": "Sensor Monitoring Service disabled",
+  "subj": "start type of Sensor Monitoring Service"
+ },
+ "services|svc_sensor_data": {
+  "name": "Disable Sensor Data Service",
+  "on": "Sets Sensor Data Service to Disabled",
+  "state": "Sensor Data Service disabled",
+  "subj": "start type of Sensor Data Service"
+ },
+ "services|svc_parental": {
+  "name": "Disable Parental Controls",
+  "on": "Sets Parental Controls service to Disabled",
+  "state": "Parental Controls service disabled",
+  "subj": "start type of Parental Controls service"
+ },
+ "services|svc_link_tracking": {
+  "name": "Disable Distributed Link Tracking Client",
+  "on": "Sets Distributed Link Tracking Client service to Disabled",
+  "state": "Distributed Link Tracking Client service disabled",
+  "subj": "start type of Distributed Link Tracking Client service"
+ },
+ "services|svc_wia": {
+  "name": "Disable Windows Image Acquisition (WIA)",
+  "on": "Sets Windows Image Acquisition (WIA) service to Disabled",
+  "state": "Windows Image Acquisition (WIA) service disabled",
+  "subj": "start type of Windows Image Acquisition (WIA) service"
+ },
+ "services|svc_wia_events": {
+  "name": "Disable Still Image Acquisition Events",
+  "on": "Sets Still Image Acquisition Events service to Disabled",
+  "state": "Still Image Acquisition Events service disabled",
+  "subj": "start type of Still Image Acquisition Events service"
+ },
+ "services|svc_alljoyn": {
+  "name": "Disable AllJoyn Router",
+  "on": "Sets AllJoyn Router service to Disabled",
+  "state": "AllJoyn Router service disabled",
+  "subj": "start type of AllJoyn Router service"
+ },
+ "services|svc_alg": {
+  "name": "Disable Application Layer Gateway",
+  "on": "Sets Application Layer Gateway service to Disabled",
+  "state": "Application Layer Gateway service disabled",
+  "subj": "start type of Application Layer Gateway service"
+ },
+ "services|svc_branchcache": {
+  "name": "Disable BranchCache",
+  "on": "Sets BranchCache service to Disabled",
+  "state": "BranchCache service disabled",
+  "subj": "start type of BranchCache service"
+ },
+ "services|svc_peer_grouping": {
+  "name": "Disable Peer Networking Grouping",
+  "on": "Sets Peer Networking Grouping service to Disabled",
+  "state": "Peer Networking Grouping service disabled",
+  "subj": "start type of Peer Networking Grouping service"
+ },
+ "services|svc_pnrp": {
+  "name": "Disable Peer Name Resolution Protocol",
+  "on": "Sets Peer Name Resolution Protocol service to Disabled",
+  "state": "Peer Name Resolution Protocol service disabled",
+  "subj": "start type of Peer Name Resolution Protocol service"
+ },
+ "services|svc_smart_card": {
+  "name": "Disable Smart Card",
+  "on": "Sets Smart Card service to Disabled",
+  "state": "Smart Card service disabled",
+  "subj": "start type of Smart Card service"
+ },
+ "services|svc_cert_propagation": {
+  "name": "Disable Certificate Propagation",
+  "on": "Sets Certificate Propagation service to Disabled",
+  "state": "Certificate Propagation service disabled",
+  "subj": "start type of Certificate Propagation service"
+ },
+ "services|svc_dps": {
+  "name": "Disable Diagnostic Policy Service",
+  "on": "Sets Diagnostic Policy Service to Disabled",
+  "state": "Diagnostic Policy Service disabled",
+  "subj": "start type of Diagnostic Policy Service"
+ },
+ "services|svc_diag_exec": {
+  "name": "Disable Diagnostic Execution Service",
+  "on": "Sets Diagnostic Execution Service to Disabled",
+  "state": "Diagnostic Execution Service disabled",
+  "subj": "start type of Diagnostic Execution Service"
+ },
+ "services|svc_troubleshooting": {
+  "name": "Disable Recommended Troubleshooting",
+  "on": "Sets Recommended Troubleshooting service to Disabled",
+  "state": "Recommended Troubleshooting service disabled",
+  "subj": "start type of Recommended Troubleshooting service"
+ },
+ "services|svc_inventory": {
+  "name": "Disable Inventory and Compatibility Appraisal",
+  "on": "Sets Inventory and Compatibility Appraisal service to Disabled",
+  "state": "Inventory and Compatibility Appraisal service disabled",
+  "subj": "start type of Inventory and Compatibility Appraisal service"
+ },
+ "services|svc_health_experiences": {
+  "name": "Disable Windows Health and Optimized Experiences",
+  "on": "Sets Windows Health and Optimized Experiences service to Disabled",
+  "state": "Windows Health and Optimized Experiences service disabled",
+  "subj": "start type of Windows Health and Optimized Experiences service"
+ },
+ "services|svc_gpu_perf_diag": {
+  "name": "Disable Graphics Perf Diagnostic",
+  "on": "Sets Graphics Perf Diagnostic service to Disabled",
+  "state": "Graphics Perf Diagnostic service disabled",
+  "subj": "start type of Graphics Perf Diagnostic service"
+ },
+ "services|svc_file_sharing_server": {
+  "name": "Disable File & Printer Sharing Server",
+  "on": "Sets File & Printer Sharing Server service to Disabled",
+  "state": "File & Printer Sharing Server service disabled",
+  "subj": "start type of File & Printer Sharing Server service"
+ },
+ "services|svc_auto_timezone": {
+  "name": "Disable Auto Time Zone Updater",
+  "on": "Sets Auto Time Zone Updater service to Disabled",
+  "state": "Auto Time Zone Updater service disabled",
+  "subj": "start type of Auto Time Zone Updater service"
+ },
+ "services|svc_nv_display_container": {
+  "name": "Disable NVIDIA Display Container",
+  "on": "Sets NVIDIA Display Container service to Disabled",
+  "state": "NVIDIA Display Container service disabled",
+  "subj": "start type of NVIDIA Display Container service"
+ },
+ "services|svc_nv_container": {
+  "name": "Disable NVIDIA LocalSystem Container",
+  "on": "Sets NVIDIA LocalSystem Container service to Disabled",
+  "state": "NVIDIA LocalSystem Container service disabled",
+  "subj": "start type of NVIDIA LocalSystem Container service"
+ },
+ "services|svc_intel_lms": {
+  "name": "Disable Intel Management Engine Local Management",
+  "on": "Sets Intel Management Engine Local Management service to Disabled",
+  "state": "Intel Management Engine Local Management service disabled",
+  "subj": "start type of Intel Management Engine Local Management service"
+ },
+ "services|svc_offline_files": {
+  "name": "Disable Offline Files",
+  "on": "Sets Offline Files service to Disabled",
+  "state": "Offline Files service disabled",
+  "subj": "start type of Offline Files service"
+ },
+ "services|svc_beep": {
+  "name": "Disable PC Speaker Beep Driver",
+  "on": "Sets PC Speaker Beep Driver to Disabled",
+  "state": "PC Speaker Beep Driver disabled",
+  "subj": "start type of PC Speaker Beep Driver"
+ },
+ "services|svc_firewire": {
+  "name": "Disable FireWire (IEEE 1394) Controller",
+  "on": "Sets FireWire (IEEE 1394) Controller to Disabled",
+  "state": "FireWire (IEEE 1394) Controller disabled",
+  "subj": "start type of FireWire (IEEE 1394) Controller"
+ },
+ "tasks|task_compat_appraiser": {
+  "name": "Disable the compatibility appraiser task",
+  "on": "Disables the compatibility appraiser scheduled task",
+  "state": "Compatibility appraiser task disabled",
+  "subj": "state of the task (enabled or disabled)"
+ },
+ "tasks|task_program_data_updater": {
+  "name": "Disable the program data updater task",
+  "on": "Disables the program data updater scheduled task",
+  "state": "Program data updater task disabled",
+  "subj": "state of the task (enabled or disabled)"
+ },
+ "tasks|task_mare_backup": {
+  "name": "Disable the compatibility data backup task",
+  "on": "Disables the compatibility data backup scheduled task",
+  "state": "Compatibility data backup task disabled",
+  "subj": "state of the task (enabled or disabled)"
+ },
+ "tasks|task_startup_app_task": {
+  "name": "Disable the startup app impact scan task",
+  "on": "Disables the startup app impact scan scheduled task",
+  "state": "Startup app impact scan task disabled",
+  "subj": "state of the task (enabled or disabled)"
+ },
+ "tasks|task_autochk_proxy": {
+  "name": "Disable the Autochk SQM proxy task",
+  "on": "Disables the Autochk SQM proxy scheduled task",
+  "state": "Autochk SQM proxy task disabled",
+  "subj": "state of the task (enabled or disabled)"
+ },
+ "tasks|task_ceip_consolidator": {
+  "name": "Disable the CEIP consolidator task",
+  "on": "Disables the CEIP consolidator scheduled task",
+  "state": "CEIP consolidator task disabled",
+  "subj": "state of the task (enabled or disabled)"
+ },
+ "tasks|task_ceip_usb": {
+  "name": "Disable the USB CEIP task",
+  "on": "Disables the USB CEIP scheduled task",
+  "state": "USB CEIP task disabled",
+  "subj": "state of the task (enabled or disabled)"
+ },
+ "tasks|task_disk_diag": {
+  "name": "Disable the disk diagnostic data collector task",
+  "on": "Disables the disk diagnostic data collector scheduled task",
+  "state": "Disk diagnostic data collector task disabled",
+  "subj": "state of the task (enabled or disabled)"
+ },
+ "tasks|task_siuf_dmclient": {
+  "name": "Disable the feedback data client task",
+  "on": "Disables the feedback data client scheduled task",
+  "state": "Feedback data client task disabled",
+  "subj": "state of the task (enabled or disabled)"
+ },
+ "tasks|task_siuf_scenario": {
+  "name": "Disable the feedback scenario download task",
+  "on": "Disables the feedback scenario download scheduled task",
+  "state": "Feedback scenario download task disabled",
+  "subj": "state of the task (enabled or disabled)"
+ },
+ "tasks|task_wer_queue": {
+  "name": "Disable the queued error reporting task",
+  "on": "Disables the queued error reporting scheduled task",
+  "state": "Queued error reporting task disabled",
+  "subj": "state of the task (enabled or disabled)"
+ },
+ "tasks|task_maps_update": {
+  "name": "Disable the maps update task",
+  "on": "Disables the maps update scheduled task",
+  "state": "Maps update task disabled",
+  "subj": "state of the task (enabled or disabled)"
+ },
+ "tasks|task_maps_toast": {
+  "name": "Disable the maps notifications task",
+  "on": "Disables the maps notifications scheduled task",
+  "state": "Maps notifications task disabled",
+  "subj": "state of the task (enabled or disabled)"
+ },
+ "tasks|task_net_trace": {
+  "name": "Disable the gather network info task",
+  "on": "Disables the gather network info scheduled task",
+  "state": "Gather network info task disabled",
+  "subj": "state of the task (enabled or disabled)"
+ },
+ "tasks|task_power_efficiency": {
+  "name": "Disable the power efficiency diagnostics task",
+  "on": "Disables the power efficiency diagnostics scheduled task",
+  "state": "Power efficiency diagnostics task disabled",
+  "subj": "state of the task (enabled or disabled)"
+ },
+ "tasks|task_device_census": {
+  "name": "Disable the device census task",
+  "on": "Disables the device census scheduled task",
+  "state": "Device census task disabled",
+  "subj": "state of the task (enabled or disabled)"
+ },
+ "tasks|task_device_census_user": {
+  "name": "Disable the device census (user) task",
+  "on": "Disables the device census (user) scheduled task",
+  "state": "Device census (user) task disabled",
+  "subj": "state of the task (enabled or disabled)"
+ },
+ "tasks|task_xbl_save_task": {
+  "name": "Disable the Xbox game save sync task",
+  "on": "Disables the Xbox game save sync scheduled task",
+  "state": "Xbox game save sync task disabled",
+  "subj": "state of the task (enabled or disabled)"
+ },
+ "tasks|task_family_monitor": {
+  "name": "Disable the family safety monitor task",
+  "on": "Disables the family safety monitor scheduled task",
+  "state": "Family safety monitor task disabled",
+  "subj": "state of the task (enabled or disabled)"
+ },
+ "tasks|task_family_refresh": {
+  "name": "Disable the family safety refresh task",
+  "on": "Disables the family safety refresh scheduled task",
+  "state": "Family safety refresh task disabled",
+  "subj": "state of the task (enabled or disabled)"
+ },
+ "tasks|task_sqm_tasks": {
+  "name": "Disable the SQM tasks",
+  "on": "Disables the SQM tasks scheduled tasks",
+  "state": "SQM tasks disabled",
+  "subj": "state of the task (enabled or disabled)"
+ },
+ "debloat|toast_notifications_off": {
+  "name": "Disable app notification banners",
+  "on": "Disables app notification banners",
+  "state": "App notification banners disabled",
+  "subj": "app notification banners settings"
+ },
+ "debloat|silent_app_installs_off": {
+  "name": "Stop silent installs of suggested apps",
+  "on": "Stops silent installs of suggested apps",
+  "state": "Silent installs of suggested apps stopped",
+  "subj": "silent installs of suggested apps settings"
+ },
+ "debloat|start_suggestions_off": {
+  "name": "Hide app suggestions in Start",
+  "on": "Hides app suggestions in Start",
+  "state": "App suggestions in Start hidden",
+  "subj": "app suggestions in Start settings"
+ },
+ "debloat|windows_tips_off": {
+  "name": "Disable 'Tips and suggestions' notifications",
+  "on": "Disables 'Tips and suggestions' notifications",
+  "state": "'Tips and suggestions' notifications disabled",
+  "subj": "'Tips and suggestions' notifications settings"
+ },
+ "debloat|lock_screen_tips_off": {
+  "name": "Hide fun facts & tips on the lock screen",
+  "on": "Hides fun facts & tips on the lock screen",
+  "state": "Fun facts & tips on the lock screen hidden",
+  "subj": "fun facts & tips on the lock screen settings"
+ },
+ "debloat|finish_setup_prompt_off": {
+  "name": "Disable 'Finish setting up your device' screen",
+  "on": "Disables 'Finish setting up your device' screen",
+  "state": "'Finish setting up your device' screen disabled",
+  "subj": "'Finish setting up your device' screen settings"
+ },
+ "debloat|consumer_features_off": {
+  "name": "Disable Microsoft consumer experiences",
+  "on": "Disables Microsoft consumer experiences",
+  "state": "Microsoft consumer experiences disabled",
+  "subj": "Microsoft consumer experiences settings"
+ },
+ "debloat|block_device_coinstallers": {
+  "name": "Block device companion software auto-install",
+  "on": "Blocks device companion software auto-install",
+  "state": "Device companion software auto-install blocked",
+  "subj": "device companion software auto-install settings"
+ },
+ "debloat|no_driver_search_wu": {
+  "name": "Don't search Windows Update for drivers",
+  "on": "Stops Windows looking for device drivers on Windows Update",
+  "state": "No driver search on Windows Update",
+  "subj": "driver search setting"
+ },
+ "debloat|exclude_wu_drivers": {
+  "name": "Exclude drivers from Windows Update",
+  "on": "Stops Windows Update installing driver updates",
+  "state": "Drivers excluded from updates",
+  "subj": "driver update policy"
+ },
+ "debloat|device_metadata_off": {
+  "name": "Don't download device metadata",
+  "on": "Stops Windows downloading device icons and info from the internet",
+  "state": "Device metadata not downloaded",
+  "subj": "device metadata setting"
+ },
+ "debloat|meet_now_off": {
+  "name": "Hide Meet Now (Windows 10)",
+  "on": "Hides Meet Now (Windows 10)",
+  "state": "Meet Now (Windows 10) hidden",
+  "subj": "Meet Now (Windows 10) settings"
+ },
+ "debloat|news_interests_off_w10": {
+  "name": "Disable news and interests (Windows 10)",
+  "on": "Disables news and interests (Windows 10)",
+  "state": "News and interests (Windows 10) disabled",
+  "subj": "news and interests (Windows 10) settings"
+ },
+ "debloat|hide_start_recommended": {
+  "name": "Hide the Start 'Recommended' section",
+  "on": "Hides the whole Recommended area of the Windows 11 Start menu",
+  "state": "Start 'Recommended' hidden",
+  "subj": "Start policies"
+ },
+ "debloat|lock_screen_off": {
+  "name": "Skip the lock screen",
+  "on": "Goes straight to the sign-in screen",
+  "state": "Lock screen skipped",
+  "subj": "lock screen policy"
+ },
+ "debloat|notepad_ai_off": {
+  "name": "Disable AI features in Notepad",
+  "on": "Disables AI features in Notepad",
+  "state": "AI features in Notepad disabled",
+  "subj": "AI features in Notepad settings"
+ },
+ "debloat|start_account_notifications_off": {
+  "name": "Hide account notifications in Start",
+  "on": "Hides account notifications in Start",
+  "state": "Account notifications in Start hidden",
+  "subj": "account notifications in Start settings"
+ },
+ "edge|edge_shopping_off": {
+  "name": "Disable shopping assistant",
+  "on": "Disables shopping assistant",
+  "state": "Shopping assistant disabled",
+  "subj": "shopping assistant settings"
+ },
+ "edge|edge_sidebar_off": {
+  "name": "Edge: hide the sidebar",
+  "on": "Hides the Edge sidebar",
+  "state": "Sidebar hidden",
+  "subj": "Edge sidebar policy"
+ },
+ "edge|edge_startup_boost_off": {
+  "name": "Disable startup boost",
+  "on": "Disables startup boost",
+  "state": "Startup boost disabled",
+  "subj": "startup boost settings"
+ },
+ "edge|edge_recommendations_off": {
+  "name": "Disable tips & recommendations",
+  "on": "Disables tips & recommendations",
+  "state": "Tips & recommendations disabled",
+  "subj": "tips & recommendations settings"
+ },
+ "edge|edge_personalization_off": {
+  "name": "Disable browsing-data personalisation",
+  "on": "Disables browsing-data personalisation",
+  "state": "Browsing-data personalisation disabled",
+  "subj": "browsing-data personalisation settings"
+ },
+ "edge|edge_feedback_off": {
+  "name": "Disable feedback prompts",
+  "on": "Disables feedback prompts",
+  "state": "Feedback prompts disabled",
+  "subj": "feedback prompts settings"
+ },
+ "edge|edge_newtab_content_off": {
+  "name": "Hide new tab news feed",
+  "on": "Hides new tab news feed",
+  "state": "New tab news feed hidden",
+  "subj": "new tab news feed settings"
+ },
+ "edge|edge_first_run_off": {
+  "name": "Edge: skip the first-run setup",
+  "on": "Stops Edge showing its first-run setup pages",
+  "state": "First-run setup skipped",
+  "subj": "Edge first-run policy"
+ },
+ "edge|edge_desktop_shortcut_off": {
+  "name": "Edge: no desktop shortcut after updates",
+  "on": "Stops Edge updates putting a shortcut back on the desktop",
+  "state": "No shortcut after updates",
+  "subj": "Edge shortcut policy"
+ },
+ "gaming|background_recording_off": {
+  "name": "Disable background recording",
+  "on": "Disables background recording",
+  "state": "Background recording disabled",
+  "subj": "background recording settings"
+ },
+ "gaming|app_capture_off": {
+  "name": "Disable Game Bar captures (your account)",
+  "on": "Turns off Game Bar screenshots and clips for your account",
+  "state": "Game Bar captures off",
+  "subj": "capture settings"
+ },
+ "gaming|windowed_game_optimizations": {
+  "name": "Enable optimizations for windowed games",
+  "on": "Turns on the Windows setting that lowers latency for games in windowed mode",
+  "state": "Windowed game optimizations on",
+  "subj": "windowed game setting"
+ },
+ "gaming|global_timer_resolution": {
+  "name": "Allow global timer resolution requests",
+  "on": "Lets a program's timer resolution request apply system-wide again",
+  "state": "Global timer requests allowed",
+  "subj": "timer resolution setting"
+ },
+ "cpu|epp_performance_ac": {
+  "name": "Favour CPU performance (plugged in)",
+  "on": "Sets the processor energy preference to maximum performance when plugged in",
+  "state": "Energy preference: performance",
+  "subj": "processor energy preference"
+ },
+ "cpu|hybrid_prefer_pcores": {
+  "name": "Hybrid CPUs: prefer performance cores",
+  "on": "Makes Windows schedule work on performance cores first",
+  "state": "Performance cores preferred",
+  "subj": "core scheduling policy"
+ },
+ "memory|sysmain_off": {
+  "name": "Disable SysMain (Superfetch)",
+  "on": "Disables SysMain (Superfetch)",
+  "state": "SysMain (Superfetch) disabled",
+  "subj": "SysMain (Superfetch) settings"
+ },
+ "memory|svchost_grouping": {
+  "name": "Group svchost services",
+  "on": "Runs more services together in shared svchost processes",
+  "state": "Svchost services grouped",
+  "subj": "svchost split setting"
+ },
+ "memory|memory_compression_off": {
+  "name": "Disable memory compression",
+  "on": "Disables memory compression",
+  "state": "Memory compression disabled",
+  "subj": "memory compression settings"
+ },
+ "memory|page_combining_off": {
+  "name": "Disable page combining",
+  "on": "Disables page combining",
+  "state": "Page combining disabled",
+  "subj": "page combining settings"
+ },
+ "memory|app_prelaunch_off": {
+  "name": "Disable app pre-launch",
+  "on": "Disables app pre-launch",
+  "state": "App pre-launch disabled",
+  "subj": "app pre-launch settings"
+ },
+ "memory|paging_executive_off": {
+  "name": "Keep the kernel and drivers in RAM",
+  "on": "Stops Windows paging kernel and driver code to disk",
+  "state": "Kernel kept in RAM",
+  "subj": "kernel paging setting"
+ },
+ "storage|long_paths_on": {
+  "name": "Enable long file paths",
+  "on": "Enables long file paths",
+  "state": "Long file paths enabled",
+  "subj": "long file paths settings"
+ },
+ "storage|ntfs_last_access_off": {
+  "name": "Disable NTFS last-access timestamps",
+  "on": "Disables NTFS last-access timestamps",
+  "state": "NTFS last-access timestamps disabled",
+  "subj": "NTFS last-access timestamps settings"
+ },
+ "storage|ntfs_8dot3_off": {
+  "name": "Stop creating 8.3 short file names",
+  "on": "Stops NTFS creating old-style 8.3 short names for new files",
+  "state": "No new 8.3 names",
+  "subj": "8.3 name setting"
+ },
+ "storage|ntfs_memory_more": {
+  "name": "Give NTFS more cache memory",
+  "on": "Raises the memory NTFS may use for its caches",
+  "state": "More NTFS cache memory",
+  "subj": "NTFS memory setting"
+ },
+ "storage|thumbs_db_network_off": {
+  "name": "No Thumbs.db on network folders",
+  "on": "Stops Windows writing Thumbs.db files to network folders",
+  "state": "No Thumbs.db on network folders",
+  "subj": "thumbnail cache policy"
+ },
+ "power|pcie_aspm_off_ac": {
+  "name": "Turn off PCI Express power saving (plugged in)",
+  "on": "Sets PCI Express link power management to Off when plugged in",
+  "state": "PCIe power saving off",
+  "subj": "PCI Express power setting"
+ },
+ "usb|usb3_lpm_off_ac": {
+  "name": "Turn off USB 3 power saving (plugged in)",
+  "on": "Sets USB 3 link power management to Off when plugged in",
+  "state": "USB 3 power saving off",
+  "subj": "USB 3 power setting"
+ },
+ "usb|filter_keys_hotkey_off": {
+  "name": "Disable the Filter Keys shortcut",
+  "on": "Stops holding Right Shift for 8 s from turning on Filter Keys",
+  "state": "Filter Keys shortcut off",
+  "subj": "Filter Keys setting"
+ },
+ "usb|toggle_keys_hotkey_off": {
+  "name": "Disable the Toggle Keys shortcut",
+  "on": "Stops holding Num Lock for 5 s from turning on Toggle Keys",
+  "state": "Toggle Keys shortcut off",
+  "subj": "Toggle Keys setting"
+ },
+ "usb|keyboard_repeat_fast": {
+  "name": "Shortest key-repeat delay",
+  "on": "Sets the keyboard repeat delay to its shortest value",
+  "state": "Key-repeat delay shortest",
+  "subj": "keyboard repeat delay"
+ },
+ "usb|ink_workspace_off": {
+  "name": "Disable Windows Ink Workspace",
+  "on": "Turns off Windows Ink Workspace",
+  "state": "Ink Workspace off",
+  "subj": "Ink Workspace policy"
+ },
+ "responsiveness|mmcss_reserve_10": {
+  "name": "Lower the background CPU reserve to 10 %",
+  "on": "Lowers the CPU share MMCSS keeps for background tasks to 10 %",
+  "state": "Background reserve 10 %",
+  "subj": "MMCSS reserve"
+ },
+ "responsiveness|drag_outline_only": {
+  "name": "Show only an outline while dragging windows",
+  "on": "Drags windows as an outline instead of their full contents",
+  "state": "Window outline while dragging",
+  "subj": "window dragging setting"
+ },
+ "responsiveness|icon_label_shadow_off": {
+  "name": "No drop shadows on desktop icon labels",
+  "on": "Removes the shadow under desktop icon text",
+  "state": "Icon label shadows off",
+  "subj": "icon label setting"
+ },
+ "responsiveness|hung_app_timeout_2s": {
+  "name": "Detect 'Not responding' apps sooner",
+  "on": "Marks a frozen app as not responding after 2 s instead of 5 s",
+  "state": "Hang timeout 2 s",
+  "subj": "hang timeout"
+ },
+ "responsiveness|service_kill_timeout_2s": {
+  "name": "Faster shutdown: 2 s service timeout",
+  "on": "Gives services 2 s to stop at shutdown before Windows ends them",
+  "state": "Service timeout 2 s",
+  "subj": "service shutdown timeout"
+ },
+ "responsiveness|mouse_hover_fast": {
+  "name": "Faster hover tooltips and previews",
+  "on": "Shortens the delay before tooltips and previews appear",
+  "state": "Short hover delay",
+  "subj": "hover delay"
+ },
+ "background|startup_delay_off": {
+  "name": "No delay for startup apps",
+  "on": "Starts your startup apps right after sign-in, without the usual wait",
+  "state": "No startup delay",
+  "subj": "startup delay setting"
+ },
+ "background|arso_off": {
+  "name": "Don't auto-sign-in after updates",
+  "on": "Stops Windows signing you in automatically to finish updates",
+  "state": "No automatic sign-in",
+  "subj": "sign-in policy"
+ },
+ "background|store_apps_background_off": {
+  "name": "Don't let Store apps run in the background",
+  "on": "Sets the policy that blocks Store apps from running in the background",
+  "state": "Store apps blocked in the background",
+  "subj": "background apps policy"
+ },
+ "features|feature_work_folders": {
+  "name": "Remove work folders client",
+  "on": "Removes work folders client",
+  "state": "Work folders client removed",
+  "subj": "work folders client settings"
+ },
+ "features|feature_internet_printing": {
+  "name": "Remove internet printing client",
+  "on": "Removes internet printing client",
+  "state": "Internet printing client removed",
+  "subj": "internet printing client settings"
+ },
+ "features|feature_xps_services": {
+  "name": "Remove XPS services",
+  "on": "Removes XPS services",
+  "state": "XPS services removed",
+  "subj": "XPS services settings"
+ },
+ "features|feature_tiff_ifilter": {
+  "name": "Remove TIFF iFilter",
+  "on": "Removes TIFF iFilter",
+  "state": "TIFF iFilter removed",
+  "subj": "TIFF iFilter settings"
+ },
+ "gpu|nvidia_telemetry_off": {
+  "name": "Disable NVIDIA telemetry",
+  "on": "Disables NVIDIA telemetry",
+  "state": "NVIDIA telemetry disabled",
+  "subj": "NVIDIA telemetry settings"
+ },
+ "gpu|amd_auto_update_off": {
+  "name": "Disable AMD software auto-update checks",
+  "on": "Disables AMD software auto-update checks",
+  "state": "AMD software auto-update checks disabled",
+  "subj": "AMD software auto-update checks settings"
+ },
+ "windows|explorer_open_this_pc": {
+  "name": "Open File Explorer to This PC",
+  "on": "Makes File Explorer open on This PC instead of Home",
+  "state": "Explorer opens This PC",
+  "subj": "Explorer start folder"
+ },
+ "windows|copy_details_always": {
+  "name": "Always show file-copy details",
+  "on": "Opens the copy dialog with its details view expanded",
+  "state": "Copy details shown",
+  "subj": "copy dialog setting"
+ }
+}

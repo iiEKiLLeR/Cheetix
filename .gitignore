@@ -1,0 +1,11 @@
+# build output
+/target/
+/installer/Output/
+
+# private notes, old screenshots and one-off backups (not part of the project)
+/shots/
+/MECHANICS.md
+/mechanics.json
+/docs/*.md
+/tools/gen_data.ps1
+/tools/*.pre-*
