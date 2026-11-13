@@ -63,25 +63,6 @@ What makes it different is how carefully it changes things:
 - **Search** (Ctrl+K) across every tweak.
 - **Five themes**: Graphite, Carbon, Slate, Midnight and Light.
 
-## How the switches work
-
-- **ON** means the tweak is applied. **OFF** means it is not applied.
-- Turning a tweak **OFF** restores the setting you had before you turned it ON. That isn't always the Windows "enabled" state: if you had a feature off before, it stays off.
-- The line under each tweak, **Windows now**, shows the current real state: *Applied*, *Not applied*, *Partial*, *Unknown* (couldn't be read) or *Changed outside SM7*.
-- If a tweak was already applied before SM7 ever saw it, there is no original to restore. In that case OFF writes the documented Windows default, and the card tells you so before you click.
-- A few tweaks run commands whose result can't be saved and restored exactly, for example the firewall, hibernation, boot options and network-stack settings. Their OFF line says exactly which undo command runs.
-- Two tweaks that change the same setting can't overwrite each other's saved original. SM7 tells you which one to turn off first.
-
-## Safety
-
-- Nothing runs until you flip a switch. There are no "apply everything" presets for Windows.
-- Risky tweaks carry a **Caution** or **High risk** badge. Switches that weaken protection, such as turning off Defender, the firewall or CPU security mitigations, are marked **High risk**, and their details explain what can break.
-- Tweaks that don't apply to your PC (wrong Windows version, missing service or driver, other GPU vendor) show **Not on this PC** and can't be switched on.
-- SM7 doesn't remove Windows Update, doesn't disable essential services such as networking, sign-in or boot drivers, and doesn't delete system files.
-- Many system tweaks need administrator rights. Start SM7 with *Run as administrator* to change system-wide settings.
-- Saved originals are kept in `%APPDATA%\SM7\state.json`. Uninstalling SM7 keeps this file, so you can still restore later.
-
-> **Use at your own risk.** SM7 changes system settings. Read a tweak's details before applying it, and consider creating a restore point first.
 
 ## Install
 
@@ -128,16 +109,6 @@ cargo test                         # data and logic tests
 | `tools/make_icon.py` | Draws the app icon |
 | `installer/sm7.iss` | The installer script |
 
-## Contributing
-
-Issues and pull requests are welcome. When you add a tweak:
-
-- Make it one setting.
-- Describe what it does and what it costs.
-- Mark its risk.
-- Run `python tools/gen_ops.py`, `python tools/gen_labels.py` and `cargo test`.
-
-Please don't submit placebo tweaks, or tweaks that can't be undone.
 
 ## License
 
