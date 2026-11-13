@@ -6,7 +6,7 @@
 
 <p align="center">
   A clean, honest Windows tweaking and debloat tool.<br>
-  423 individual switches. Every change is saved first, so turning a switch OFF puts back exactly what you had.
+             423 individual Tweaks.
 </p>
 
 <p align="center">
