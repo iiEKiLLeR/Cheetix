@@ -518,6 +518,83 @@ pub fn plan_activate(guid: &str) -> Result<(), String> {
 }
 
 /// Open a Windows setting or tool (`cmd /c start "" <cmd>`).
+/// The icon Windows shows for each command (what Explorer and Start draw), saved as 64x64 PNGs.
+/// Settings pages get the Settings app's icon; Store apps (Paint, Terminal...) their Start icon.
+pub fn shell_icons(cmds: &[String]) -> HashMap<String, String> {
+    let dir = crate::arena::dir().join("icons");
+    let _ = std::fs::create_dir_all(&dir);
+    let Ok(list) = temp_file("json", &serde_json::to_string(cmds).unwrap_or_default()) else { return HashMap::new() };
+    let script = format!(
+        r#"Add-Type -AssemblyName System.Drawing
+Add-Type -ReferencedAssemblies System.Drawing -TypeDefinition @'
+using System; using System.Drawing; using System.Drawing.Imaging; using System.Runtime.InteropServices;
+public static class ShellIcon {{
+  [ComImport, Guid("bcc18b79-ba16-442f-80c4-8a59c30c463b"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+  interface IShellItemImageFactory {{ [PreserveSig] int GetImage(SZ size, int flags, out IntPtr hbm); }}
+  [StructLayout(LayoutKind.Sequential)] struct SZ {{ public int cx, cy; }}
+  [StructLayout(LayoutKind.Sequential)] struct BMP {{ public int type, w, h, stride; public ushort planes, bpp; public IntPtr bits; }}
+  [DllImport("shell32.dll", CharSet = CharSet.Unicode)] static extern int SHCreateItemFromParsingName(string p, IntPtr bc, ref Guid iid, [MarshalAs(UnmanagedType.Interface)] out IShellItemImageFactory f);
+  [DllImport("gdi32.dll")] static extern int GetObject(IntPtr h, int n, out BMP b);
+  [DllImport("gdi32.dll")] static extern bool DeleteObject(IntPtr h);
+  public static bool Save(string item, string png) {{
+    Guid iid = new Guid("bcc18b79-ba16-442f-80c4-8a59c30c463b"); IShellItemImageFactory f;
+    if (SHCreateItemFromParsingName(item, IntPtr.Zero, ref iid, out f) != 0 || f == null) return false;
+    IntPtr hb; SZ s; s.cx = 64; s.cy = 64;
+    if (f.GetImage(s, 0x4, out hb) != 0) return false; // icon only, no thumbnail
+    try {{
+      BMP b; GetObject(hb, Marshal.SizeOf(typeof(BMP)), out b);
+      if (b.bpp != 32 || b.bits == IntPtr.Zero) return false;
+      // a top-down 32-bit DIB with premultiplied alpha
+      using (var src = new Bitmap(b.w, b.h, b.stride, PixelFormat.Format32bppPArgb, b.bits))
+      using (var dst = new Bitmap(src)) dst.Save(png, ImageFormat.Png);
+      return true;
+    }} finally {{ DeleteObject(hb); }}
+  }}
+  [DllImport("user32.dll", CharSet = CharSet.Unicode)] static extern uint PrivateExtractIcons(string f, int i, int cx, int cy, IntPtr[] h, uint[] id, uint n, uint fl);
+  [DllImport("user32.dll")] static extern bool DestroyIcon(IntPtr h);
+  // a Control Panel applet's own picture (the first icon inside the .cpl), as Control Panel shows it
+  public static bool SaveFirst(string file, string png) {{
+    IntPtr[] h = new IntPtr[1]; uint[] id = new uint[1];
+    if (PrivateExtractIcons(file, 0, 64, 64, h, id, 1, 0) == 0 || h[0] == IntPtr.Zero) return false;
+    try {{ using (var ic = Icon.FromHandle(h[0])) using (var b = ic.ToBitmap()) b.Save(png, ImageFormat.Png); return true; }}
+    finally {{ DestroyIcon(h[0]); }}
+  }}
+}}
+'@
+$dir = '{dir}'
+$apps = @{{}}; foreach ($a in (Get-StartApps)) {{ $apps[$a.Name] = $a.AppID }}
+$store = @{{ calc = 'Calculator'; notepad = 'Notepad'; mspaint = 'Paint'; snippingtool = 'Snipping Tool'; wt = 'Terminal' }}
+$md5 = [Security.Cryptography.MD5]::Create(); $out = @{{}}
+foreach ($c in (Get-Content -LiteralPath '{list}' -Raw | ConvertFrom-Json)) {{
+  $item = $null
+  if ($c -like 'ms-settings:*') {{ $item = 'shell:AppsFolder\windows.immersivecontrolpanel_cw5n1h2txyewy!microsoft.windows.immersivecontrolpanel' }}
+  elseif ($c -like 'windowsdefender:*') {{ $item = 'shell:AppsFolder\Microsoft.SecHealthUI_8wekyb3d8bbwe!SecHealthUI' }}
+  else {{
+    $t = ($c -split ' ')[0]; if ($t -eq 'rundll32') {{ $t = (($c -split ' ')[1] -split ',')[0] }}
+    if ($store[$t] -and $apps[$store[$t]]) {{ $item = 'shell:AppsFolder\' + $apps[$store[$t]] }}
+    else {{
+      $w = Get-Command $t -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+      if (-not $w) {{ $w = Get-Command "$t.exe" -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1 }}
+      if ($w) {{ $item = $w.Source; if ($item -like '*.cpl') {{ $item = 'cpl:' + $item }} }}
+      # the firewall applet keeps its picture in another file
+      if ($t -eq 'firewall.cpl') {{ $item = 'cpl:' + (Join-Path $env:SystemRoot 'System32\FirewallControlPanel.dll') }}
+    }}
+  }}
+  if (-not $item) {{ continue }}
+  $f = Join-Path $dir ('sc-' + ([BitConverter]::ToString($md5.ComputeHash([Text.Encoding]::UTF8.GetBytes($item.ToLower())))).Replace('-', '') + '.png')
+  $ok = (Test-Path -LiteralPath $f) -or $(if ($item -like 'cpl:*') {{ [ShellIcon]::SaveFirst($item.Substring(4), $f) }} else {{ [ShellIcon]::Save($item, $f) }})
+  if ($ok) {{ $out[$c] = $f }}
+}}
+$out | ConvertTo-Json -Compress"#,
+        dir = dir.display().to_string().replace('\'', "''"),
+        list = list.display().to_string().replace('\'', "''")
+    );
+    let o = ps_timeout(&script, 120);
+    let _ = std::fs::remove_file(list);
+    let txt = o.map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string()).unwrap_or_default();
+    serde_json::from_str(&txt).unwrap_or_default()
+}
+
 pub fn open(cmd: &str) {
     let _ = cmd_raw(&format!("start \"\" {cmd}"));
 }
@@ -564,5 +641,19 @@ mod tests {
         let p = parse_tasklist("\"chrome.exe\",\"1234\",\"Console\",\"1\",\"123,456 K\"\r\n");
         assert_eq!(p[0].pid, 1234);
         assert!((p[0].mem_mb - 120.6).abs() < 0.05);
+    }
+}
+
+#[cfg(test)]
+mod shell_icon_tests {
+    #[test]
+    #[ignore] // reads icons from this PC (writes PNGs to %APPDATA%\Cheetix\icons); run with --ignored
+    fn shortcut_icons() {
+        let cmds: Vec<String> = ["sysdm.cpl", "timedate.cpl", "mmsys.cpl", "main.cpl", "powercfg.cpl", "ncpa.cpl", "firewall.cpl", "intl.cpl", "joy.cpl", "devmgmt.msc", "ms-settings:display", "windowsdefender:", "regedit", "mspaint", "wt", "calc", "rundll32 sysdm.cpl,EditEnvironmentVariables", "cleanmgr"].iter().map(|s| s.to_string()).collect();
+        let m = super::shell_icons(&cmds);
+        for c in &cmds {
+            eprintln!("{c} -> {:?} {:?}", m.get(c), m.get(c).and_then(|f| crate::arena::load_art(std::path::Path::new(f))).map(|i| i.size));
+        }
+        assert!(m.len() >= 8, "only {} icons", m.len());
     }
 }
