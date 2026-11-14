@@ -182,6 +182,9 @@ struct Saved {
     /// the game last picked in Arena
     #[serde(default)]
     arena_last: String,
+    /// programs added to Arena's library by hand
+    #[serde(default)]
+    arena_apps: Vec<arena::App>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -233,6 +236,8 @@ enum Msg {
     Toast(String, String),
     /// installed Steam games (Arena)
     Games(Result<Vec<arena::Game>, String>),
+    /// a program picked with "Add a program" (None: cancelled)
+    Picked(Result<Option<arena::App>, String>),
     /// a newer release is on GitHub
     Update(update::Release),
     /// the update could not be downloaded or started
@@ -874,6 +879,16 @@ impl App {
             }
             Msg::Toast(a, b) => self.toast(a, b),
             Msg::Games(g) => self.games = Some(g),
+            Msg::Picked(Ok(Some(a))) => {
+                self.arts.remove(&a.id);
+                self.saved.arena_last = a.id.clone();
+                self.saved.arena_apps.retain(|x| x.id != a.id);
+                self.toast("Added to Arena", format!("{} is in your library. Tune it, then launch it from here.", a.name));
+                self.saved.arena_apps.push(a);
+                self.save();
+            }
+            Msg::Picked(Ok(None)) => {}
+            Msg::Picked(Err(e)) => self.toast("Couldn't add the program", e),
             Msg::Update(r) => {
                 self.update = Some((r, None));
                 self.notif_open = true;
@@ -2196,9 +2211,14 @@ impl App {
         let art = |id: &str| self.arts.get(id).and_then(|t| t.as_ref().map(|t| t.id()));
         let mut rescan = false;
         ui.horizontal(|ui| {
-            overline(ui, &p, "Your Steam library");
+            overline(ui, &p, "Your library");
             ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                ui.add_enabled_ui(!running, |ui| rescan = btn_ex(ui, &p, Some(icons::REFRESH), "Rescan", Kind::Ghost).clicked());
+                ui.add_enabled_ui(!running, |ui| {
+                    rescan = btn_ex(ui, &p, Some(icons::REFRESH), "Rescan", Kind::Ghost).on_hover_text("Look for Steam games again").clicked();
+                    if btn_ex(ui, &p, Some(icons::FOLDER), "Add a program", Kind::Ghost).on_hover_text("Pick any program (.exe) to tune and launch from Arena").clicked() {
+                        self.work(|tx| tx.send(Msg::Picked(arena::pick_app())));
+                    }
+                });
             });
         });
         match &self.games {
@@ -2209,9 +2229,12 @@ impl App {
                 label(ui, e, 12.0, p.fail);
             }
             Some(Ok(g)) if g.is_empty() => {
-                label(ui, "No installed Steam games were found.", 12.0, p.dim);
+                label(ui, "No installed Steam games were found. Use Add a program for anything else.", 12.0, p.dim);
             }
-            Some(Ok(_)) => {
+            _ => {}
+        }
+        {
+            {
                 ui.horizontal_wrapped(|ui| {
                     ui.spacing_mut().item_spacing = vec2(14.0, 14.0);
                     for g in games {
@@ -2257,10 +2280,11 @@ impl App {
 
     fn arena(&mut self, ui: &mut egui::Ui) {
         let p = self.p;
-        let games = match &self.games {
+        let mut games = match &self.games {
             Some(Ok(g)) => g.clone(),
             _ => vec![],
         };
+        games.extend(self.saved.arena_apps.iter().map(arena::App::game));
         // cover textures, loaded once per game
         for g in &games {
             if !self.arts.contains_key(&g.appid) {
@@ -2280,12 +2304,12 @@ impl App {
             }
         }
         let running = self.session.as_ref().is_some_and(|s| s.running());
-        let (mut start, mut stop, mut flip) = (false, false, false);
+        let (mut start, mut stop, mut flip, mut remove) = (false, false, false, false);
         let mut pick = self.saved.arena_last.clone();
 
         let sel = games.iter().find(|g| g.appid == self.saved.arena_last).cloned();
         let Some(g) = sel else {
-            // no games (yet): just the library section with its message and Rescan
+            // nothing in the library (yet): just the section with its message and buttons
             let rescan = self.arena_shelf(ui, &games, running, &mut pick);
             if rescan {
                 self.arts.clear();
@@ -2317,6 +2341,10 @@ impl App {
                     ui.spacing_mut().item_spacing.y = 6.0;
                     overline(ui, &p, if running { "Now playing" } else { "Ready to launch" });
                     ui.label(RichText::new(&g.name).font(semi(22.0)).color(p.text));
+                    match &g.exe {
+                        Some(exe) => label(ui, format!("Program · {}", exe.display()), 11.5, p.muted),
+                        None => label(ui, format!("Steam · app {}", g.appid), 11.5, p.muted),
+                    };
                     let on: Vec<&str> = [
                         (o.boost, "priority boost"),
                         (o.focus, "Game Focus"),
@@ -2340,6 +2368,9 @@ impl App {
                             start = btn_ex(ui, &p, Some(icons::nav("arena")), "Launch with Arena", Kind::Primary).clicked();
                         }
                         flip = btn_ex(ui, &p, Some(icons::nav("settings")), if open { "Done tuning" } else { "Tune this game" }, Kind::Ghost).clicked();
+                        if g.exe.is_some() && !running {
+                            remove = btn_ex(ui, &p, Some(icons::TRASH), "Remove", Kind::Ghost).on_hover_text("Take this program out of Arena's library (the program itself is not touched)").clicked();
+                        }
                     });
                     if let Some(st) = &session {
                         ui.add_space(8.0);
@@ -2465,6 +2496,12 @@ impl App {
         }
         if flip {
             self.arena_open = !self.arena_open;
+        }
+        if remove {
+            self.saved.arena_apps.retain(|a| a.id != g.appid);
+            self.saved.arena.remove(&g.appid);
+            self.save();
+            self.toast("Removed from Arena", format!("{} is no longer in the library.", g.name));
         }
         if stop {
             arena::stop();

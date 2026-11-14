@@ -180,8 +180,13 @@ function Focus($game) {
 
 $procs = Game-Procs
 if (-not $procs.Count) {
-    Write-Status 'waiting' 'Starting the game through Steam...'
-    Start-Process "steam://rungameid/$($c.appid)"
+    if ($c.exe) {
+        Write-Status 'waiting' "Starting $($c.name)..."
+        Start-Process -FilePath $c.exe -WorkingDirectory (Split-Path -LiteralPath $c.exe)
+    } else {
+        Write-Status 'waiting' 'Starting the game through Steam...'
+        Start-Process "steam://rungameid/$($c.appid)"
+    }
     $deadline = (Get-Date).AddMinutes(5)
     while (-not $procs.Count -and (Get-Date) -lt $deadline -and -not (Test-Path $stopF)) {
         Start-Sleep -Seconds 2
@@ -220,7 +225,7 @@ if ($procs.Count) {
             Write-Status 'active' 'Game running.'
         } else { $gone++ }
     }
-    $why = if (Test-Path $stopF) { 'Stopped. Everything was put back.' } else { 'Game closed. Everything was put back.' }
+    $why = if (Test-Path $stopF) { 'Stopped. Everything was put back.' } else { "$($c.name) closed. Everything was put back." }
 } else {
     $why = if (Test-Path $stopF) { 'Stopped before the game started. Everything was put back.' } else { "The game did not start within 5 minutes, so Arena stopped and put everything back. If Steam is updating it, try again when it's done." }
 }

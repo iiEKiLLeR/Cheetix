@@ -20,6 +20,76 @@ pub struct Game {
     pub folder: PathBuf,
     /// cover art (240x360 PNG) made from Steam's library cache, if Steam has any
     pub art: Option<PathBuf>,
+    /// a program the user added (started directly instead of through Steam)
+    pub exe: Option<PathBuf>,
+}
+
+/// A program added with "Add a program" (saved in Cheetix's state).
+#[derive(Serialize, Deserialize, Clone, PartialEq)]
+pub struct App {
+    pub id: String,
+    pub name: String,
+    pub exe: PathBuf,
+}
+
+impl App {
+    pub fn game(&self) -> Game {
+        let art = dir().join("art").join(format!("{}.png", self.id));
+        Game { appid: self.id.clone(), name: self.name.clone(), folder: self.exe.parent().map(Path::to_path_buf).unwrap_or_default(), art: art.exists().then_some(art), exe: Some(self.exe.clone()) }
+    }
+}
+
+/// Stable id for a program path (FNV-1a of the lower-cased path).
+fn app_id(exe: &Path) -> String {
+    let h = exe.to_string_lossy().to_lowercase().bytes().fold(0xcbf2_9ce4_8422_2325_u64, |h, b| (h ^ b as u64).wrapping_mul(0x100_0000_01b3));
+    format!("app-{h:016x}")
+}
+
+/// Asks for a program (.exe) and makes its cover from the program's own icon. None: cancelled.
+pub fn pick_app() -> Result<Option<App>, String> {
+    let out = dir().join("art");
+    std::fs::create_dir_all(&out).map_err(|e| e.to_string())?;
+    let script = r#"Add-Type -AssemblyName System.Windows.Forms, System.Drawing
+$owner = New-Object Windows.Forms.Form -Property @{ TopMost = $true; ShowInTaskbar = $false }
+$d = New-Object Windows.Forms.OpenFileDialog -Property @{ Title = 'Pick a program for Arena'; Filter = 'Programs (*.exe)|*.exe'; InitialDirectory = ${env:ProgramFiles} }
+if ($d.ShowDialog($owner) -ne 'OK') { exit 0 }
+$f = $d.FileName
+$v = (Get-Item -LiteralPath $f).VersionInfo
+$name = @($v.FileDescription, $v.ProductName, [IO.Path]::GetFileNameWithoutExtension($f)) | Where-Object { "$_".Trim() } | Select-Object -First 1
+[pscustomobject]@{ exe = $f; name = "$name".Trim() } | ConvertTo-Json -Compress"#;
+    let o = crate::sys::ps_timeout(script, 900)?;
+    let txt = String::from_utf8_lossy(&o.stdout).trim().to_string();
+    if txt.is_empty() {
+        return Ok(None);
+    }
+    let v: Value = serde_json::from_str(&txt).map_err(|e| e.to_string())?;
+    let exe = PathBuf::from(v["exe"].as_str().unwrap_or_default());
+    if exe.parent().is_none_or(|d| d.parent().is_none()) {
+        return Err("Pick a program inside its own folder (not at the root of a drive).".into());
+    }
+    let app = App { id: app_id(&exe), name: v["name"].as_str().unwrap_or("Program").to_string(), exe };
+    app_cover(&app);
+    Ok(Some(app))
+}
+
+/// A 240x360 cover: the program's large icon on a dark tile.
+fn app_cover(a: &App) {
+    let dst = dir().join("art").join(format!("{}.png", a.id));
+    let script = format!(
+        r#"Add-Type -AssemblyName System.Drawing
+Add-Type -TypeDefinition 'using System; using System.Runtime.InteropServices; public static class Ico {{ [DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern uint PrivateExtractIcons(string f, int i, int cx, int cy, IntPtr[] h, uint[] id, uint n, uint fl); }}'
+$h = New-Object IntPtr[] 1; $id = New-Object uint32[] 1
+[void][Ico]::PrivateExtractIcons('{exe}', 0, 256, 256, $h, $id, 1, 0)
+$b = New-Object Drawing.Bitmap 240, 360; $g = [Drawing.Graphics]::FromImage($b)
+$g.InterpolationMode = 'HighQualityBicubic'; $g.SmoothingMode = 'HighQuality'
+$bg = New-Object Drawing.Drawing2D.LinearGradientBrush (New-Object Drawing.Rectangle 0, 0, 240, 360), ([Drawing.Color]::FromArgb(255, 34, 35, 42)), ([Drawing.Color]::FromArgb(255, 12, 12, 15)), 90
+$g.FillRectangle($bg, 0, 0, 240, 360)
+if ($h[0] -ne [IntPtr]::Zero) {{ $ic = [Drawing.Icon]::FromHandle($h[0]).ToBitmap(); $g.DrawImage($ic, 52, 112, 136, 136) }}
+$b.Save('{dst}', [Drawing.Imaging.ImageFormat]::Png)"#,
+        exe = a.exe.display().to_string().replace('\'', "''"),
+        dst = dst.display().to_string().replace('\'', "''")
+    );
+    let _ = crate::sys::ps_timeout(&script, 60);
 }
 
 /// What a session does for one game (saved per game).
@@ -158,7 +228,7 @@ fn game_from_manifest(t: &str, lib: &Path) -> Option<Game> {
     let (appid, name, dir) = (get("appid"), get("name"), get("installdir"));
     let tool = ["Redistributable", "Proton", "Steam Linux Runtime", "Steamworks", "SteamVR"].iter().any(|w| name.contains(w));
     let folder = lib.join("steamapps").join("common").join(&dir);
-    (!appid.is_empty() && !name.is_empty() && !dir.is_empty() && !tool && folder.exists()).then_some(Game { appid, name, folder, art: None })
+    (!appid.is_empty() && !name.is_empty() && !dir.is_empty() && !tool && folder.exists()).then_some(Game { appid, name, folder, art: None, exe: None })
 }
 
 /// The best picture Steam has for a game: the portrait cover, else the wide header.
@@ -255,7 +325,7 @@ fn spawn(mode: &str, config: &Value) -> Result<(), String> {
 pub fn start(g: &Game, o: &Opts) -> Result<(), String> {
     let _ = std::fs::remove_file(dir().join("arena-status.json"));
     let cfg = json!({
-        "dir": dir(), "appid": g.appid, "name": g.name, "folder": g.folder,
+        "dir": dir(), "appid": g.appid, "name": g.name, "folder": g.folder, "exe": g.exe,
         "boost": o.boost, "cpu": o.cpu, "gpu": o.gpu, "io": o.io, "focus": o.focus,
         "services": o.services, "service_list": SERVICES, "search": o.search, "steam": o.steam,
         "latency": o.latency, "pin": o.pin, "standby": o.standby, "plan": o.plan,
@@ -351,7 +421,7 @@ mod live {
         let before = snapshot();
         println!("before: {before}");
         let mut game = std::process::Command::new(&exe).args(["/c", "ping -n 30 127.0.0.1 >nul"]).spawn().unwrap();
-        let g = Game { appid: "0".into(), name: "Arena test".into(), folder: folder.clone(), art: None };
+        let g = Game { appid: "0".into(), name: "Arena test".into(), folder: folder.clone(), art: None, exe: None };
         let o = Opts { boost: true, cpu: "High".into(), gpu: "High".into(), io: "High".into(), focus: true, services: true, search: true, steam: false, latency: true, pin: true, standby: true, plan: None, close_app: false };
         start(&g, &o).unwrap();
         let t = Instant::now();
@@ -426,7 +496,7 @@ mod live_steam {
         std::fs::copy(r"C:\Windows\System32\cmd.exe", &exe).unwrap();
         let mut game = std::process::Command::new(&exe).args(["/c", "ping -n 40 127.0.0.1 >nul"]).spawn().unwrap();
         let o = Opts { boost: false, focus: false, services: false, steam: true, ..Default::default() };
-        start(&Game { appid: "0".into(), name: "Steam test".into(), folder: folder.clone(), art: None }, &o).unwrap();
+        start(&Game { appid: "0".into(), name: "Steam test".into(), folder: folder.clone(), art: None, exe: None }, &o).unwrap();
         let live = wait_phase("active");
         std::thread::sleep(Duration::from_secs(8)); // Steam would respawn the helper within seconds if it could
         let during = helpers();
@@ -443,5 +513,55 @@ mod live_steam {
         let _ = std::fs::remove_dir_all(folder);
         assert_eq!(during, 0);
         assert!(after > 0, "Steam's web helper did not come back");
+    }
+}
+
+#[cfg(test)]
+mod live_app {
+    use super::*;
+    use std::time::{Duration, Instant};
+
+    /// An added program: cover from its icon, launched directly (not through Steam), boosted,
+    /// then everything put back when it closes. `cargo test live_app -- --ignored --nocapture`
+    #[test]
+    #[ignore]
+    fn live_app_session() {
+        let folder = std::env::temp_dir().join("cheetix_arena_app");
+        let _ = std::fs::create_dir_all(&folder);
+        let exe = folder.join("myprogram.exe");
+        std::fs::copy(r"C:\Windows\System32\cmd.exe", &exe).unwrap();
+        let app = App { id: app_id(&exe), name: "My program".into(), exe: exe.clone() };
+        app_cover(&app);
+        let g = app.game();
+        let cover = g.art.as_ref().and_then(|a| load_art(a)).map(|i| i.size);
+        println!("cover: {cover:?}");
+        assert_eq!(cover, Some([240, 360]));
+        start(&g, &Opts { focus: false, services: false, ..Default::default() }).unwrap();
+        let t = Instant::now();
+        let live = loop {
+            assert!(t.elapsed() < Duration::from_secs(60), "never went live");
+            std::thread::sleep(Duration::from_secs(1));
+            if let Some(s) = status().filter(|s| s.phase == "active") {
+                break s;
+            }
+        };
+        for p in &live.procs {
+            println!("boosted {} {}: cpu {} gpu {} io {}", p.name, p.pid, p.cpu, p.gpu, p.io);
+        }
+        assert!(live.procs.iter().any(|p| p.name == "myprogram"));
+        for p in &live.procs {
+            let _ = std::process::Command::new("taskkill").args(["/f", "/pid", &p.pid.to_string()]).output();
+        }
+        let t = Instant::now();
+        let end = loop {
+            assert!(t.elapsed() < Duration::from_secs(60), "never ended");
+            std::thread::sleep(Duration::from_secs(1));
+            if let Some(s) = status().filter(|s| s.phase == "ended") {
+                break s;
+            }
+        };
+        println!("ended: {}", end.msg);
+        let _ = std::fs::remove_dir_all(folder);
+        let _ = std::fs::remove_file(dir().join("art").join(format!("{}.png", app.id)));
     }
 }
