@@ -84,35 +84,6 @@ fn show(v: &Value) -> String {
     }
 }
 
-/// One saved state, as text for the info panel ("what turning OFF puts back").
-pub fn describe_backup(b: &Value) -> Vec<String> {
-    let mut out = vec![];
-    for e in b.as_array().into_iter().flatten() {
-        let a = &e["atom"];
-        let st = &e["state"];
-        let s = |v: &Value| v.as_str().unwrap_or("").to_string();
-        let line = match a["t"].as_str().unwrap_or("") {
-            "reg" => {
-                let what = if st["present"] == true {
-                    format!("{} ({})", s(&st["data"]), s(&st["kind"]))
-                } else if st["key"] == false {
-                    "did not exist (key and value will be removed)".into()
-                } else {
-                    "did not exist (value will be removed)".into()
-                };
-                format!("{}\\{} was {}", s(&a["p"]), s(&a["n"]), what)
-            }
-            "task" => format!("Task {}{} was {}", s(&a["p"]), s(&a["n"]), if st["enabled"] == true { "enabled" } else { "disabled" }),
-            "pwr" => format!("Power setting {} was plugged in {}, on battery {} (plan {})", s(&a["set"]), st["ac"], st["dc"], s(&st["scheme"])),
-            "mm" => format!("{} was {}", s(&a["n"]), if st["enabled"] == true { "enabled" } else { "disabled" }),
-            "feat" => format!("Feature {} was {}", s(&a["n"]), if st["enabled"] == true { "enabled" } else { "disabled" }),
-            _ => continue,
-        };
-        out.push(line);
-    }
-    out
-}
-
 const ENGINE: &str = r#"
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'

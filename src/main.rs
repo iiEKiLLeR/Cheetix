@@ -1486,8 +1486,6 @@ struct Card<'a> {
     ours: bool,
     /// why it can't be used on this PC
     na: Option<String>,
-    /// saved originals, as text
-    backup: Vec<String>,
 }
 
 impl Card<'_> {
@@ -1586,38 +1584,6 @@ fn details(ui: &mut egui::Ui, p: &Pal, c: &Card) {
             if let Some(n) = &info.note {
                 section(ui, "Note", n, p.run);
             }
-        }
-        let compat = match (&c.na, t.builds, &t.needs) {
-            (Some(why), _, _) => why.clone(),
-            (None, Some([_, hi]), _) if hi < 99999 => format!("Windows 10 only (up to build {hi}). Supported on this PC."),
-            (None, Some([lo, _]), _) => format!("Windows build {lo} or newer. Supported on this PC."),
-            (None, None, Some(n)) => format!("For {} GPUs. Supported on this PC.", n.to_uppercase()),
-            _ => "No special requirements. Items that don't exist on this PC (e.g. a service your edition lacks) are skipped and reported in the log.".into(),
-        };
-        if t.ops.is_some() {
-            section(ui, "Compatibility", &compat, if c.na.is_some() { p.run } else { p.dim });
-        }
-        overline(ui, p, "Exact changes");
-        let lines = match &t.ops {
-            Some(o) => engine::describe(o),
-            None => t.on.as_deref().unwrap_or("").lines().map(str::trim).filter(|l| !l.is_empty() && !l.starts_with('@') && !l.starts_with("exit")).map(String::from).collect(),
-        };
-        for l in lines {
-            ui.add(egui::Label::new(RichText::new(l).monospace().size(11.0).color(p.dim)).wrap());
-        }
-        ui.add_space(8.0);
-        if t.ops.is_some() {
-            let restore = if c.backup.is_empty() {
-                "Before applying, Cheetix reads and saves the current value of every item above, applies the change and reads it back. If anything fails, everything is put back. Turning it OFF writes those saved values back exactly (including deleting values or keys that did not exist). If the tweak was already set before Cheetix saw it, there is nothing saved, so OFF writes the Windows default instead (and refuses where no default is known).".to_string()
-            } else {
-                "Turning it OFF writes back exactly these saved originals, then reads them back to verify:".to_string()
-            };
-            section(ui, "Saved original", &restore, p.dim);
-            for l in &c.backup {
-                ui.add(egui::Label::new(RichText::new(l).monospace().size(11.0).color(p.ok)).wrap());
-            }
-        } else {
-            section(ui, "No saved original", "This tweak runs a command that can't be read back and restored exactly (for example a firewall, boot or network-stack setting). OFF runs its fixed undo command, described above.", p.run);
         }
     });
 }
@@ -2125,7 +2091,6 @@ impl App {
                     Some((s, at)) if at.elapsed() < STATUS_HOLD => Some((*s, if *s == "OK" { p.ok } else { p.fail })),
                     _ => None,
                 };
-                let backup = self.saved.backups.get(&key).map(engine::describe_backup).unwrap_or_default();
                 Card {
                     t,
                     on: self.is_on(&t.c, &t.id),
@@ -2136,7 +2101,6 @@ impl App {
                     key,
                     flash,
                     st,
-                    backup,
                 }
             })
             .collect();
@@ -3216,7 +3180,7 @@ mod tests {
         let engine_t = tweaks.iter().find(|t| t.c == "windows" && t.id == "disable_telemetry").unwrap();
         let script_t = tweaks.iter().find(|t| t.ops.is_none()).unwrap();
         let p = theme::pal(0, &theme::Textures::new(&egui::Context::default()));
-        let mk = |t, state, ours| Card { t, key: String::new(), on: false, busy: false, flash: false, st: None, state, ours, na: None, backup: vec![] };
+        let mk = |t, state, ours| Card { t, key: String::new(), on: false, busy: false, flash: false, st: None, state, ours, na: None };
         // Cheetix applied it, then something else undid it
         let (txt, col) = mk(engine_t, State::NotApplied, true).windows_now(&p);
         assert!(txt.contains("Changed outside Cheetix") && col == p.run, "{txt}");
