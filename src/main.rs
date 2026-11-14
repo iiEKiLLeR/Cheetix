@@ -9,6 +9,7 @@ mod engine;
 mod icons;
 mod sys;
 mod theme;
+mod update;
 
 use eframe::egui::{
     self,
@@ -223,6 +224,10 @@ enum Msg {
     Plans(Vec<sys::Plan>),
     CleanDone(String, bool),
     Toast(String, String),
+    /// a newer release is on GitHub
+    Update(update::Release),
+    /// the update could not be downloaded or started
+    UpdateFailed(String),
     HistoryCleared,
 }
 
@@ -281,6 +286,8 @@ struct App {
     flash: Option<(String, Instant)>,
     scroll_to: Option<String>,
     toast: Option<(String, String, Instant)>,
+    /// a newer release, and the popup's state: None = offer, Some(None) = downloading, Some(Some(e)) = failed
+    update: Option<(update::Release, Option<Option<String>>)>,
     procs: Vec<sys::Proc>,
     proc_total: usize,
     proc_filter: String,
@@ -343,6 +350,7 @@ impl App {
             flash: None,
             scroll_to: None,
             toast: None,
+            update: None,
             procs: vec![],
             proc_total: 0,
             proc_filter: String::new(),
@@ -362,6 +370,14 @@ impl App {
         let scripts = app.tweaks.iter().filter(|t| t.ops.is_none()).map(|t| (format!("{}|{}", t.c, t.id), t.check.clone())).collect();
         let ops = app.tweaks.iter().filter_map(|t| t.ops.as_ref().map(|o| json!({"key": format!("{}|{}", t.c, t.id), "ops": o}))).collect();
         app.check_state(scripts, ops);
+        // look for a newer release once per start (quietly: no network is not an error)
+        if app.shot.is_none() {
+            app.work(|tx| {
+                if let Ok(Some(r)) = update::check() {
+                    tx.send(Msg::Update(r));
+                }
+            });
+        }
         if let Some(v) = NAV.iter().flat_map(|g| g.1.iter()).map(|i| i.0).find(|v| Some(*v) == start_view.as_deref()) {
             app.go(v);
         }
@@ -369,6 +385,57 @@ impl App {
             app.expanded.insert(k);
         }
         app
+    }
+
+    /// A small card under the top bar when a newer release is on GitHub.
+    fn update_popup(&mut self, ctx: &egui::Context) {
+        let Some((r, st)) = self.update.clone() else { return };
+        let p = self.p;
+        let (mut install, mut later) = (false, false);
+        egui::Area::new(egui::Id::new("update")).order(egui::Order::Foreground).anchor(Align2::RIGHT_TOP, vec2(-20.0, 64.0)).show(ctx, |ui| {
+            let shadow = Shadow { offset: [0, 4], blur: 14, spread: 0, color: alpha(Color32::BLACK, if p.dark { 0.30 } else { 0.10 }) };
+            Frame::new().fill(p.solid).stroke(Stroke::new(1.0_f32, p.border)).corner_radius(R_CARD).shadow(shadow).inner_margin(Margin::symmetric(14, 12)).show(ui, |ui| {
+                ui.set_width(300.0);
+                ui.spacing_mut().item_spacing.y = 4.0;
+                ui.horizontal(|ui| {
+                    icon(ui, icons::SYNC, 12.0, p.acc);
+                    ui.label(RichText::new("Update available").font(semi(13.0)).color(p.text));
+                });
+                let (body, col) = match &st {
+                    None => (format!("Cheetix {} is out. You have {}. Your settings and saved originals are kept.", r.version, env!("CARGO_PKG_VERSION")), p.dim),
+                    Some(None) => (format!("Downloading Cheetix {}… The installer will close Cheetix and start the new version.", r.version), p.dim),
+                    Some(Some(e)) => (format!("The update failed: {e}"), p.fail),
+                };
+                ui.add(egui::Label::new(RichText::new(body).size(12.0).color(col)).wrap());
+                ui.add_space(6.0);
+                ui.horizontal(|ui| match st {
+                    None => {
+                        install = btn_ex(ui, &p, None, "Install now", Kind::Primary).clicked();
+                        later = btn_ex(ui, &p, None, "Later", Kind::Ghost).clicked();
+                    }
+                    Some(None) => {
+                        label(ui, "Working…", 11.5, p.muted);
+                    }
+                    Some(Some(_)) => {
+                        install = btn_ex(ui, &p, None, "Try again", Kind::Primary).clicked();
+                        later = btn_ex(ui, &p, None, "Close", Kind::Ghost).clicked();
+                    }
+                });
+            });
+        });
+        if later {
+            self.update = None;
+        }
+        if install {
+            if let Some(u) = &mut self.update {
+                u.1 = Some(None);
+            }
+            self.work(move |tx| match update::install(&r) {
+                // the installer is running; it replaces this exe, so get out of its way
+                Ok(()) => tx.1.send_viewport_cmd(ViewportCommand::Close),
+                Err(e) => tx.send(Msg::UpdateFailed(e)),
+            });
+        }
     }
 
     fn save(&self) {
@@ -748,6 +815,12 @@ impl App {
                 self.clean.insert(id, (if ok { "CLEANED" } else { "FAILED" }, Instant::now()));
             }
             Msg::Toast(a, b) => self.toast(a, b),
+            Msg::Update(r) => self.update = Some((r, None)),
+            Msg::UpdateFailed(e) => {
+                if let Some(u) = &mut self.update {
+                    u.1 = Some(Some(e));
+                }
+            }
             Msg::HistoryCleared => {
                 self.reverting = false;
                 self.saved.history.clear();
@@ -2442,6 +2515,8 @@ impl eframe::App for App {
                 self.toast = None;
             }
         }
+
+        self.update_popup(ctx);
 
         // keep timers (status labels, session clock, monitor refresh) moving
         ctx.request_repaint_after(Duration::from_millis(500));

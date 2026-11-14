@@ -2,7 +2,7 @@
 ; Produces installer\Output\Cheetix-Setup-<version>.exe
 
 #define AppName "Cheetix"
-#define AppVersion "0.3.0"
+#define AppVersion "0.3.1"
 #define AppExe "cheetix.exe"
 
 [Setup]
@@ -58,6 +58,8 @@ Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: desktopico
 
 [Run]
 Filename: "{app}\{#AppExe}"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags: nowait postinstall skipifsilent
+; in-app updates run the installer with /SILENT /RELAUNCH=1: start the new version when done
+Filename: "{app}\{#AppExe}"; Flags: nowait; Check: Relaunch
 
 ; Settings, switch states and the saved originals that OFF restores live in %APPDATA%\Cheetix.
 ; They are deliberately kept on uninstall: without them, tweaks that are still ON could
@@ -76,6 +78,11 @@ begin
     Sleep(4000);
     Exec(ExpandConstant('{sys}\taskkill.exe'), '/f /im cheetix.exe', '', SW_HIDE, ewWaitUntilTerminated, Code);
   end;
+end;
+
+function Relaunch(): Boolean;
+begin
+  Result := ExpandConstant('{param:RELAUNCH|0}') = '1';
 end;
 
 function PrepareToInstall(var NeedsRestart: Boolean): String;

@@ -70,7 +70,7 @@ What makes it different is how carefully it changes things:
 2. Run it. Because the installer isn't code-signed yet, Windows SmartScreen may show *"Windows protected your PC"*. Click **More info**, then **Run anyway**.
 3. Open Cheetix from the Start menu.
 
-To update, run the newer installer over the old one; your saved originals are kept. To uninstall, go to *Settings → Apps → Installed apps → Cheetix*.
+Cheetix checks GitHub for a newer version when it starts. If there is one, a small popup offers **Install now** (downloads the installer, checks it, installs it and restarts Cheetix) or **Later**. You can also run a newer installer over the old one yourself. Either way your settings and saved originals are kept. To uninstall, go to *Settings → Apps → Installed apps → Cheetix*.
 
 Requires Windows 10 or 11 (64-bit).
 
