@@ -2,7 +2,7 @@
 ; Produces installer\Output\Cheetix-Setup-<version>.exe
 
 #define AppName "Cheetix"
-#define AppVersion "0.3.4"
+#define AppVersion "0.3.5"
 #define AppExe "cheetix.exe"
 
 [Setup]
