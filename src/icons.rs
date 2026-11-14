@@ -37,6 +37,7 @@ pub fn nav(view: &str) -> &'static str {
     match view {
         "dashboard" => "\u{E80F}",
         "monitor" => "\u{E9D9}",
+        "arena" => "\u{E768}",
         "shortcuts" => "\u{F0E2}",
         "windows" => "\u{E770}",
         "gaming" => "\u{E7FC}",

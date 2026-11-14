@@ -5,6 +5,7 @@
 //! a live dashboard, process monitor, startup manager, cleaner, power plans,
 //! shortcuts, history with undo, and switchable themes. See MECHANICS.md.
 
+mod arena;
 mod engine;
 mod icons;
 mod sys;
@@ -115,7 +116,7 @@ fn page_title(view: &str) -> &'static str {
 
 type NavGroup = (&'static str, &'static [(&'static str, &'static str)]);
 const NAV: &[NavGroup] = &[
-    ("OVERVIEW", &[("dashboard", "Dashboard"), ("monitor", "Process Monitor"), ("shortcuts", "Shortcuts")]),
+    ("OVERVIEW", &[("dashboard", "Dashboard"), ("monitor", "Process Monitor"), ("arena", "Arena"), ("shortcuts", "Shortcuts")]),
     (
         "PERFORMANCE",
         &[("gaming", "Gaming"), ("cpu", "CPU & Processor"), ("gpu", "GPU & Graphics"), ("memory", "RAM & Memory"), ("storage", "Storage & SSD"), ("power", "Power"), ("usb", "USB & Peripherals"), ("responsiveness", "Responsiveness")],
@@ -175,6 +176,12 @@ struct Saved {
     /// "category|id" -> the original state saved before an engine tweak was applied
     #[serde(default)]
     backups: HashMap<String, serde_json::Value>,
+    /// Arena settings per Steam app id
+    #[serde(default)]
+    arena: HashMap<String, arena::Opts>,
+    /// the game last picked in Arena
+    #[serde(default)]
+    arena_last: String,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -224,6 +231,8 @@ enum Msg {
     Plans(Vec<sys::Plan>),
     CleanDone(String, bool),
     Toast(String, String),
+    /// installed Steam games (Arena)
+    Games(Result<Vec<arena::Game>, String>),
     /// a newer release is on GitHub
     Update(update::Release),
     /// the update could not be downloaded or started
@@ -295,6 +304,12 @@ struct App {
     proc_at: Option<Instant>,
     startup: Option<Result<Vec<sys::StartupItem>, String>>,
     plans: Option<Vec<sys::Plan>>,
+    /// Arena: Steam games (None while scanning), the session's last report, when it was read,
+    /// and whether to close Cheetix once the game is up
+    games: Option<Result<Vec<arena::Game>, String>>,
+    session: Option<arena::Status>,
+    session_read: Instant,
+    close_when_live: bool,
     clean: HashMap<String, (&'static str, Instant)>,
     reverting: bool,
     shot: Option<(PathBuf, u32, Instant, bool)>,
@@ -351,6 +366,10 @@ impl App {
             scroll_to: None,
             toast: None,
             update: None,
+            games: None,
+            session: arena::status(),
+            session_read: Instant::now(),
+            close_when_live: false,
             procs: vec![],
             proc_total: 0,
             proc_filter: String::new(),
@@ -366,6 +385,8 @@ impl App {
             started: Instant::now(),
         };
         app.poll_metrics();
+        // a game session that was cut off (crash, power loss) still has changes to put back
+        arena::recover_if_needed();
         // read the real state of every tweak once at launch
         let scripts = app.tweaks.iter().filter(|t| t.ops.is_none()).map(|t| (format!("{}|{}", t.c, t.id), t.check.clone())).collect();
         let ops = app.tweaks.iter().filter_map(|t| t.ops.as_ref().map(|o| json!({"key": format!("{}|{}", t.c, t.id), "ops": o}))).collect();
@@ -473,6 +494,14 @@ impl App {
             "monitor" => self.refresh_procs(),
             "startup" => self.refresh_startup(),
             "powerplans" => self.refresh_plans(),
+            "arena" => {
+                if self.games.is_none() {
+                    self.scan_games();
+                }
+                if self.plans.is_none() {
+                    self.refresh_plans();
+                }
+            }
             // every visit reads the page's real state again
             _ => self.probe_page(v),
         }
@@ -815,6 +844,7 @@ impl App {
                 self.clean.insert(id, (if ok { "CLEANED" } else { "FAILED" }, Instant::now()));
             }
             Msg::Toast(a, b) => self.toast(a, b),
+            Msg::Games(g) => self.games = Some(g),
             Msg::Update(r) => self.update = Some((r, None)),
             Msg::UpdateFailed(e) => {
                 if let Some(u) = &mut self.update {
@@ -2062,6 +2092,165 @@ impl App {
         }
     }
 
+    fn scan_games(&mut self) {
+        self.games = None;
+        self.work(|tx| tx.send(Msg::Games(arena::scan())));
+    }
+
+    fn arena(&mut self, ui: &mut egui::Ui) {
+        let p = self.p;
+        let games = match &self.games {
+            Some(Ok(g)) => g.clone(),
+            _ => vec![],
+        };
+        header(ui, &p, icons::nav("arena"), "Arena", Some(format!("{} games", games.len())), "Pick a Steam game, choose how it should run, and start it from here. Cheetix applies your settings while you play and puts every one of them back when the game closes.");
+        if !self.admin {
+            admin_warn(ui, &p, "Most Arena settings (services, power, network, standby memory, high priorities) need administrator rights. Restart Cheetix with \"Run as administrator\".");
+        }
+        if !games.iter().any(|g| g.appid == self.saved.arena_last) {
+            if let Some(g) = games.first() {
+                self.saved.arena_last = g.appid.clone();
+            }
+        }
+        let sel = games.iter().find(|g| g.appid == self.saved.arena_last).cloned();
+        let running = self.session.as_ref().is_some_and(|s| s.running());
+        let (mut start, mut stop, mut rescan) = (false, false, false);
+        let mut pick = self.saved.arena_last.clone();
+        card(ui, &p, false, |ui| {
+            ui.horizontal(|ui| {
+                ui.add_enabled_ui(!running, |ui| {
+                    egui::ComboBox::from_id_salt("arena_game")
+                        .width(340.0)
+                        .selected_text(sel.as_ref().map(|g| g.name.clone()).unwrap_or_else(|| "Select the game to play…".into()))
+                        .show_ui(ui, |ui| {
+                            for g in &games {
+                                ui.selectable_value(&mut pick, g.appid.clone(), &g.name);
+                            }
+                        });
+                    rescan = btn_ex(ui, &p, Some(icons::REFRESH), "Rescan", Kind::Ghost).clicked();
+                });
+                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                    if running {
+                        stop = btn_ex(ui, &p, None, "Stop and put back", Kind::Danger).clicked();
+                    } else {
+                        ui.add_enabled_ui(sel.is_some(), |ui| start = btn_ex(ui, &p, Some(icons::nav("arena")), "Start Arena", Kind::Primary).clicked());
+                    }
+                });
+            });
+            ui.add_space(4.0);
+            let (t, c) = match &self.games {
+                None => ("Looking for Steam games…".to_string(), p.dim),
+                Some(Err(e)) => (e.clone(), p.fail),
+                Some(Ok(g)) if g.is_empty() => ("No installed Steam games were found.".into(), p.dim),
+                Some(Ok(g)) => (format!("Found {} Steam games. Pick one, set it up below, then start it here instead of from Steam.", g.len()), p.ok),
+            };
+            label(ui, t, 11.5, c);
+        });
+        if pick != self.saved.arena_last {
+            self.saved.arena_last = pick;
+            self.save();
+        }
+        if rescan {
+            self.scan_games();
+        }
+        if stop {
+            arena::stop();
+            self.toast("Stopping Arena", "Putting back everything the session changed…");
+        }
+
+        // the session: live while running, the result after
+        if let Some(st) = self.session.clone() {
+            ui.add_space(10.0);
+            card(ui, &p, st.running(), |ui| {
+                ui.horizontal(|ui| {
+                    let (word, col) = match st.phase.as_str() {
+                        "starting" => ("Applying settings", p.run),
+                        "waiting" => ("Waiting for the game", p.run),
+                        "active" => ("Live", p.ok),
+                        _ => ("Ended", p.muted),
+                    };
+                    tag(ui, word, col);
+                    ui.label(RichText::new(&st.game).font(semi(13.5)).color(p.text));
+                });
+                label(ui, &st.msg, 12.0, p.dim);
+                for pr in &st.procs {
+                    label(ui, format!("{} (PID {}): CPU {} · GPU {} · I/O {}", pr.name, pr.pid, pr.cpu, pr.gpu, pr.io), 11.5, p.dim);
+                }
+                for n in &st.notes {
+                    label(ui, format!("• {n}"), 11.5, p.muted);
+                }
+            });
+        }
+
+        let Some(g) = sel else { return };
+        let mut o = self.saved.arena.get(&g.appid).cloned().unwrap_or_default();
+        let before = o.clone();
+        let plans = self.plans.clone().unwrap_or_default();
+        ui.add_enabled_ui(!running, |ui| {
+            let combo = |ui: &mut egui::Ui, id: &str, v: &mut String, choices: &[(&str, &str)]| {
+                let cur = choices.iter().find(|c| c.0 == v).map(|c| c.1).unwrap_or("Normal");
+                egui::ComboBox::from_id_salt(id).width(140.0).selected_text(cur).show_ui(ui, |ui| {
+                    for (k, l) in choices {
+                        ui.selectable_value(v, k.to_string(), *l);
+                    }
+                });
+            };
+            let switch = |ui: &mut egui::Ui, v: &mut bool| {
+                if toggle(ui, &p, *v, false).clicked() {
+                    *v = !*v;
+                }
+            };
+            subhead(ui, &p, icons::CPU, "Game process");
+            row(ui, &p, false, Chip::Glyph(icons::CPU, if o.boost { 1.0 } else { 0.0 }), "Boost the game", "Raises the game's CPU, GPU and disk (I/O) priority while it runs. Windows drops these by itself when the game closes.", 60.0, |ui| switch(ui, &mut o.boost));
+            if o.boost {
+                row(ui, &p, false, Chip::Glyph(icons::CPU, 0.0), "CPU priority", "How Windows ranks the game's threads against other programs. High can make other apps feel slower while you play.", 160.0, |ui| combo(ui, "a_cpu", &mut o.cpu, &arena::CPU));
+                row(ui, &p, false, Chip::Glyph(icons::GPU, 0.0), "GPU priority", "How the graphics scheduler ranks the game's work against other apps that use the GPU.", 160.0, |ui| combo(ui, "a_gpu", &mut o.gpu, &arena::GPU));
+                row(ui, &p, false, Chip::Glyph(icons::DRIVE, 0.0), "Disk (I/O) priority", "Lets the game's disk reads go ahead of other programs, which can shorten load times when something else is using the disk.", 160.0, |ui| combo(ui, "a_io", &mut o.io, &arena::IO));
+            }
+            subhead(ui, &p, icons::TILES, "Background");
+            row(ui, &p, false, Chip::Glyph(icons::TILES, if o.focus { 1.0 } else { 0.0 }), "Game Focus", "Lowers the other programs in your session to below-normal CPU priority so the game gets more. Your desktop, audio, voice chat, capture apps and Steam are left alone. Put back when the game closes.", 60.0, |ui| switch(ui, &mut o.focus));
+            row(ui, &p, false, Chip::Glyph(icons::nav("services"), if o.services { 1.0 } else { 0.0 }), "Pause background services", "Stops SysMain, telemetry (DiagTrack), Print Spooler, Downloaded Maps Manager, Windows Error Reporting and Program Compatibility Assistant while you play (only the ones that are running), then starts them again. Printing won't work during the session.", 60.0, |ui| switch(ui, &mut o.services));
+            row(ui, &p, false, Chip::Glyph(icons::SEARCH, if o.search { 1.0 } else { 0.0 }), "Pause Windows Search indexing", "Stops the search indexer (WSearch) so it doesn't crawl your drives while you play. Search still works, just slower; the indexer starts again when the game closes.", 60.0, |ui| switch(ui, &mut o.search));
+            subhead(ui, &p, icons::nav("network"), "System & network");
+            row(ui, &p, false, Chip::Glyph(icons::nav("network"), if o.latency { 1.0 } else { 0.0 }), "Turn off TCP auto-tuning", "Turns off Windows' receive-window auto-tuning for the session, which can help with ping spikes under load on some connections. Your previous level comes back after.", 60.0, |ui| switch(ui, &mut o.latency));
+            row(ui, &p, false, Chip::Glyph(icons::BOLT, if o.pin { 1.0 } else { 0.0 }), "Hold full CPU clocks", "Sets the power plan's minimum processor state to 100% so the CPU doesn't clock down between frames. More heat and power use while you play; your previous value comes back after.", 60.0, |ui| switch(ui, &mut o.pin));
+            row(ui, &p, false, Chip::Glyph(icons::RAM, if o.standby { 1.0 } else { 0.0 }), "Clear standby memory", "Empties Windows' standby list (memory only used as cache) once, just before the game starts.", 60.0, |ui| switch(ui, &mut o.standby));
+            let mut use_plan = o.plan.is_some();
+            row(ui, &p, false, Chip::Glyph(icons::BATTERY, if use_plan { 1.0 } else { 0.0 }), "Gaming power plan", "Switches to the plan you pick while you play, then back to the plan you had.", 230.0, |ui| {
+                switch(ui, &mut use_plan);
+                if use_plan {
+                    let mut g = o.plan.clone().or_else(|| plans.iter().find(|x| x.active).map(|x| x.guid.clone())).unwrap_or_default();
+                    let cur = plans.iter().find(|x| x.guid == g).map(|x| x.name.clone()).unwrap_or_else(|| "Pick a plan".into());
+                    egui::ComboBox::from_id_salt("a_plan").width(150.0).selected_text(cur).show_ui(ui, |ui| {
+                        for pl in &plans {
+                            ui.selectable_value(&mut g, pl.guid.clone(), &pl.name);
+                        }
+                    });
+                    o.plan = Some(g).filter(|g| !g.is_empty());
+                }
+            });
+            if !use_plan {
+                o.plan = None;
+            }
+            subhead(ui, &p, icons::APP, "Cheetix");
+            row(ui, &p, false, Chip::Glyph(icons::CLOSE, if o.close_app { 1.0 } else { 0.0 }), "Close Cheetix when the game starts", "The session keeps running without Cheetix and still puts everything back when the game closes.", 60.0, |ui| switch(ui, &mut o.close_app));
+        });
+        if o != before {
+            self.saved.arena.insert(g.appid.clone(), o.clone());
+            self.save();
+        }
+        if start {
+            match arena::start(&g, &o) {
+                Ok(()) => {
+                    self.close_when_live = o.close_app;
+                    self.session = Some(arena::Status { phase: "starting".into(), game: g.name.clone(), msg: "Applying settings…".into(), ..Default::default() });
+                    self.session_read = Instant::now();
+                }
+                Err(e) => self.toast("Arena couldn't start", e),
+            }
+        }
+    }
+
     fn monitor(&mut self, ui: &mut egui::Ui) {
         let p = self.p;
         if self.proc_auto && self.proc_at.is_none_or(|t| t.elapsed() >= MONITOR_POLL) {
@@ -2472,6 +2661,7 @@ impl eframe::App for App {
                     match self.view {
                         "dashboard" => self.dashboard(ui),
                         "monitor" => self.monitor(ui),
+                        "arena" => self.arena(ui),
                         "shortcuts" => self.shortcuts(ui),
                         "cleaner" => self.cleaner(ui),
                         "powerplans" => self.power_plans(ui),
@@ -2517,6 +2707,19 @@ impl eframe::App for App {
         }
 
         self.update_popup(ctx);
+        // follow the Arena session (it runs as its own process)
+        if self.session_read.elapsed() >= Duration::from_secs(1) {
+            self.session_read = Instant::now();
+            self.session = arena::status();
+            if let Some(st) = &self.session {
+                if st.running() && !arena::alive(st.pid) {
+                    arena::recover_if_needed();
+                }
+                if self.close_when_live && st.phase == "active" {
+                    ctx.send_viewport_cmd(ViewportCommand::Close);
+                }
+            }
+        }
 
         // keep timers (status labels, session clock, monitor refresh) moving
         ctx.request_repaint_after(Duration::from_millis(500));

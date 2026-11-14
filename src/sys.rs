@@ -10,7 +10,7 @@ use std::os::windows::process::CommandExt;
 
 const NO_WINDOW: u32 = 0x0800_0000;
 
-fn hidden(cmd: &mut Command) -> &mut Command {
+pub fn hidden(cmd: &mut Command) -> &mut Command {
     #[cfg(windows)]
     cmd.creation_flags(NO_WINDOW);
     cmd

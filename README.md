@@ -53,6 +53,7 @@ What makes it different is how carefully it changes things:
 
 **Tools**
 
+- **Arena**: finds your installed Steam games and starts them with per-game settings: CPU, GPU and disk priority for the game, Game Focus (other programs lowered), paused background services and search indexing, TCP auto-tuning off, full CPU clocks, standby memory cleared and a gaming power plan. Every original value is saved first and put back when the game closes, even if Cheetix was closed or the PC crashed mid-session.
 - **Dashboard**: CPU, memory and disk use, uptime, and how many tweaks are applied on each page.
 - **Process Monitor**: the heaviest processes, with protected system processes that can't be ended.
 - **Startup Manager**: turn startup programs on or off, the same way Task Manager does. Nothing is deleted.
