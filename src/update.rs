@@ -44,6 +44,11 @@ const PRELUDE: &str = "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'S
 
 /// The latest GitHub release, if it is newer than this build.
 pub fn check() -> Result<Option<Release>, String> {
+    latest().map(|r| r.filter(|r| newer(&r.version, env!("CARGO_PKG_VERSION"))))
+}
+
+/// The latest GitHub release with its setup file (None: no newer-looking release to offer).
+fn latest() -> Result<Option<Release>, String> {
     let script = format!(
         "{PRELUDE}$r = Invoke-RestMethod -UseBasicParsing -Headers @{{ 'User-Agent' = 'Cheetix-updater' }} 'https://api.github.com/repos/{REPO}/releases/latest'\n\
          $a = @($r.assets | Where-Object {{ $_.name -like 'Cheetix-Setup-*.exe' }})[0]\n\
@@ -52,9 +57,6 @@ pub fn check() -> Result<Option<Release>, String> {
     let v: Value = serde_json::from_str(&ps_out(&script, 30)?).map_err(|e| e.to_string())?;
     let s = |k: &str| v[k].as_str().unwrap_or_default().to_string();
     let r = Release { version: s("tag").trim_start_matches(['v', 'V']).to_string(), url: s("url"), name: s("name"), digest: s("digest") };
-    if !newer(&r.version, env!("CARGO_PKG_VERSION")) {
-        return Ok(None);
-    }
     if r.url.is_empty() {
         return Err(format!("Cheetix {} has no installer attached on GitHub yet", r.version));
     }
@@ -102,8 +104,15 @@ mod tests {
     #[test]
     #[ignore]
     fn latest_release_has_an_installer() {
-        // this build is the newest, so check() returns None; the asset lookup must still work
-        let r = check().unwrap();
-        assert!(r.is_none() || r.unwrap().name.starts_with("Cheetix-Setup-"));
+        let r = latest().unwrap().unwrap();
+        assert!(r.name.starts_with("Cheetix-Setup-") && r.digest.starts_with("sha256:"), "{} {}", r.name, r.digest);
+    }
+
+    /// Really updates this PC to the latest release (download, check, install, restart).
+    /// Run by hand only: `cargo test live_update -- --ignored --exact update::tests::live_update`.
+    #[test]
+    #[ignore]
+    fn live_update() {
+        install(&latest().unwrap().unwrap()).unwrap();
     }
 }
