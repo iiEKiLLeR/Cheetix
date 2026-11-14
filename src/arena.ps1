@@ -19,6 +19,31 @@ public static class ArenaNative {
     [DllImport("ntdll.dll")] public static extern int NtSetSystemInformation(int cls, ref int v, int len);
     [DllImport("gdi32.dll")] public static extern int D3DKMTSetProcessSchedulingPriorityClass(IntPtr h, int cls);
     public static void Priv(int p) { bool was; RtlAdjustPrivilege(p, true, false, out was); }
+    // Steam's UI thread: the thread that owns its vguiPopupWindow (it respawns the web helper)
+    delegate bool EnumProc(IntPtr h, IntPtr l);
+    [DllImport("user32.dll")] static extern bool EnumWindows(EnumProc f, IntPtr l);
+    [DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(IntPtr h, out uint pid);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)] static extern int GetClassName(IntPtr h, System.Text.StringBuilder s, int n);
+    [DllImport("kernel32.dll")] static extern IntPtr OpenThread(int access, bool inherit, uint tid);
+    [DllImport("kernel32.dll")] static extern int SuspendThread(IntPtr h);
+    [DllImport("kernel32.dll")] static extern int ResumeThread(IntPtr h);
+    [DllImport("kernel32.dll")] static extern bool CloseHandle(IntPtr h);
+    public static uint UiThread(uint steamPid) {
+        uint found = 0;
+        EnumWindows((h, l) => {
+            uint pid; uint tid = GetWindowThreadProcessId(h, out pid);
+            if (pid != steamPid) return true;
+            var sb = new System.Text.StringBuilder(64); GetClassName(h, sb, 64);
+            if (sb.ToString() == "vguiPopupWindow") { found = tid; return false; }
+            return true;
+        }, IntPtr.Zero);
+        return found;
+    }
+    // 2 = THREAD_SUSPEND_RESUME; returns the previous suspend count, or -1
+    public static int Thread(uint tid, bool suspend) {
+        IntPtr h = OpenThread(2, false, tid); if (h == IntPtr.Zero) return -1;
+        int r = suspend ? SuspendThread(h) : ResumeThread(h); CloseHandle(h); return r;
+    }
 }
 '@
 [ArenaNative]::Priv(13)  # SeProfileSingleProcessPrivilege: purge the standby list
@@ -37,6 +62,14 @@ function Save-Guard { [IO.File]::WriteAllText($guardF, ($script:base | ConvertTo
 function Active-Scheme { if ((powercfg /getactivescheme) -match '([0-9a-fA-F-]{36})') { $Matches[1] } }
 
 function Undo($b) {
+    if ($b.steam) {
+        # end helpers that are left, then let Steam's UI run again: it starts a fresh helper
+        $sp = Get-Process -Id $b.steam.pid -ErrorAction SilentlyContinue
+        if ($sp -and $sp.ProcessName -eq 'steam') {
+            Get-Process steamwebhelper -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+            [void][ArenaNative]::Thread([uint32]$b.steam.tid, $false)
+        }
+    }
     foreach ($e in @($b.lowered)) {
         try { $p = Get-Process -Id $e.pid -ErrorAction Stop; if ($p.StartTime.Ticks -eq [long]$e.ticks) { $p.PriorityClass = $e.cls } } catch {}
     }
@@ -63,7 +96,7 @@ if ($Mode -eq 'recover') {
 }
 
 Remove-Item $stopF -ErrorAction SilentlyContinue
-$script:base = [ordered]@{ owner = $PID; game = $c.name; services = @(); tcp = $null; pin = $null; plan = $null; lowered = @() }
+$script:base = [ordered]@{ owner = $PID; game = $c.name; services = @(); tcp = $null; pin = $null; plan = $null; lowered = @(); steam = $null }
 Save-Guard
 Write-Status 'starting' 'Applying settings...'
 
@@ -159,6 +192,23 @@ if (-not $procs.Count) {
 if ($procs.Count) {
     $procs | ForEach-Object { Boost $_ }
     if ($c.focus) { Focus $procs; Note "Game Focus lowered $(@($script:base.lowered).Count) background programs to below normal." }
+    if ($c.steam) {
+        $sp = @(Get-Process steam -ErrorAction SilentlyContinue)[0]
+        if (-not $sp) { Note 'Steam is not running, so its web helper was left alone.' }
+        else {
+            $tid = [ArenaNative]::UiThread([uint32]$sp.Id)
+            if (-not $tid) { Note "Steam's window could not be found, so its web helper was left alone." }
+            else {
+                $script:base.steam = @{ pid = $sp.Id; tid = $tid }; Save-Guard
+                if ([ArenaNative]::Thread($tid, $true) -lt 0) { $script:base.steam = $null; Save-Guard; Note "Windows refused access to Steam's UI, so its web helper was left alone." }
+                else {
+                    $n = @(Get-Process steamwebhelper -ErrorAction SilentlyContinue).Count
+                    Get-Process steamwebhelper -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+                    Note "Steam's web helper closed ($n processes). Steam's window and overlay come back when the game closes."
+                }
+            }
+        }
+    }
     Write-Status 'active' 'Game running.'
     $gone = 0; $tick = 0
     while ($gone -lt 3 -and -not (Test-Path $stopF)) {

@@ -31,6 +31,8 @@ pub struct Opts {
     pub focus: bool,
     pub services: bool,
     pub search: bool,
+    /// close Steam's web helper while the game runs
+    pub steam: bool,
     pub latency: bool,
     pub pin: bool,
     pub standby: bool,
@@ -41,7 +43,7 @@ pub struct Opts {
 
 impl Default for Opts {
     fn default() -> Self {
-        Opts { boost: true, cpu: "AboveNormal".into(), gpu: "High".into(), io: "Normal".into(), focus: true, services: true, search: false, latency: false, pin: false, standby: false, plan: None, close_app: false }
+        Opts { boost: true, cpu: "AboveNormal".into(), gpu: "High".into(), io: "Normal".into(), focus: true, services: true, search: false, steam: false, latency: false, pin: false, standby: false, plan: None, close_app: false }
     }
 }
 
@@ -174,7 +176,7 @@ pub fn start(g: &Game, o: &Opts) -> Result<(), String> {
     let cfg = json!({
         "dir": dir(), "appid": g.appid, "name": g.name, "folder": g.folder,
         "boost": o.boost, "cpu": o.cpu, "gpu": o.gpu, "io": o.io, "focus": o.focus,
-        "services": o.services, "service_list": SERVICES, "search": o.search,
+        "services": o.services, "service_list": SERVICES, "search": o.search, "steam": o.steam,
         "latency": o.latency, "pin": o.pin, "standby": o.standby, "plan": o.plan,
     });
     spawn("run", &cfg)
@@ -269,7 +271,7 @@ mod live {
         println!("before: {before}");
         let mut game = std::process::Command::new(&exe).args(["/c", "ping -n 30 127.0.0.1 >nul"]).spawn().unwrap();
         let g = Game { appid: "0".into(), name: "Arena test".into(), folder: folder.clone() };
-        let o = Opts { boost: true, cpu: "High".into(), gpu: "High".into(), io: "High".into(), focus: true, services: true, search: true, latency: true, pin: true, standby: true, plan: None, close_app: false };
+        let o = Opts { boost: true, cpu: "High".into(), gpu: "High".into(), io: "High".into(), focus: true, services: true, search: true, steam: false, latency: true, pin: true, standby: true, plan: None, close_app: false };
         start(&g, &o).unwrap();
         let t = Instant::now();
         let mut live = None;
@@ -306,5 +308,59 @@ mod live {
         let _ = std::fs::remove_dir_all(folder);
         assert_eq!(before, after);
         assert!(!dir().join("arena-guard.json").exists());
+    }
+}
+
+#[cfg(test)]
+mod live_steam {
+    use super::*;
+    use std::time::{Duration, Instant};
+
+    fn helpers() -> usize {
+        let o = crate::sys::ps("@(Get-Process steamwebhelper -ErrorAction SilentlyContinue).Count").unwrap();
+        String::from_utf8_lossy(&o.stdout).trim().parse().unwrap_or(0)
+    }
+
+    fn wait_phase(phase: &str) -> Status {
+        let t = Instant::now();
+        while t.elapsed() < Duration::from_secs(60) {
+            std::thread::sleep(Duration::from_secs(1));
+            if let Some(s) = status().filter(|s| s.phase == phase) {
+                return s;
+            }
+        }
+        panic!("session never reached {phase}");
+    }
+
+    /// "Reduce Steam resource usage" against the running Steam: its web helper must be gone
+    /// while the stand-in game runs and come back after. `cargo test live_steam -- --ignored --nocapture`
+    #[test]
+    #[ignore]
+    fn live_steam_reduce() {
+        let before = helpers();
+        assert!(before > 0, "start Steam first");
+        let folder = std::env::temp_dir().join("cheetix_arena_fakegame2");
+        let _ = std::fs::create_dir_all(&folder);
+        let exe = folder.join("fakegame.exe");
+        std::fs::copy(r"C:\Windows\System32\cmd.exe", &exe).unwrap();
+        let mut game = std::process::Command::new(&exe).args(["/c", "ping -n 40 127.0.0.1 >nul"]).spawn().unwrap();
+        let o = Opts { boost: false, focus: false, services: false, steam: true, ..Default::default() };
+        start(&Game { appid: "0".into(), name: "Steam test".into(), folder: folder.clone() }, &o).unwrap();
+        let live = wait_phase("active");
+        std::thread::sleep(Duration::from_secs(8)); // Steam would respawn the helper within seconds if it could
+        let during = helpers();
+        println!("helpers before {before}, during {during}; notes {:?}", live.notes);
+        let _ = game.kill();
+        println!("ended: {}", wait_phase("ended").msg);
+        let t = Instant::now();
+        let mut after = 0;
+        while t.elapsed() < Duration::from_secs(45) && after == 0 {
+            std::thread::sleep(Duration::from_secs(1));
+            after = helpers();
+        }
+        println!("helpers after: {after} ({} s)", t.elapsed().as_secs());
+        let _ = std::fs::remove_dir_all(folder);
+        assert_eq!(during, 0);
+        assert!(after > 0, "Steam's web helper did not come back");
     }
 }
