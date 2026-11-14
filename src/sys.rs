@@ -113,7 +113,7 @@ pub fn needs_admin(s: &str) -> bool {
         "powercfg /delete", "powercfg /attributes", "powercfg -attributes", "bcdedit", "wmic", "wevtutil",
         "checkpoint-computer", "enable-computerrestore", "set-ciminstance", "new-ciminstance",
         "remove-ciminstance", "net stop wuauserv", "net start wuauserv", "c:\\windows\\temp",
-        "c:\\$recycle.bin", "c:\\windows\\prefetch", "c:\\windows\\minidump", "c:\\windows\\softwaredistribution",
+        "c:\\$recycle.bin", "c:\\windows\\prefetch", "c:\\windows\\minidump", "c:\\windows\\softwaredistribution", "/cleanup-image", "pnputil", "\\logs\\",
     ]
     .iter()
     .any(|k| l.contains(k))
@@ -261,9 +261,15 @@ pub fn metrics() -> Metrics {
     #[cfg(windows)]
     unsafe {
         use windows_sys::Win32::System::SystemInformation::*;
-        let (i0, t0) = sys_times();
-        std::thread::sleep(std::time::Duration::from_millis(500));
+        static PREV: [AtomicU64; 2] = [AtomicU64::new(0), AtomicU64::new(0)];
+        if PREV[1].load(Ordering::Relaxed) == 0 {
+            let (i, t) = sys_times();
+            PREV[0].store(i, Ordering::Relaxed);
+            PREV[1].store(t, Ordering::Relaxed);
+            std::thread::sleep(std::time::Duration::from_millis(250));
+        }
         let (i1, t1) = sys_times();
+        let (i0, t0) = (PREV[0].swap(i1, Ordering::Relaxed), PREV[1].swap(t1, Ordering::Relaxed));
         let dt = t1.saturating_sub(t0).max(1);
         m.cpu = (100.0 * (1.0 - (i1.saturating_sub(i0)) as f64 / dt as f64)).round().clamp(0.0, 100.0) as u32;
 
@@ -378,6 +384,9 @@ pub struct StartupItem {
     pub cmd: String,
     pub loc: String,
     pub enabled: bool,
+    /// the program's own icon (64x64 PNG), when it could be found
+    #[serde(default)]
+    pub icon: Option<String>,
 }
 
 const STARTUP_LOCS: &str = r#"
@@ -389,9 +398,40 @@ $locs = @(
 function ApprPath($l) { "$($l.Root)\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\$($l.Appr)" }
 "#;
 
+/// Finds the program a Run command starts and saves its icon as a PNG (once per program).
+const STARTUP_ICON: &str = r#"
+Add-Type -AssemblyName System.Drawing
+Add-Type -TypeDefinition 'using System; using System.Runtime.InteropServices; public static class Ico { [DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern uint PrivateExtractIcons(string f, int i, int cx, int cy, IntPtr[] h, uint[] id, uint n, uint fl); }'
+function IconFor($cmd) {
+  try {
+    $c = [Environment]::ExpandEnvironmentVariables($cmd).Trim()
+    if ($c.StartsWith('"')) { $p = $c.Substring(1, $c.IndexOf('"', 1) - 1) }
+    elseif ($c -match '^(.+?\.(exe|com|bat|cmd))(\s|$)') { $p = $matches[1] }
+    else { $p = ($c -split ' ')[0] }
+    if (-not [IO.Path]::IsPathRooted($p)) { $w = Get-Command $p -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1; if ($w) { $p = $w.Source } }
+    if (-not (Test-Path -LiteralPath $p -PathType Leaf)) { return $null }
+    $md5 = [Security.Cryptography.MD5]::Create()
+    $f = Join-Path $iconDir (([BitConverter]::ToString($md5.ComputeHash([Text.Encoding]::UTF8.GetBytes($p.ToLower())))).Replace('-', '') + '.png')
+    if (-not (Test-Path -LiteralPath $f)) {
+      $h = New-Object IntPtr[] 1; $id = New-Object uint32[] 1
+      [void][Ico]::PrivateExtractIcons($p, 0, 64, 64, $h, $id, 1, 0)
+      $ico = if ($h[0] -ne [IntPtr]::Zero) { [Drawing.Icon]::FromHandle($h[0]) } else { [Drawing.Icon]::ExtractAssociatedIcon($p) }
+      $b = New-Object Drawing.Bitmap 64, 64
+      $g = [Drawing.Graphics]::FromImage($b); $g.InterpolationMode = 'HighQualityBicubic'
+      $g.DrawImage($ico.ToBitmap(), 0, 0, 64, 64); $g.Dispose()
+      $b.Save($f, [Drawing.Imaging.ImageFormat]::Png); $b.Dispose()
+    }
+    $f
+  } catch { $null }
+}
+"#;
+
 pub fn startup_list() -> Result<Vec<StartupItem>, String> {
+    let icons = crate::arena::dir().join("icons");
+    let _ = std::fs::create_dir_all(&icons);
     let s = format!(
-        "{STARTUP_LOCS}
+        "{STARTUP_LOCS}{STARTUP_ICON}
+$iconDir = '{}'
 $out = @()
 foreach ($l in $locs) {{
   $k = Get-Item -LiteralPath \"$($l.Root)\\$($l.Path)\" -ErrorAction SilentlyContinue
@@ -400,10 +440,11 @@ foreach ($l in $locs) {{
     if (-not $n) {{ continue }}
     $b = (Get-ItemProperty -LiteralPath (ApprPath $l) -Name $n -ErrorAction SilentlyContinue).$n
     $off = ($b -is [byte[]]) -and $b.Count -gt 0 -and (($b[0] % 2) -eq 1)
-    $out += [pscustomobject]@{{ id = \"$($l.Id)|$n\"; name = $n; cmd = [string]$k.GetValue($n); loc = $l.Label; enabled = -not $off }}
+    $out += [pscustomobject]@{{ id = \"$($l.Id)|$n\"; name = $n; cmd = [string]$k.GetValue($n); loc = $l.Label; enabled = -not $off; icon = (IconFor ([string]$k.GetValue($n))) }}
   }}
 }}
-ConvertTo-Json -InputObject @($out) -Compress"
+ConvertTo-Json -InputObject @($out) -Compress",
+        icons.display().to_string().replace('\'', "''")
     );
     let o = ps(&s)?;
     let t = String::from_utf8_lossy(&o.stdout);
@@ -477,6 +518,20 @@ pub fn plan_activate(guid: &str) -> Result<(), String> {
 }
 
 /// Open a Windows setting or tool (`cmd /c start "" <cmd>`).
+/// Asks for a program (.exe). None: cancelled.
+pub fn pick_exe(title: &str) -> Option<std::path::PathBuf> {
+    let s = format!(
+        "Add-Type -AssemblyName System.Windows.Forms
+$owner = New-Object Windows.Forms.Form -Property @{{ TopMost = $true; ShowInTaskbar = $false }}
+$d = New-Object Windows.Forms.OpenFileDialog -Property @{{ Title = '{}'; Filter = 'Programs (*.exe)|*.exe' }}
+if ($d.ShowDialog($owner) -eq 'OK') {{ $d.FileName }}",
+        title.replace('\'', "''")
+    );
+    let o = ps_timeout(&s, 900).ok()?;
+    let f = String::from_utf8_lossy(&o.stdout).trim().to_string();
+    (!f.is_empty()).then(|| f.into())
+}
+
 pub fn open(cmd: &str) {
     let _ = cmd_raw(&format!("start \"\" {cmd}"));
 }
@@ -499,8 +554,8 @@ mod tests {
     fn startup_scan_runs() {
         let v = startup_list().expect("scan");
         eprintln!("startup items: {}", v.len());
-        for i in v.iter().take(5) {
-            eprintln!("  {} | {} | {}", i.id, i.enabled, i.cmd);
+        for i in v.iter() {
+            eprintln!("  {} | {} | {} | icon={:?}", i.id, i.enabled, i.cmd, i.icon);
         }
     }
     #[test]

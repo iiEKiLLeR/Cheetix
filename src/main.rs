@@ -87,7 +87,6 @@ struct Info {
 /// (view id, page title, search tag)
 const PAGES: &[(&str, &str, &str)] = &[
     ("windows", "Windows & Visual Effects", "WINDOWS"),
-    ("personalize", "Personalize & Appearance", "THEME"),
     ("gaming", "Gaming", "GAMING"),
     ("cpu", "CPU & Processor", "CPU"),
     ("gpu", "GPU & Graphics", "GPU"),
@@ -125,7 +124,7 @@ const NAV: &[NavGroup] = &[
     ("PRIVACY & SECURITY", &[("privacy", "Privacy & Telemetry"), ("security", "Security")]),
     (
         "SYSTEM",
-        &[("windows", "Windows & Explorer"), ("services", "Services"), ("tasks", "Scheduled Tasks"), ("background", "Startup & Background"), ("features", "Optional Features"), ("personalize", "Personalize"), ("contextmenu", "Context Menu")],
+        &[("windows", "Windows & Explorer"), ("services", "Services"), ("tasks", "Scheduled Tasks"), ("background", "Startup & Background"), ("features", "Optional Features"), ("contextmenu", "Context Menu")],
     ),
     // "apps" is not a category of its own: it gathers the app-specific tweaks of every category
     ("DEBLOAT", &[("debloat", "Windows Debloat"), ("apps", "Windows Apps"), ("edge", "Microsoft Edge"), ("brave", "Brave Browser")]),
@@ -139,10 +138,25 @@ const CLEANERS: &[(&str, &str, &str, &str)] = &[
     ("prefetch", "Prefetch", "Application prefetch cache", "Remove-Item 'C:\\Windows\\Prefetch\\*' -Recurse -Force -ErrorAction SilentlyContinue"),
     ("recent", "Recent items", "Recent files and folders list", "Remove-Item \"$env:APPDATA\\Microsoft\\Windows\\Recent\\*\" -Recurse -Force -ErrorAction SilentlyContinue"),
     ("recycle_bin", "Recycle Bin", "Empties every Recycle Bin", "Clear-RecycleBin -Force -ErrorAction SilentlyContinue"),
-    ("event_logs", "Event logs", "Clears the main Windows event logs", "foreach ($l in 'Application','System','Security','Setup','ForwardedEvents') { wevtutil cl $l }"),
+    ("event_logs", "Event logs", "Clears every Windows event log", "wevtutil el | ForEach-Object { wevtutil cl \"$_\" 2>$null }; exit 0"),
     ("dns_cache", "DNS cache", "Flushes the DNS resolver cache", "ipconfig /flushdns"),
     ("wu_cache", "Windows Update cache", "Downloaded update files (SoftwareDistribution)", "Stop-Service wuauserv -Force -ErrorAction SilentlyContinue; Remove-Item 'C:\\Windows\\SoftwareDistribution\\Download' -Recurse -Force -ErrorAction SilentlyContinue; Start-Service wuauserv -ErrorAction SilentlyContinue"),
     ("thumb_cache", "Thumbnail cache", "Explorer thumbnail cache (restarts Explorer)", "Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue; Remove-Item \"$env:LOCALAPPDATA\\Microsoft\\Windows\\Explorer\\thumbcache_*\" -Force -ErrorAction SilentlyContinue; Start-Process explorer"),
+    ("privacy", "Privacy traces", "Windows logs, recent files, Run box, search and address bar history, Defender scan history", r#"$ErrorActionPreference = 'SilentlyContinue'
+$sr = $env:SystemRoot
+foreach ($d in "$sr\Logs\waasmedic", "$sr\Logs\SIH", "$sr\Traces\WindowsUpdate", "$sr\Logs\NetSetup", "$sr\System32\LogFiles\setupcln", "$sr\ServiceProfiles\LocalService\AppData\Local\Temp", "$env:LOCALAPPDATA\Microsoft\CLR_v4.0\UsageTraces", "$env:LOCALAPPDATA\Microsoft\CLR_v4.0_32\UsageTraces", "$env:ProgramData\Microsoft\Windows Defender\Scans\History", "$env:LOCALAPPDATA\Microsoft\Windows\ConnectedSearch\History") { Remove-Item "$d\*" -Recurse -Force }
+foreach ($f in "$sr\System32\catroot2\dberr.txt", "$sr\System32\catroot2.log", "$sr\System32\catroot2.jrs", "$sr\System32\catroot2.edb", "$sr\comsetup.log", "$sr\DtcInstall.log", "$sr\PFRO.log", "$sr\setupact.log", "$sr\setuperr.log", "$sr\setupapi.log", "$sr\inf\setupapi.app.log", "$sr\inf\setupapi.dev.log", "$sr\Performance\WinSAT\winsat.log", "$sr\debug\PASSWD.LOG", "$sr\Logs\CBS\CBS.log", "$sr\Logs\DISM\DISM.log", "$env:ProgramData\Microsoft\Diagnosis\ETLLogs\ShutdownLogger\AutoLogger-Diagtrack-Listener.etl") { Remove-Item -LiteralPath $f -Force }
+$cv = 'HKCU:\Software\Microsoft\Windows\CurrentVersion'
+foreach ($k in "$cv\Explorer\RecentDocs", "$cv\Explorer\RunMRU", "$cv\Explorer\TypedPaths", "$cv\Explorer\WordWheelQuery", "$cv\Explorer\ComDlg32\LastVisitedMRU", "$cv\Explorer\ComDlg32\LastVisitedPidlMRU", "$cv\Explorer\ComDlg32\LastVisitedPidlMRULegacy", "$cv\Explorer\ComDlg32\OpenSavePidlMRU", "$cv\Explorer\Map Network Drive MRU", "$cv\Applets\Paint\Recent File List", "$cv\Applets\Wordpad\Recent File List", 'HKCU:\Software\Microsoft\MediaPlayer\Player\RecentFileList', 'HKCU:\Software\Microsoft\MediaPlayer\Player\RecentURLList', 'HKCU:\Software\Microsoft\Direct3D\MostRecentApplication', 'HKCU:\Software\Microsoft\Search Assistant\ACMru', 'HKCU:\Software\Adobe\MediaBrowser\MRU') {
+  if (Test-Path -LiteralPath $k) { @(Get-Item -LiteralPath $k) + @(Get-ChildItem -LiteralPath $k -Recurse) | ForEach-Object { Remove-ItemProperty -LiteralPath $_.PSPath -Name * -Force } }
+}
+Remove-ItemProperty -LiteralPath "$cv\Applets\Regedit" -Name LastKey -Force
+exit 0"#),
+    ("disk_cleanup", "Disk Cleanup (every option)", "Windows Disk Cleanup with every box ticked, run in the background", r#"$k = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches'
+Get-ChildItem -LiteralPath $k | ForEach-Object { New-ItemProperty -LiteralPath $_.PSPath -Name StateFlags0099 -Value 2 -PropertyType DWord -Force | Out-Null }
+Start-Process cleanmgr.exe -ArgumentList '/sagerun:99' -WindowStyle Hidden -Wait"#),
+    ("component_store", "Component store (WinSxS)", "Removes old Windows components. Takes a few minutes; installed updates can't be uninstalled after", "Dism.exe /Online /Cleanup-Image /StartComponentCleanup /ResetBase | Out-Null; exit $LASTEXITCODE"),
+    ("devices", "Non-present devices", "Removes devices that are no longer connected (old USB drives, leftover drivers)", "Get-PnpDevice | Where-Object { -not $_.Present } | ForEach-Object { pnputil /remove-device $_.InstanceId | Out-Null }; exit 0"),
     ("crash_dumps", "Crash dumps", "Windows minidumps and app crash dumps", "Remove-Item 'C:\\Windows\\Minidump\\*' -Recurse -Force -ErrorAction SilentlyContinue; Remove-Item \"$env:LOCALAPPDATA\\CrashDumps\\*\" -Recurse -Force -ErrorAction SilentlyContinue"),
 ];
 
@@ -162,7 +176,7 @@ const SHORTCUTS: &[Shortcuts] = &[
 const MAX_HISTORY: usize = 200;
 const CHECK_BATCH: usize = 15;
 const SEARCH_MAX: usize = 40;
-const DASH_POLL: Duration = Duration::from_secs(60);
+const DASH_POLL: Duration = Duration::from_secs(1);
 const MONITOR_POLL: Duration = Duration::from_secs(5);
 const STATUS_HOLD: Duration = Duration::from_secs(3);
 
@@ -185,6 +199,9 @@ struct Saved {
     /// programs added to Arena's library by hand
     #[serde(default)]
     arena_apps: Vec<arena::App>,
+    /// where Dism++ is (asked once, from the Cleaner page)
+    #[serde(default)]
+    dismpp: Option<PathBuf>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -238,6 +255,8 @@ enum Msg {
     Games(Result<Vec<arena::Game>, String>),
     /// a program picked with "Add a program" (None: cancelled)
     Picked(Result<Option<arena::App>, String>),
+    /// Dism++ located by the user (None: cancelled)
+    DismPicked(Option<PathBuf>),
     /// a newer release is on GitHub
     Update(update::Release),
     /// the update could not be downloaded or started
@@ -875,9 +894,21 @@ impl App {
             },
             Msg::Plans(v) => self.plans = Some(v),
             Msg::CleanDone(id, ok) => {
+                let name = CLEANERS.iter().find(|c| c.0 == id).map_or("", |c| c.1);
+                if ok {
+                    self.toast("Cleaning done", format!("{name} is clean."));
+                } else {
+                    self.toast("Cleaning failed", format!("{name} couldn't be cleaned. Some parts need administrator rights."));
+                }
                 self.clean.insert(id, (if ok { "CLEANED" } else { "FAILED" }, Instant::now()));
             }
             Msg::Toast(a, b) => self.toast(a, b),
+            Msg::DismPicked(Some(f)) => {
+                sys::open(&format!("\"{}\"", f.display()));
+                self.saved.dismpp = Some(f);
+                self.save();
+            }
+            Msg::DismPicked(None) => {}
             Msg::Games(g) => self.games = Some(g),
             Msg::Picked(Ok(Some(a))) => {
                 self.arts.remove(&a.id);
@@ -1274,6 +1305,8 @@ enum Chip<'a> {
     Brand(&'a str, u32),
     /// like `Brand`, with Brave's logo as a badge
     Brave(&'a str),
+    /// a picture (an app's own icon); dimmed until lit
+    Image(egui::TextureId, f32),
 }
 
 fn paint_chip(painter: &egui::Painter, p: &Pal, r: Rect, chip: Chip) {
@@ -1294,6 +1327,10 @@ fn paint_chip(painter: &egui::Painter, p: &Pal, r: Rect, chip: Chip) {
             let badge = Rect::from_center_size(r.right_bottom() - vec2(3.0, 3.0), Vec2::splat(r.width() * 0.46));
             painter.circle_filled(badge.center(), badge.width() / 2.0 + 2.0, Color32::WHITE);
             painter.image(p.brave, badge, UV, Color32::WHITE);
+        }
+        Chip::Image(tex, lit) => {
+            painter.rect_filled(r, rad, mix(p.chip, p.acc_soft, lit));
+            painter.image(tex, r.shrink(r.width() * 0.16), UV, mix(Color32::from_white_alpha(110), Color32::WHITE, lit));
         }
     }
 }
@@ -1628,7 +1665,6 @@ fn field(ui: &mut egui::Ui, p: &Pal, text: &mut String, hint: &str, width: f32) 
 fn subtitle(view: &str) -> &'static str {
     match view {
         "windows" => "Windows behaviour, visual effects and Explorer.",
-        "personalize" => "Accent colours, taskbar, Start and desktop icons.",
         "gaming" => "Latency, scheduling and game features.",
         "gpu" => "Graphics driver behaviour and assorted system switches.",
         "power" => "Power plan settings, sleep and USB power.",
@@ -1664,7 +1700,7 @@ impl App {
 
     /// Tweaks shown on a page. "apps" gathers the app-specific ones from every category.
     fn page_tweaks(&self, view: &str) -> Vec<Tweak> {
-        self.tweaks.iter().filter(|t| if view == "apps" { icons::brand(&t.c, &t.id).is_some() } else { t.c == view }).cloned().collect()
+        self.tweaks.iter().filter(|t| if view == "apps" { icons::brand(&t.c, &t.id).is_some() && PAGES.iter().any(|p| p.0 == t.c) } else { t.c == view }).cloned().collect()
     }
 
     fn top_bar(&mut self, ui: &mut egui::Ui) {
@@ -2624,10 +2660,29 @@ impl App {
                     tx.log(format!("{} {}: ERROR - {}", ts(), name, sys::ADMIN_MSG));
                     return tx.send(Msg::CleanDone(id, false));
                 }
-                let ok = sys::ps(&script).is_ok();
+                // the component store can take many minutes
+                let ok = sys::ps_timeout(&script, 3600).is_ok_and(|o| o.status.success());
                 tx.log(format!("{} {}: {}", ts(), name, if ok { "CLEANED" } else { "ERROR" }));
                 tx.send(Msg::CleanDone(id, ok));
             });
+        }
+
+        subhead(ui, &p, icons::OPEN, "More tools");
+        let found = self.saved.dismpp.as_ref().filter(|f| f.exists()).cloned();
+        let sub = found.as_ref().map_or("Deeper cleanup in its own window. Open asks once where Dism++ is.".to_string(), |f| f.display().to_string());
+        let (mut open, mut change) = (false, false);
+        row(ui, &p, false, Chip::Glyph(icons::OPEN, 0.0), "Dism++", &sub, 190.0, |ui| {
+            open = btn_ex(ui, &p, Some(icons::OPEN), "Open", Kind::Ghost).clicked();
+            if found.is_some() {
+                change = btn_ex(ui, &p, Some(icons::FOLDER), "Change", Kind::Ghost).on_hover_text("Pick a different Dism++").clicked();
+            }
+        });
+        match found {
+            Some(f) if open && !change => {
+                std::thread::spawn(move || sys::open(&format!("\"{}\"", f.display())));
+            }
+            _ if open || change => self.work(|tx| tx.send(Msg::DismPicked(sys::pick_exe("Where is Dism++? (Dism++x64.exe)")))),
+            _ => {}
         }
     }
 
@@ -2704,8 +2759,18 @@ impl App {
             }
             Some(Ok(v)) => {
                 for it in v {
+                    if let Some(f) = it.icon.as_ref().filter(|f| !self.arts.contains_key(*f)) {
+                        let tex = arena::load_art(std::path::Path::new(f)).map(|img| ui.ctx().load_texture(f.as_str(), img, egui::TextureOptions::LINEAR));
+                        self.arts.insert(f.clone(), tex);
+                    }
+                }
+                for it in v {
                     let lit = ease(ui.ctx().animate_bool_with_time(egui::Id::new(("startup", &it.id)), it.enabled, 0.25));
-                    row(ui, &p, false, Chip::Glyph(icons::POWER, lit), &it.name, &format!("{}  |  {}", it.loc, it.cmd), 92.0, |ui| {
+                    let chip = match it.icon.as_ref().and_then(|f| self.arts.get(f)).and_then(|t| t.as_ref()) {
+                        Some(t) => Chip::Image(t.id(), lit),
+                        None => Chip::Glyph(icons::POWER, lit),
+                    };
+                    row(ui, &p, false, chip, &it.name, &format!("{}  |  {}", it.loc, it.cmd), 92.0, |ui| {
                         if toggle(ui, &p, it.enabled, false).clicked() {
                             flip = Some((it.id.clone(), it.name.clone(), !it.enabled));
                         }
@@ -3092,13 +3157,24 @@ fn main() -> eframe::Result {
 mod tests {
     use super::*;
     #[test]
+    fn cleaner_scripts_parse() {
+        for (id, _, _, s) in CLEANERS {
+            let chk = format!("$e = $null; [void][Management.Automation.Language.Parser]::ParseInput(@'
+{s}
+'@, [ref]$null, [ref]$e); $e.Count");
+            let o = sys::ps(&chk).unwrap();
+            assert_eq!(String::from_utf8_lossy(&o.stdout).trim(), "0", "{id} has a syntax error");
+        }
+    }
+    #[test]
     fn engine_tweaks_are_complete_and_independent() {
         let all = load_tweaks();
         let mut ids = HashSet::new();
         let mut targets = HashMap::new();
         for t in all.iter().filter(|t| t.ops.is_some()) {
             assert!(ids.insert(format!("{}|{}", t.c, t.id)), "duplicate {}", t.id);
-            assert!(PAGES.iter().any(|p| p.0 == t.c), "{} is on no page", t.id);
+            // personalize has no page any more; its tweaks stay loaded so History can still undo them
+            assert!(t.c == "personalize" || PAGES.iter().any(|p| p.0 == t.c), "{} is on no page", t.id);
             if let Some(i) = &t.info {
                 for f in [&i.why, &i.gain, &i.cost, &i.who, &t.desc] {
                     assert!(f.len() > 3, "{} has an empty detail", t.id);

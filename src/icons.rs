@@ -322,6 +322,10 @@ pub fn cleaner(id: &str) -> &'static str {
         "dns_cache" => "\u{E774}",
         "wu_cache" => "\u{E777}",
         "thumb_cache" => "\u{E91B}",
+        "privacy" => "\u{E72E}",
+        "disk_cleanup" => DRIVE,
+        "component_store" => "\u{E74C}",
+        "devices" => "\u{E772}",
         _ => "\u{EB55}",
     }
 }

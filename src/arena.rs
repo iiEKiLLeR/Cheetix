@@ -171,7 +171,7 @@ pub fn alive(pid: u32) -> bool {
     }
 }
 
-fn dir() -> PathBuf {
+pub fn dir() -> PathBuf {
     std::env::var("APPDATA").map(PathBuf::from).unwrap_or_else(|_| std::env::temp_dir()).join("Cheetix")
 }
 
