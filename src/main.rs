@@ -2423,23 +2423,29 @@ impl App {
                     panel(&mut c[2], icons::nav("network"), "System & network", &mut |ui| {
                         opt(ui, &mut o.latency, "TCP auto-tuning off", "Turns off Windows' receive-window auto-tuning for the session, which can help with ping spikes under load on some connections. Your previous level comes back after.");
                         opt(ui, &mut o.standby, "Clear standby memory", "Empties Windows' standby list (memory only used as cache) once, just before the game starts.");
+                        // the plan for this game: picked from the list (always shown); the switch turns it on/off
                         let mut use_plan = o.plan.is_some();
-                        opt(ui, &mut use_plan, "Gaming power plan", "Switches to the plan you pick while you play, then back to the plan you had.");
-                        if use_plan {
-                            let mut gp = o.plan.clone().or_else(|| plans.iter().find(|x| x.active).map(|x| x.guid.clone())).unwrap_or_default();
-                            ui.horizontal(|ui| {
-                                ui.add_sized([44.0, 22.0], egui::Label::new(RichText::new("Plan").size(11.5).color(p.muted)));
-                                let cur = plans.iter().find(|x| x.guid == gp).map(|x| x.name.clone()).unwrap_or_else(|| "Pick a plan".into());
-                                egui::ComboBox::from_id_salt("a_plan").width((ui.available_width() - 8.0).min(170.0)).selected_text(cur).show_ui(ui, |ui| {
-                                    for pl in &plans {
-                                        ui.selectable_value(&mut gp, pl.guid.clone(), &pl.name);
-                                    }
-                                });
-                            });
-                            o.plan = Some(gp).filter(|g| !g.is_empty());
-                        } else {
+                        opt(ui, &mut use_plan, "Gaming power plan", "Switches to the plan you pick for this game while it runs, then back to the plan you had. Each game keeps its own choice.");
+                        if use_plan && o.plan.is_none() {
+                            // switched on: start from a performance plan if there is one
+                            let fast = plans.iter().find(|x| !x.active && ["ultimate", "high", "performance", "gaming"].iter().any(|w| x.name.to_lowercase().contains(w)));
+                            o.plan = fast.or_else(|| plans.iter().find(|x| !x.active)).or(plans.first()).map(|x| x.guid.clone());
+                        } else if !use_plan {
                             o.plan = None;
                         }
+                        let mut gp = o.plan.clone().unwrap_or_default();
+                        ui.horizontal(|ui| {
+                            ui.add_space(46.0);
+                            let cur = plans.iter().find(|x| x.guid == gp).map(|x| x.name.clone()).unwrap_or_else(|| "Don't switch".into());
+                            egui::ComboBox::from_id_salt(("a_plan", &g.appid)).width((ui.available_width() - 8.0).min(190.0)).selected_text(cur).show_ui(ui, |ui| {
+                                ui.selectable_value(&mut gp, String::new(), "Don't switch");
+                                for pl in &plans {
+                                    let name = if pl.active { format!("{} (current)", pl.name) } else { pl.name.clone() };
+                                    ui.selectable_value(&mut gp, pl.guid.clone(), name);
+                                }
+                            });
+                        });
+                        o.plan = Some(gp).filter(|g| !g.is_empty());
                         opt(ui, &mut o.close_app, "Close Cheetix on launch", "The session keeps running without Cheetix and still puts everything back when the game closes.");
                     });
                 });
