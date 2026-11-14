@@ -57,6 +57,35 @@ public static class ArenaNative {
         IntPtr h = OpenProcess(0x800, false, pid); if (h == IntPtr.Zero) return false;
         bool ok = NtResumeProcess(h) == 0; CloseHandle(h); return ok;
     }
+    [DllImport("user32.dll")] static extern bool IsWindowVisible(IntPtr h);
+    [DllImport("user32.dll")] public static extern bool IsIconic(IntPtr h);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)] static extern int GetWindowText(IntPtr h, System.Text.StringBuilder s, int n);
+    [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr h, int cmd);
+    [DllImport("user32.dll")] public static extern bool PostMessage(IntPtr h, uint msg, IntPtr w, IntPtr l);
+    [DllImport("user32.dll")] static extern bool GetWindowRect(IntPtr h, out Rect r);
+    public struct Rect { public int L, T, R, B; }
+    // every window these processes show on screen (not minimized, not tiny helper windows)
+    public static IntPtr[] Shown(uint[] pids) {
+        var list = new System.Collections.Generic.List<IntPtr>();
+        EnumWindows((h, l) => {
+            uint pid; GetWindowThreadProcessId(h, out pid); Rect r;
+            if (Array.IndexOf(pids, pid) >= 0 && IsWindowVisible(h) && !IsIconic(h) && GetWindowRect(h, out r) && r.R - r.L > 200 && r.B - r.T > 100) list.Add(h);
+            return true;
+        }, IntPtr.Zero);
+        return list.ToArray();
+    }
+    // Steam's main window (title "Steam") when it's showing, else zero
+    public static IntPtr SteamWindow(uint[] pids) {
+        IntPtr found = IntPtr.Zero;
+        EnumWindows((h, l) => {
+            uint pid; GetWindowThreadProcessId(h, out pid);
+            if (Array.IndexOf(pids, pid) < 0 || !IsWindowVisible(h)) return true;
+            var sb = new System.Text.StringBuilder(64); GetWindowText(h, sb, 64);
+            if (sb.ToString() == "Steam") { found = h; return false; }
+            return true;
+        }, IntPtr.Zero);
+        return found;
+    }
 }
 '@
 [ArenaNative]::Priv(13)  # SeProfileSingleProcessPrivilege: purge the standby list
@@ -198,6 +227,18 @@ function Focus($game) {
     Save-Guard
 }
 
+function Steam-Window { [ArenaNative]::SteamWindow([uint32[]]@(Get-Process steam, steamwebhelper -ErrorAction SilentlyContinue | ForEach-Object { $_.Id })) }
+# how Steam's window was before the game (tray / min / shown), so it can be kept that way after
+$steamWas = $null
+if (-not $c.exe -and (Get-Process steam -ErrorAction SilentlyContinue)) {
+    $h = Steam-Window
+    $steamWas = if ($h -eq [IntPtr]::Zero) { 'tray' } elseif ([ArenaNative]::IsIconic($h)) { 'min' } else { 'shown' }
+}
+function Steam-Shown { @([ArenaNative]::Shown([uint32[]]@(Get-Process steam, steamwebhelper -ErrorAction SilentlyContinue | ForEach-Object { $_.Id }))) }
+# Steam's windows already open before the launch (anything new after it is Steam's "Starting game" box)
+$steamOpen = @(Steam-Shown)
+function Steam-Popups { @(Steam-Shown | Where-Object { $steamOpen -notcontains $_ }) }
+
 $procs = Game-Procs
 if (-not $procs.Count) {
     if ($c.exe) {
@@ -221,8 +262,18 @@ if ($procs.Count) {
         $sp = @(Get-Process steam -ErrorAction SilentlyContinue)[0]
         if (-not $sp) { Note 'Steam is not running, so its web helper was left alone.' }
         else {
+            # freezing Steam while its "Starting game" box is up would leave that box stuck on the
+            # desktop for the whole game: wait for Steam to close it, and close it if it lingers
+            $wait = (Get-Date).AddSeconds(30)
+            while ((Steam-Popups).Count -and (Get-Date) -lt $wait -and -not (Test-Path $stopF)) { Start-Sleep -Milliseconds 500 }
+            if ((Steam-Popups).Count) {
+                Steam-Popups | ForEach-Object { [void][ArenaNative]::PostMessage($_, 0x10, [IntPtr]::Zero, [IntPtr]::Zero) }
+                $wait = (Get-Date).AddSeconds(5)
+                while ((Steam-Popups).Count -and (Get-Date) -lt $wait) { Start-Sleep -Milliseconds 300 }
+            }
             $tid = [ArenaNative]::UiThread([uint32]$sp.Id)
-            if (-not $tid) { Note "Steam's window could not be found, so its web helper was left alone." }
+            if ((Steam-Popups).Count) { Note "Steam kept a window open on the desktop, so its web helper was left alone." }
+            elseif (-not $tid) { Note "Steam's window could not be found, so its web helper was left alone." }
             else {
                 $script:base.steam = @{ pid = $sp.Id; tid = $tid }; Save-Guard
                 if ([ArenaNative]::Thread($tid, $true) -lt 0) { $script:base.steam = $null; Save-Guard; Note "Windows refused access to Steam's UI, so its web helper was left alone." }
@@ -263,3 +314,25 @@ if ($procs.Count) {
 Undo $script:base
 Remove-Item $guardF, $stopF -ErrorAction SilentlyContinue
 Write-Status 'ended' $why
+
+# Steam brings its window up when the game closes: send it back where it was, once. After that
+# Steam is the user's again (opening it must work normally).
+if ($steamWas -in 'tray', 'min') {
+    $until = (Get-Date).AddSeconds(10)
+    while ((Get-Date) -lt $until) {
+        $h = Steam-Window
+        if ($h -ne [IntPtr]::Zero -and -not [ArenaNative]::IsIconic($h)) {
+            # a window that has only just appeared can ignore the first request: repeat it for at
+            # most 3 seconds, until this one pop-up is gone
+            $done = (Get-Date).AddSeconds(3)
+            while ($h -ne [IntPtr]::Zero -and -not [ArenaNative]::IsIconic($h) -and (Get-Date) -lt $done) {
+                # tray: what Steam's own X does (WM_CLOSE hides it to the tray); min: minimize without focus
+                if ($steamWas -eq 'tray') { [void][ArenaNative]::PostMessage($h, 0x10, [IntPtr]::Zero, [IntPtr]::Zero) } else { [void][ArenaNative]::ShowWindow($h, 7) }
+                Start-Sleep -Milliseconds 400
+                $h = Steam-Window
+            }
+            break
+        }
+        Start-Sleep -Milliseconds 200
+    }
+}

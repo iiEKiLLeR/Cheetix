@@ -333,6 +333,88 @@ pub fn start(g: &Game, o: &Opts) -> Result<(), String> {
     spawn("run", &cfg)
 }
 
+/// The game's icon as Steam keeps it (`steam\games\<sha1>.ico`). The hash is the app's
+/// "clienticon" in appcache\appinfo.vdf: rather than decode that binary format, take the app's
+/// record and use the first 40-hex string in it that names an existing icon file.
+fn steam_icon(root: &Path, appid: &str) -> Option<PathBuf> {
+    let id: u32 = appid.parse().ok()?;
+    let data = std::fs::read(root.join("appcache").join("appinfo.vdf")).ok()?;
+    let u32_at = |i: usize| data.get(i..i + 4).map(|b| u32::from_le_bytes([b[0], b[1], b[2], b[3]]));
+    // header: magic, universe, and from v29 (0x07564429) on, an 8-byte string table offset
+    let mut i = if u32_at(0)? >= 0x0756_4429 { 16 } else { 8 };
+    loop {
+        let (app, size) = (u32_at(i)?, u32_at(i + 4)? as usize);
+        if app == 0 {
+            return None;
+        }
+        let body = data.get(i + 8..i + 8 + size)?;
+        if app == id {
+            return body.split(|b| *b == 0).filter_map(|s| s.rsplit(|b| *b < 0x20).next()).filter(|s| s.len() == 40 && s.iter().all(u8::is_ascii_hexdigit)).find_map(|h| {
+                let p = root.join("steam").join("games").join(format!("{}.ico", String::from_utf8_lossy(h)));
+                p.exists().then_some(p)
+            });
+        }
+        i += 8 + size;
+    }
+}
+
+/// The shortcut's file name: "<game> AX.lnk", without characters Windows forbids in names.
+fn shortcut_name(game: &str) -> String {
+    let clean: String = game.chars().filter(|c| !r#"<>:"/\|?*"#.contains(*c) && !c.is_control()).collect();
+    format!("{} AX.lnk", clean.trim().trim_end_matches('.'))
+}
+
+/// Puts "<game> AX" on the desktop. It starts Cheetix with `--arena <id>`, which launches the game
+/// with the tuning saved for it at that moment (so later changes to the tuning count too).
+/// Returns the shortcut's path.
+pub fn shortcut(g: &Game) -> Result<PathBuf, String> {
+    let me = std::env::current_exe().map_err(|e| e.to_string())?;
+    let q = |p: &Path| p.display().to_string().replace('\'', "''");
+    // the icon: a program's own, else the one Steam uses for the game's own shortcuts, else Steam's
+    let icon = match &g.exe {
+        Some(exe) => exe.clone(),
+        None => steam_root().and_then(|r| steam_icon(&r, &g.appid).or_else(|| Some(r.join("steam.exe")))).unwrap_or_else(|| me.clone()),
+    };
+    let icon = format!("{},0", q(&icon));
+    let script = format!(
+        r#"$ErrorActionPreference = 'Stop'
+$lnk = Join-Path ([Environment]::GetFolderPath('Desktop')) '{file}'
+$s = (New-Object -ComObject WScript.Shell).CreateShortcut($lnk)
+$s.TargetPath = '{me}'; $s.Arguments = '--arena "{id}"'; $s.WorkingDirectory = '{wd}'
+$s.IconLocation = '{icon}'; $s.Description = 'Launch {name} with its Arena tuning'
+$s.Save(); $lnk"#,
+        file = shortcut_name(&g.name).replace('\'', "''"),
+        me = q(&me),
+        id = g.appid,
+        wd = me.parent().map(q).unwrap_or_default(),
+        icon = icon,
+        name = g.name.replace('\'', "''"),
+    );
+    let o = crate::sys::ps_timeout(&script, 60)?;
+    let out = String::from_utf8_lossy(&o.stdout).trim().to_string();
+    if !o.status.success() || out.is_empty() {
+        let err = String::from_utf8_lossy(&o.stderr);
+        return Err(err.lines().find(|l| !l.trim().is_empty()).unwrap_or("the shortcut couldn't be saved").to_string());
+    }
+    Ok(PathBuf::from(out.lines().last().unwrap_or_default()))
+}
+
+/// What a game shortcut does (`cheetix --arena <id>`): starts the session with the saved tuning,
+/// without opening Cheetix. False when Cheetix should open instead (a session is running or needs
+/// putting back, or the game isn't installed any more).
+pub fn launch(id: &str, saved: &std::collections::HashMap<String, Opts>, apps: &[App]) -> bool {
+    if dir().join("arena-guard.json").exists() || status().is_some_and(|s| s.running() && alive(s.pid)) {
+        return false;
+    }
+    let game = match apps.iter().find(|a| a.id == id) {
+        Some(a) if a.exe.exists() => Some(a.game()),
+        Some(_) => None,
+        None => scan().ok().and_then(|gs| gs.into_iter().find(|g| g.appid == id)),
+    };
+    let Some(g) = game else { return false };
+    start(&g, &saved.get(id).cloned().unwrap_or_default()).is_ok()
+}
+
 /// Asks the running session to stop; it puts everything back itself.
 pub fn stop() {
     let _ = std::fs::write(dir().join("arena.stop"), "");
@@ -370,6 +452,12 @@ mod tests {
         let _ = std::fs::remove_dir_all(tmp);
     }
 
+    #[test]
+    fn shortcut_names() {
+        assert_eq!(shortcut_name("Counter-Strike 2"), "Counter-Strike 2 AX.lnk");
+        assert_eq!(shortcut_name("Half-Life: Alyx?"), "Half-Life Alyx AX.lnk");
+    }
+
     /// The session script must parse (a syntax error would only show up when a game starts).
     #[test]
     fn session_script_parses() {
@@ -379,6 +467,18 @@ mod tests {
         let _ = std::fs::remove_file(p);
         let out = String::from_utf8_lossy(&o.stdout);
         assert_eq!(out.lines().next().map(str::trim), Some("0"), "{out}");
+    }
+
+    /// Each game's own Steam icon (read-only). `cargo test steam_icons -- --ignored --nocapture`
+    #[test]
+    #[ignore]
+    fn steam_icons() {
+        let root = steam_root().unwrap();
+        let games = scan().unwrap();
+        for g in &games {
+            println!("{} {}: {:?}", g.appid, g.name, steam_icon(&root, &g.appid));
+        }
+        assert!(steam_icon(&root, "730").is_some());
     }
 
     /// Lists the Steam games on this PC (read-only). `cargo test scan_steam -- --ignored --nocapture`
@@ -593,5 +693,41 @@ mod live_app {
         println!("ended: {}", end.msg);
         let _ = std::fs::remove_dir_all(folder);
         let _ = std::fs::remove_file(dir().join("art").join(format!("{}.png", app.id)));
+    }
+
+    /// What a "<game> AX" shortcut does: `launch` finds the game by id and starts it with the
+    /// tuning saved for it (CPU High here, not the default Above normal).
+    /// `cargo test live_shortcut -- --ignored --nocapture`
+    #[test]
+    #[ignore]
+    fn live_shortcut_launch() {
+        let folder = std::env::temp_dir().join("cheetix_arena_ax");
+        let _ = std::fs::create_dir_all(&folder);
+        let exe = folder.join("axgame.exe");
+        std::fs::copy(r"C:\Windows\System32\cmd.exe", &exe).unwrap();
+        let app = App { id: app_id(&exe), name: "AX game".into(), exe };
+        let saved = std::collections::HashMap::from([(app.id.clone(), Opts { cpu: "High".into(), focus: false, services: false, ..Default::default() })]);
+        assert!(!launch("app-missing", &saved, std::slice::from_ref(&app)), "unknown id must open Cheetix instead");
+        assert!(launch(&app.id, &saved, std::slice::from_ref(&app)));
+        let t = Instant::now();
+        let live = loop {
+            assert!(t.elapsed() < Duration::from_secs(60), "never went live");
+            std::thread::sleep(Duration::from_secs(1));
+            if let Some(s) = status().filter(|s| s.phase == "active") {
+                break s;
+            }
+        };
+        println!("procs: {:?}", live.procs.iter().map(|p| (&p.name, &p.cpu)).collect::<Vec<_>>());
+        assert!(!launch(&app.id, &saved, std::slice::from_ref(&app)), "a second launch while live must not start another session");
+        for p in &live.procs {
+            let _ = std::process::Command::new("taskkill").args(["/f", "/pid", &p.pid.to_string()]).output();
+        }
+        let t = Instant::now();
+        while status().is_none_or(|s| s.phase != "ended") {
+            assert!(t.elapsed() < Duration::from_secs(60), "never ended");
+            std::thread::sleep(Duration::from_secs(1));
+        }
+        let _ = std::fs::remove_dir_all(folder);
+        assert!(live.procs.iter().any(|p| p.name == "axgame" && p.cpu == "High"), "saved tuning not used");
     }
 }

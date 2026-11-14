@@ -2357,6 +2357,18 @@ impl App {
                             start = btn_ex(ui, &p, Some(icons::nav("arena")), "Launch with Arena", Kind::Primary).clicked();
                         }
                         flip = btn_ex(ui, &p, Some(icons::nav("settings")), if open { "Done tuning" } else { "Tune this game" }, Kind::Ghost).clicked();
+                        if btn_ex(ui, &p, Some(icons::LINK), "Create shortcut", Kind::Ghost)
+                            .on_hover_text(format!("Puts \"{} AX\" on your desktop. It launches the game with this tuning, including any changes you make here later.", g.name))
+                            .clicked()
+                        {
+                            let g = g.clone();
+                            self.work(move |tx| {
+                                tx.send(match arena::shortcut(&g) {
+                                    Ok(_) => Msg::Toast("Shortcut created".into(), format!("\"{} AX\" is on your desktop.", g.name)),
+                                    Err(e) => Msg::Toast("Couldn't create the shortcut".into(), e),
+                                })
+                            });
+                        }
                         if g.exe.is_some() && !running {
                             remove = btn_ex(ui, &p, Some(icons::TRASH), "Remove", Kind::Ghost).on_hover_text("Take this program out of Arena's library (the program itself is not touched)").clicked();
                         }
@@ -3085,7 +3097,15 @@ fn main() -> eframe::Result {
     let arg = |name: &str| args.iter().position(|a| a == name).and_then(|i| args.get(i + 1)).cloned();
     let shot = arg("--screenshot").map(PathBuf::from);
     // --view and --theme open the app on a given page / in a given theme
-    let (view, theme) = (arg("--view"), arg("--theme"));
+    let (mut view, theme) = (arg("--view"), arg("--theme"));
+    // a game's "<name> AX" shortcut: start its Arena session with the saved tuning, no window
+    if let Some(id) = arg("--arena") {
+        let saved: Saved = std::fs::read_to_string(state_path()).ok().and_then(|s| serde_json::from_str(&s).ok()).unwrap_or_default();
+        if arena::launch(&id, &saved.arena, &saved.arena_apps) {
+            return Ok(());
+        }
+        view = Some("arena".into());
+    }
     let mut vp = egui::ViewportBuilder::default()
         .with_title("Cheetix")
         .with_icon(window_icon())

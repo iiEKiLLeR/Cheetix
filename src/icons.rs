@@ -33,6 +33,7 @@ pub const RESTORE: &str = "\u{E923}";
 pub const CLOSE: &str = "\u{E8BB}";
 pub const BELL: &str = "\u{EA8F}";
 pub const INFO: &str = "\u{E946}";
+pub const LINK: &str = "\u{E71B}";
 
 /// Icon of a page in the sidebar.
 pub fn nav(view: &str) -> &'static str {
