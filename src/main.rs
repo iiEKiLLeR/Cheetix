@@ -359,13 +359,12 @@ struct App {
     /// engine probe results per "category|id"
     probe: HashMap<String, String>,
     /// tweaks whose details panel is open
-    expanded: HashSet<String>,
     /// drives the background animation
     started: Instant,
 }
 
 impl App {
-    fn new(cc: &eframe::CreationContext, shot: Option<PathBuf>, start_view: Option<String>, start_theme: Option<String>, open: Option<String>) -> Self {
+    fn new(cc: &eframe::CreationContext, shot: Option<PathBuf>, start_view: Option<String>, start_theme: Option<String>) -> Self {
         install_fonts(&cc.egui_ctx);
         migrate_state();
         let mut saved: Saved = std::fs::read_to_string(state_path()).ok().and_then(|s| serde_json::from_str(&s).ok()).unwrap_or_default();
@@ -428,7 +427,6 @@ impl App {
             reverting: false,
             shot: shot.map(|p| (p, 0, Instant::now(), false)),
             probe: HashMap::new(),
-            expanded: HashSet::new(),
             started: Instant::now(),
         };
         app.poll_metrics();
@@ -448,9 +446,6 @@ impl App {
         }
         if let Some(v) = NAV.iter().flat_map(|g| g.1.iter()).map(|i| i.0).find(|v| Some(*v) == start_view.as_deref()) {
             app.go(v);
-        }
-        if let Some(k) = open {
-            app.expanded.insert(k);
         }
         app
     }
@@ -1491,7 +1486,6 @@ struct Card<'a> {
     ours: bool,
     /// why it can't be used on this PC
     na: Option<String>,
-    open: bool,
     /// saved originals, as text
     backup: Vec<String>,
 }
@@ -1531,13 +1525,17 @@ impl Card<'_> {
     }
 }
 
-fn info_button(ui: &mut egui::Ui, p: &Pal, open: bool) -> egui::Response {
-    let (r, resp) = ui.allocate_exact_size(Vec2::splat(26.0), Sense::click());
+/// The (i) on a tweak card: hovering it shows the tweak's details next to it.
+fn info_button(ui: &mut egui::Ui, p: &Pal, c: &Card) {
+    let (r, resp) = ui.allocate_exact_size(Vec2::splat(26.0), Sense::hover());
     let h = ui.ctx().animate_bool_with_time(resp.id, resp.hovered(), 0.10);
-    let fill = if open { p.acc_soft } else { alpha(p.hover, h) };
-    ui.painter().rect(r, R_CTRL, fill, Stroke::new(1.0_f32, if open { alpha(p.acc, 0.5) } else { mix(p.border, p.border_hi, h) }), StrokeKind::Inside);
-    ui.painter().text(r.center(), Align2::CENTER_CENTER, "\u{E946}", icon_font(12.0), if open { p.acc } else { mix(p.dim, p.text, h) });
-    resp.on_hover_cursor(egui::CursorIcon::PointingHand).on_hover_text(if open { "Hide details" } else { "What this changes, why, risks and how OFF undoes it" })
+    ui.painter().rect(r, R_CTRL, mix(Color32::TRANSPARENT, p.acc_soft, h), Stroke::new(1.0_f32, mix(p.border, alpha(p.acc, 0.5), h)), StrokeKind::Inside);
+    ui.painter().text(r.center(), Align2::CENTER_CENTER, "\u{E946}", icon_font(12.0), mix(p.dim, p.acc, h));
+    let max_h = ui.ctx().screen_rect().height() - 40.0;
+    resp.on_hover_ui(|ui| {
+        ui.set_width(460.0);
+        egui::ScrollArea::vertical().max_height(max_h).show(ui, |ui| details(ui, p, c));
+    });
 }
 
 fn restart_text(r: &str) -> &'static str {
@@ -1560,8 +1558,7 @@ fn details(ui: &mut egui::Ui, p: &Pal, c: &Card) {
         "medium" => p.run,
         _ => p.ok,
     };
-    Frame::new().fill(p.bg).stroke(Stroke::new(1.0_f32, p.border)).corner_radius(R_CARD).inner_margin(Margin::symmetric(16, 14)).show(ui, |ui| {
-        ui.set_width(ui.available_width());
+    ui.scope(|ui| {
         ui.spacing_mut().item_spacing.y = 3.0;
         let section = |ui: &mut egui::Ui, k: &str, v: &str, col: Color32| {
             overline(ui, p, k);
@@ -1623,7 +1620,6 @@ fn details(ui: &mut egui::Ui, p: &Pal, c: &Card) {
             section(ui, "No saved original", "This tweak runs a command that can't be read back and restored exactly (for example a firewall, boot or network-stack setting). OFF runs its fixed undo command, described above.", p.run);
         }
     });
-    ui.add_space(4.0);
 }
 
 /// Lays items out in one or two columns, depending on the room there is.
@@ -2136,7 +2132,6 @@ impl App {
                     na: if t.ops.is_some() { self.unsupported(t) } else { None },
                     state: state_of(self.probe.get(&key).map(String::as_str)),
                     ours: self.saved.backups.contains_key(&key),
-                    open: self.expanded.contains(&key),
                     busy: self.busy.contains(&key),
                     key,
                     flash,
@@ -2150,7 +2145,6 @@ impl App {
         }
         let scroll = self.scroll_to.take();
         let mut clicked = None;
-        let mut open_info = None;
         grid(ui, &cards, |ui, c| {
             let t = c.t;
             let lit = ease(ui.ctx().animate_bool_with_time(egui::Id::new(("lit", &c.key)), c.on, 0.2));
@@ -2192,9 +2186,7 @@ impl App {
                         }
                     });
                     ui.allocate_ui_with_layout(vec2(ui.available_width(), 32.0), Layout::right_to_left(Align::Center), |ui| {
-                        if info_button(ui, &p, c.open).clicked() {
-                            open_info = Some(c.key.clone());
-                        }
+                        info_button(ui, &p, c);
                         if c.na.is_some() {
                             tag(ui, "Not on this PC", p.muted);
                             return;
@@ -2224,19 +2216,10 @@ impl App {
                     });
                 });
             });
-            if c.open {
-                // grid columns justify text; the panel wants plain left-aligned lines
-                ui.with_layout(Layout::top_down(Align::Min), |ui| details(ui, &p, c));
-            }
             if scroll.as_ref() == Some(&c.key) {
                 resp.scroll_to_me(Some(Align::Center));
             }
         });
-        if let Some(k) = open_info {
-            if !self.expanded.remove(&k) {
-                self.expanded.insert(k);
-            }
-        }
         if let Some((t, on)) = clicked {
             self.apply(&t.c, &t.id, on, true);
         }
@@ -3138,8 +3121,7 @@ fn main() -> eframe::Result {
     let arg = |name: &str| args.iter().position(|a| a == name).and_then(|i| args.get(i + 1)).cloned();
     let shot = arg("--screenshot").map(PathBuf::from);
     // --view and --theme open the app on a given page / in a given theme
-    // --open "category|id" opens that tweak's details panel
-    let (view, theme, open) = (arg("--view"), arg("--theme"), arg("--open"));
+    let (view, theme) = (arg("--view"), arg("--theme"));
     let mut vp = egui::ViewportBuilder::default()
         .with_title("Cheetix")
         .with_icon(window_icon())
@@ -3154,7 +3136,7 @@ fn main() -> eframe::Result {
         }
     }
     let opts = eframe::NativeOptions { viewport: vp, ..Default::default() };
-    eframe::run_native("Cheetix", opts, Box::new(move |cc| Ok(Box::new(App::new(cc, shot, view, theme, open)))))
+    eframe::run_native("Cheetix", opts, Box::new(move |cc| Ok(Box::new(App::new(cc, shot, view, theme)))))
 }
 
 #[cfg(test)]
@@ -3234,7 +3216,7 @@ mod tests {
         let engine_t = tweaks.iter().find(|t| t.c == "windows" && t.id == "disable_telemetry").unwrap();
         let script_t = tweaks.iter().find(|t| t.ops.is_none()).unwrap();
         let p = theme::pal(0, &theme::Textures::new(&egui::Context::default()));
-        let mk = |t, state, ours| Card { t, key: String::new(), on: false, busy: false, flash: false, st: None, state, ours, na: None, open: false, backup: vec![] };
+        let mk = |t, state, ours| Card { t, key: String::new(), on: false, busy: false, flash: false, st: None, state, ours, na: None, backup: vec![] };
         // Cheetix applied it, then something else undid it
         let (txt, col) = mk(engine_t, State::NotApplied, true).windows_now(&p);
         assert!(txt.contains("Changed outside Cheetix") && col == p.run, "{txt}");
