@@ -315,6 +315,8 @@ struct App {
     close_when_live: bool,
     /// Arena's options panel is open
     arena_open: bool,
+    /// game covers (None: Steam has no picture)
+    arts: HashMap<String, Option<egui::TextureHandle>>,
     clean: HashMap<String, (&'static str, Instant)>,
     reverting: bool,
     shot: Option<(PathBuf, u32, Instant, bool)>,
@@ -378,6 +380,7 @@ impl App {
             session_read: Instant::now(),
             close_when_live: false,
             arena_open: false,
+            arts: HashMap::new(),
             procs: vec![],
             proc_total: 0,
             proc_filter: String::new(),
@@ -2187,13 +2190,87 @@ impl App {
         self.work(|tx| tx.send(Msg::Games(arena::scan())));
     }
 
+    /// Arena's library: one cover per game. Returns whether Rescan was clicked.
+    fn arena_shelf(&self, ui: &mut egui::Ui, games: &[arena::Game], running: bool, pick: &mut String) -> bool {
+        let p = self.p;
+        let art = |id: &str| self.arts.get(id).and_then(|t| t.as_ref().map(|t| t.id()));
+        let mut rescan = false;
+        ui.horizontal(|ui| {
+            overline(ui, &p, "Your Steam library");
+            ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                ui.add_enabled_ui(!running, |ui| rescan = btn_ex(ui, &p, Some(icons::REFRESH), "Rescan", Kind::Ghost).clicked());
+            });
+        });
+        match &self.games {
+            None => {
+                label(ui, "Looking for Steam games…", 12.0, p.dim);
+            }
+            Some(Err(e)) => {
+                label(ui, e, 12.0, p.fail);
+            }
+            Some(Ok(g)) if g.is_empty() => {
+                label(ui, "No installed Steam games were found.", 12.0, p.dim);
+            }
+            Some(Ok(_)) => {
+                ui.horizontal_wrapped(|ui| {
+                    ui.spacing_mut().item_spacing = vec2(14.0, 14.0);
+                    for g in games {
+                        let (r, resp) = ui.allocate_exact_size(vec2(124.0, 214.0), if running { Sense::hover() } else { Sense::click() });
+                        let on = g.appid == *pick;
+                        let h = ui.ctx().animate_bool_with_time(resp.id, resp.hovered() && !running, 0.12);
+                        let lit = ui.ctx().animate_bool_with_time(resp.id.with("on"), on, 0.18);
+                        let cover = Rect::from_min_size(r.min, vec2(124.0, 186.0)).shrink(3.0 - 3.0 * h);
+                        let painter = ui.painter();
+                        if lit > 0.0 {
+                            painter.rect_filled(cover.expand(5.0), 12.0, alpha(p.acc, 0.22 * lit));
+                        }
+                        match art(&g.appid) {
+                            Some(t) => {
+                                egui::Image::new((t, cover.size())).corner_radius(9).paint_at(ui, cover);
+                            }
+                            None => {
+                                painter.rect_filled(cover, 9.0, p.chip);
+                                painter.text(cover.center(), Align2::CENTER_CENTER, icons::nav("gaming"), icon_font(30.0), p.muted);
+                            }
+                        }
+                        // dim the covers that aren't picked, so the choice stands out
+                        if !on {
+                            painter.rect_filled(cover, 9.0, alpha(Color32::BLACK, 0.28 * (1.0 - h)));
+                        }
+                        painter.rect_stroke(cover, 9.0, Stroke::new(if on { 2.0_f32 } else { 1.0 }, if on { p.acc } else { alpha(Color32::WHITE, 0.10 + 0.25 * h) }), StrokeKind::Outside);
+                        if on {
+                            let c = pos2(cover.right() - 13.0, cover.top() + 13.0);
+                            painter.circle_filled(c, 10.0, p.acc);
+                            painter.text(c, Align2::CENTER_CENTER, icons::CHECK, icon_font(10.0), p.on_acc);
+                        }
+                        let name: String = if g.name.chars().count() > 18 { g.name.chars().take(17).collect::<String>() + "…" } else { g.name.clone() };
+                        painter.text(pos2(r.left() + 2.0, cover.bottom() + 10.0), Align2::LEFT_TOP, name, FontId::proportional(12.0), if on { p.text } else { p.dim });
+                        if resp.on_hover_text(&g.name).on_hover_cursor(egui::CursorIcon::PointingHand).clicked() {
+                            *pick = g.appid.clone();
+                        }
+                    }
+                });
+            }
+        }
+        rescan
+    }
+
     fn arena(&mut self, ui: &mut egui::Ui) {
         let p = self.p;
         let games = match &self.games {
             Some(Ok(g)) => g.clone(),
             _ => vec![],
         };
-        header(ui, &p, icons::nav("arena"), "Arena", Some(format!("{} games", games.len())), "Pick a Steam game, choose how it should run, and start it from here. Cheetix applies your settings while you play and puts every one of them back when the game closes.");
+        // cover textures, loaded once per game
+        for g in &games {
+            if !self.arts.contains_key(&g.appid) {
+                let tex = g.art.as_deref().and_then(arena::load_art).map(|img| ui.ctx().load_texture(format!("art{}", g.appid), img, egui::TextureOptions::LINEAR));
+                self.arts.insert(g.appid.clone(), tex);
+            }
+        }
+        let ids: HashMap<String, egui::TextureId> = self.arts.iter().filter_map(|(k, t)| t.as_ref().map(|t| (k.clone(), t.id()))).collect();
+        let art = |id: &str| ids.get(id).copied();
+        header(ui, &p, icons::nav("arena"), "Arena", Some(format!("{} games", games.len())), "Pick a game from your Steam library, tune how it runs, and launch it from here. Everything Arena changes is put back when the game closes.");
         if !self.admin {
             admin_warn(ui, &p, "Most Arena settings (services, power, network, standby memory, high priorities) need administrator rights. Restart Cheetix with \"Run as administrator\".");
         }
@@ -2202,162 +2279,191 @@ impl App {
                 self.saved.arena_last = g.appid.clone();
             }
         }
-        let sel = games.iter().find(|g| g.appid == self.saved.arena_last).cloned();
         let running = self.session.as_ref().is_some_and(|s| s.running());
-        // the selected game's own settings (each game keeps its own)
-        let mut o = sel.as_ref().and_then(|g| self.saved.arena.get(&g.appid).cloned()).unwrap_or_default();
-        let before = o.clone();
-        let plans = self.plans.clone().unwrap_or_default();
-        let (mut start, mut stop, mut rescan, mut flip) = (false, false, false, false);
-        let open = self.arena_open && sel.is_some();
+        let (mut start, mut stop, mut flip) = (false, false, false);
         let mut pick = self.saved.arena_last.clone();
-        card(ui, &p, false, |ui| {
-            ui.horizontal(|ui| {
-                ui.add_enabled_ui(!running, |ui| {
-                    egui::ComboBox::from_id_salt("arena_game")
-                        .width(340.0)
-                        .selected_text(sel.as_ref().map(|g| g.name.clone()).unwrap_or_else(|| "Select the game you'd like to boost…".into()))
-                        .show_ui(ui, |ui| {
-                            for g in &games {
-                                ui.selectable_value(&mut pick, g.appid.clone(), &g.name);
-                            }
+
+        let sel = games.iter().find(|g| g.appid == self.saved.arena_last).cloned();
+        let Some(g) = sel else {
+            // no games (yet): just the library section with its message and Rescan
+            let rescan = self.arena_shelf(ui, &games, running, &mut pick);
+            if rescan {
+                self.arts.clear();
+                self.scan_games();
+            }
+            return;
+        };
+        let mut o = self.saved.arena.get(&g.appid).cloned().unwrap_or_default();
+        let before = o.clone();
+        let open = self.arena_open;
+        let plans = self.plans.clone().unwrap_or_default();
+        let session = self.session.clone();
+
+        // ---- the stage: the picked game, its launch button and the live session ----
+        card(ui, &p, running, |ui| {
+            ui.horizontal_top(|ui| {
+                let (r, _) = ui.allocate_exact_size(vec2(132.0, 198.0), Sense::hover());
+                match art(&g.appid) {
+                    Some(t) => {
+                        egui::Image::new((t, r.size())).corner_radius(10).paint_at(ui, r);
+                    }
+                    None => {
+                        ui.painter().rect_filled(r, 10.0, p.chip);
+                        ui.painter().text(r.center(), Align2::CENTER_CENTER, icons::nav("gaming"), icon_font(34.0), p.muted);
+                    }
+                }
+                ui.add_space(16.0);
+                ui.vertical(|ui| {
+                    ui.spacing_mut().item_spacing.y = 6.0;
+                    overline(ui, &p, if running { "Now playing" } else { "Ready to launch" });
+                    ui.label(RichText::new(&g.name).font(semi(22.0)).color(p.text));
+                    let on: Vec<&str> = [
+                        (o.boost, "priority boost"),
+                        (o.focus, "Game Focus"),
+                        (o.services, "services paused"),
+                        (o.steam, "Steam trimmed"),
+                        (o.search, "indexing paused"),
+                        (o.latency, "auto-tuning off"),
+                        (o.pin, "full clocks"),
+                        (o.standby, "standby cleared"),
+                        (o.plan.is_some(), "gaming plan"),
+                    ]
+                    .into_iter()
+                    .filter_map(|(b, s)| b.then_some(s))
+                    .collect();
+                    label(ui, if on.is_empty() { "No tuning: the game starts as it would from Steam.".to_string() } else { format!("Tuned: {}.", on.join(" · ")) }, 12.0, p.dim);
+                    ui.add_space(6.0);
+                    ui.horizontal(|ui| {
+                        if running {
+                            stop = btn_ex(ui, &p, None, "Stop and put back", Kind::Danger).clicked();
+                        } else {
+                            start = btn_ex(ui, &p, Some(icons::nav("arena")), "Launch with Arena", Kind::Primary).clicked();
+                        }
+                        flip = btn_ex(ui, &p, Some(icons::nav("settings")), if open { "Done tuning" } else { "Tune this game" }, Kind::Ghost).clicked();
+                    });
+                    if let Some(st) = &session {
+                        ui.add_space(8.0);
+                        ui.horizontal(|ui| {
+                            let (word, col) = match st.phase.as_str() {
+                                "starting" => ("Applying settings", p.run),
+                                "waiting" => ("Waiting for the game", p.run),
+                                "active" => ("Live", p.ok),
+                                _ => ("Last session", p.muted),
+                            };
+                            tag(ui, word, col);
+                            label(ui, format!("{}: {}", st.game, st.msg), 12.0, p.dim);
                         });
-                });
-                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                    if running {
-                        stop = btn_ex(ui, &p, None, "Stop and put back", Kind::Danger).clicked();
-                    } else {
-                        ui.add_enabled_ui(sel.is_some(), |ui| start = btn_ex(ui, &p, Some(icons::nav("arena")), "Start Arena", Kind::Primary).clicked());
+                        for pr in &st.procs {
+                            label(ui, format!("{} (PID {}): CPU {} · GPU {} · I/O {}", pr.name, pr.pid, pr.cpu, pr.gpu, pr.io), 11.5, p.dim);
+                        }
+                        for n in &st.notes {
+                            label(ui, format!("• {n}"), 11.5, p.muted);
+                        }
                     }
                 });
+            });
+        });
+
+        // ---- tuning: three panels, saved for this game only ----
+        if open {
+            ui.add_space(14.0);
+            ui.horizontal(|ui| {
+                overline(ui, &p, &format!("Tuning for {}", g.name));
+                label(ui, "· saved for this game only", 11.0, p.muted);
             });
             ui.add_space(4.0);
-            ui.horizontal(|ui| {
-                let (t, c) = match &self.games {
-                    None => ("Looking for Steam games…".to_string(), p.dim),
-                    Some(Err(e)) => (e.clone(), p.fail),
-                    Some(Ok(g)) if g.is_empty() => ("No installed Steam games were found.".into(), p.dim),
-                    Some(Ok(g)) => (format!("Found {} Steam games. Pick one to begin.", g.len()), p.ok),
-                };
-                label(ui, t, 11.5, c);
-                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                    if sel.is_some() {
-                        flip = btn_ex(ui, &p, Some(icons::nav("settings")), if open { "Hide options" } else { "Show options" }, Kind::Ghost).clicked();
-                    }
-                    ui.add_enabled_ui(!running, |ui| rescan = btn_ex(ui, &p, Some(icons::REFRESH), "Rescan games", Kind::Ghost).clicked());
-                });
-            });
-            let Some(g) = sel.as_ref().filter(|_| open) else { return };
-
-            // ---- the options, inside the card ----
-            ui.add_space(10.0);
-            let r = ui.available_rect_before_wrap();
-            ui.painter().hline(r.x_range(), r.top(), Stroke::new(1.0_f32, p.border));
-            ui.add_space(10.0);
-            label(ui, format!("Settings for {}. They're saved for this game only; every game can have its own.", g.name), 11.5, p.dim);
             let opt = |ui: &mut egui::Ui, v: &mut bool, name: &str, help: &str| {
                 ui.horizontal(|ui| {
                     if toggle(ui, &p, *v, false).clicked() {
                         *v = !*v;
                     }
-                    ui.label(RichText::new(name).size(13.0).color(p.text));
-                    icon(ui, icons::INFO, 11.0, p.muted).on_hover_text(help);
+                    ui.add(egui::Label::new(RichText::new(name).size(12.5).color(if *v { p.text } else { p.dim })).truncate());
+                    icon(ui, icons::INFO, 10.5, p.muted).on_hover_text(help);
                 });
             };
             let choose = |ui: &mut egui::Ui, id: &str, name: &str, v: &mut String, choices: &[(&str, &str)]| {
                 ui.horizontal(|ui| {
-                    ui.add_space(46.0);
-                    ui.add_sized([110.0, 22.0], egui::Label::new(RichText::new(name).size(12.0).color(p.dim)));
+                    ui.add_sized([44.0, 22.0], egui::Label::new(RichText::new(name).size(11.5).color(p.muted)));
                     let cur = choices.iter().find(|c| c.0 == v).map(|c| c.1).unwrap_or("Normal");
-                    egui::ComboBox::from_id_salt(id).width(170.0).selected_text(cur).show_ui(ui, |ui| {
+                    egui::ComboBox::from_id_salt(id).width((ui.available_width() - 8.0).min(170.0)).selected_text(cur).show_ui(ui, |ui| {
                         for (k, l) in choices {
                             ui.selectable_value(v, k.to_string(), *l);
                         }
                     });
                 });
             };
-            ui.add_enabled_ui(!running, |ui| {
-                ui.spacing_mut().item_spacing.y = 8.0;
-                ui.add_space(6.0);
-                overline(ui, &p, "Game process");
-                opt(ui, &mut o.boost, "Boost game priority", "Raises the game's CPU, GPU and disk (I/O) priority while it runs. Windows drops these by itself when the game closes. Some anti-cheats block these changes.");
-                if o.boost {
-                    choose(ui, "a_cpu", "CPU priority", &mut o.cpu, &arena::CPU);
-                    choose(ui, "a_gpu", "GPU priority", &mut o.gpu, &arena::GPU);
-                    choose(ui, "a_io", "I/O priority", &mut o.io, &arena::IO);
-                }
-                ui.add_space(6.0);
-                overline(ui, &p, "Background activity");
-                opt(ui, &mut o.focus, "Game Focus", "Lowers the other programs in your session to below-normal CPU priority so the game gets more. Your desktop, audio, voice chat, capture apps and Steam are left alone. Put back when the game closes.");
-                opt(ui, &mut o.services, "Pause background services", "Stops SysMain, telemetry (DiagTrack), Print Spooler, Downloaded Maps Manager, Windows Error Reporting and Program Compatibility Assistant while you play (only the ones that are running), then starts them again. Printing won't work during the session.");
-                opt(ui, &mut o.steam, "Reduce Steam resource usage", "Once the game is up, closes Steam's background web helper to free its memory and CPU, and brings it back when the game closes. Steam's own window and the Shift+Tab overlay won't draw while the game runs. Only acts when Steam is running.");
-                opt(ui, &mut o.search, "Pause Windows Search indexing", "Stops the search indexer (WSearch) so it doesn't crawl your drives while you play. Search still works, just slower; the indexer starts again when the game closes.");
-                opt(ui, &mut o.close_app, "Close Cheetix when the game starts", "The session keeps running without Cheetix and still puts everything back when the game closes.");
-                ui.add_space(6.0);
-                overline(ui, &p, "System & network");
-                opt(ui, &mut o.latency, "Turn off TCP auto-tuning", "Turns off Windows' receive-window auto-tuning for the session, which can help with ping spikes under load on some connections. Your previous level comes back after.");
-                opt(ui, &mut o.pin, "Hold full CPU clocks", "Sets the power plan's minimum processor state to 100% so the CPU doesn't clock down between frames. More heat and power use while you play; your previous value comes back after.");
-                opt(ui, &mut o.standby, "Clear standby memory", "Empties Windows' standby list (memory only used as cache) once, just before the game starts.");
-                let mut use_plan = o.plan.is_some();
-                opt(ui, &mut use_plan, "Apply gaming power plan", "Switches to the plan you pick while you play, then back to the plan you had.");
-                if use_plan {
-                    let mut gp = o.plan.clone().or_else(|| plans.iter().find(|x| x.active).map(|x| x.guid.clone())).unwrap_or_default();
+            let panel = |ui: &mut egui::Ui, glyph: &str, title: &str, body: &mut dyn FnMut(&mut egui::Ui)| {
+                card(ui, &p, false, |ui| {
+                    ui.spacing_mut().item_spacing.y = 9.0;
                     ui.horizontal(|ui| {
-                        ui.add_space(46.0);
-                        ui.add_sized([110.0, 22.0], egui::Label::new(RichText::new("Power plan").size(12.0).color(p.dim)));
-                        let cur = plans.iter().find(|x| x.guid == gp).map(|x| x.name.clone()).unwrap_or_else(|| "Pick a plan".into());
-                        egui::ComboBox::from_id_salt("a_plan").width(170.0).selected_text(cur).show_ui(ui, |ui| {
-                            for pl in &plans {
-                                ui.selectable_value(&mut gp, pl.guid.clone(), &pl.name);
-                            }
-                        });
+                        icon(ui, glyph, 13.0, p.acc);
+                        ui.label(RichText::new(title).font(semi(13.5)).color(p.text));
                     });
-                    o.plan = Some(gp).filter(|g| !g.is_empty());
-                } else {
-                    o.plan = None;
-                }
+                    ui.add_space(2.0);
+                    body(ui);
+                });
+            };
+            ui.add_enabled_ui(!running, |ui| {
+                ui.columns(3, |c| {
+                    panel(&mut c[0], icons::CPU, "Performance", &mut |ui| {
+                        opt(ui, &mut o.boost, "Priority boost", "Raises the game's CPU, GPU and disk (I/O) priority while it runs. Windows drops these by itself when the game closes. Some anti-cheats block these changes.");
+                        if o.boost {
+                            choose(ui, "a_cpu", "CPU", &mut o.cpu, &arena::CPU);
+                            choose(ui, "a_gpu", "GPU", &mut o.gpu, &arena::GPU);
+                            choose(ui, "a_io", "Disk", &mut o.io, &arena::IO);
+                        }
+                        opt(ui, &mut o.pin, "Hold full CPU clocks", "Sets the power plan's minimum processor state to 100% so the CPU doesn't clock down between frames. More heat and power use while you play; your previous value comes back after.");
+                    });
+                    panel(&mut c[1], icons::TILES, "Calm the PC", &mut |ui| {
+                        opt(ui, &mut o.focus, "Game Focus", "Lowers the other programs in your session to below-normal CPU priority so the game gets more. Your desktop, audio, voice chat, capture apps and Steam are left alone. Put back when the game closes.");
+                        opt(ui, &mut o.services, "Pause background services", "Stops SysMain, telemetry (DiagTrack), Print Spooler, Downloaded Maps Manager, Windows Error Reporting and Program Compatibility Assistant while you play (only the ones that are running), then starts them again. Printing won't work during the session.");
+                        opt(ui, &mut o.steam, "Trim Steam while playing", "Once the game is up, closes Steam's background web helper to free its memory and CPU, and brings it back when the game closes. Steam's own window and the Shift+Tab overlay won't draw while the game runs. Only acts when Steam is running.");
+                        opt(ui, &mut o.search, "Pause search indexing", "Stops the search indexer (WSearch) so it doesn't crawl your drives while you play. Search still works, just slower; the indexer starts again when the game closes.");
+                    });
+                    panel(&mut c[2], icons::nav("network"), "System & network", &mut |ui| {
+                        opt(ui, &mut o.latency, "TCP auto-tuning off", "Turns off Windows' receive-window auto-tuning for the session, which can help with ping spikes under load on some connections. Your previous level comes back after.");
+                        opt(ui, &mut o.standby, "Clear standby memory", "Empties Windows' standby list (memory only used as cache) once, just before the game starts.");
+                        let mut use_plan = o.plan.is_some();
+                        opt(ui, &mut use_plan, "Gaming power plan", "Switches to the plan you pick while you play, then back to the plan you had.");
+                        if use_plan {
+                            let mut gp = o.plan.clone().or_else(|| plans.iter().find(|x| x.active).map(|x| x.guid.clone())).unwrap_or_default();
+                            ui.horizontal(|ui| {
+                                ui.add_sized([44.0, 22.0], egui::Label::new(RichText::new("Plan").size(11.5).color(p.muted)));
+                                let cur = plans.iter().find(|x| x.guid == gp).map(|x| x.name.clone()).unwrap_or_else(|| "Pick a plan".into());
+                                egui::ComboBox::from_id_salt("a_plan").width((ui.available_width() - 8.0).min(170.0)).selected_text(cur).show_ui(ui, |ui| {
+                                    for pl in &plans {
+                                        ui.selectable_value(&mut gp, pl.guid.clone(), &pl.name);
+                                    }
+                                });
+                            });
+                            o.plan = Some(gp).filter(|g| !g.is_empty());
+                        } else {
+                            o.plan = None;
+                        }
+                        opt(ui, &mut o.close_app, "Close Cheetix on launch", "The session keeps running without Cheetix and still puts everything back when the game closes.");
+                    });
+                });
             });
-        });
-        if flip {
-            self.arena_open = !self.arena_open;
         }
+
+        ui.add_space(18.0);
+        let rescan = self.arena_shelf(ui, &games, running, &mut pick);
         if pick != self.saved.arena_last {
             self.saved.arena_last = pick;
             self.save();
+            ui.ctx().request_repaint();
         }
         if rescan {
+            self.arts.clear();
             self.scan_games();
+        }
+        if flip {
+            self.arena_open = !self.arena_open;
         }
         if stop {
             arena::stop();
             self.toast("Stopping Arena", "Putting back everything the session changed…");
         }
-
-        // the session: live while running, the result after
-        if let Some(st) = self.session.clone() {
-            ui.add_space(10.0);
-            card(ui, &p, st.running(), |ui| {
-                ui.horizontal(|ui| {
-                    let (word, col) = match st.phase.as_str() {
-                        "starting" => ("Applying settings", p.run),
-                        "waiting" => ("Waiting for the game", p.run),
-                        "active" => ("Live", p.ok),
-                        _ => ("Ended", p.muted),
-                    };
-                    tag(ui, word, col);
-                    ui.label(RichText::new(&st.game).font(semi(13.5)).color(p.text));
-                });
-                label(ui, &st.msg, 12.0, p.dim);
-                for pr in &st.procs {
-                    label(ui, format!("{} (PID {}): CPU {} · GPU {} · I/O {}", pr.name, pr.pid, pr.cpu, pr.gpu, pr.io), 11.5, p.dim);
-                }
-                for n in &st.notes {
-                    label(ui, format!("• {n}"), 11.5, p.muted);
-                }
-            });
-        }
-
-        let Some(g) = sel else { return };
         if o != before {
             self.saved.arena.insert(g.appid.clone(), o.clone());
             self.save();

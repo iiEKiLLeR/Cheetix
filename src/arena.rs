@@ -18,6 +18,8 @@ pub struct Game {
     pub name: String,
     /// steamapps\common\<installdir>: every process started from here counts as the game
     pub folder: PathBuf,
+    /// cover art (240x360 PNG) made from Steam's library cache, if Steam has any
+    pub art: Option<PathBuf>,
 }
 
 /// What a session does for one game (saved per game).
@@ -146,6 +148,7 @@ pub fn scan() -> Result<Vec<Game>, String> {
     }
     games.sort_by_key(|g| g.name.to_lowercase());
     games.dedup_by(|a, b| a.appid == b.appid);
+    make_art(&root, &mut games);
     Ok(games)
 }
 
@@ -155,7 +158,85 @@ fn game_from_manifest(t: &str, lib: &Path) -> Option<Game> {
     let (appid, name, dir) = (get("appid"), get("name"), get("installdir"));
     let tool = ["Redistributable", "Proton", "Steam Linux Runtime", "Steamworks", "SteamVR"].iter().any(|w| name.contains(w));
     let folder = lib.join("steamapps").join("common").join(&dir);
-    (!appid.is_empty() && !name.is_empty() && !dir.is_empty() && !tool && folder.exists()).then_some(Game { appid, name, folder })
+    (!appid.is_empty() && !name.is_empty() && !dir.is_empty() && !tool && folder.exists()).then_some(Game { appid, name, folder, art: None })
+}
+
+/// The best picture Steam has for a game: the portrait cover, else the wide header.
+fn art_source(cache: &Path, appid: &str) -> Option<PathBuf> {
+    let mut files = vec![];
+    let base = cache.join(appid);
+    for e in std::fs::read_dir(&base).ok()?.flatten() {
+        let p = e.path();
+        if p.is_dir() {
+            files.extend(std::fs::read_dir(&p).into_iter().flatten().flatten().map(|e| e.path()));
+        } else {
+            files.push(p);
+        }
+    }
+    // older Steam versions keep "<appid>_library_600x900.jpg" next to the folders
+    files.extend(["library_600x900.jpg", "header.jpg"].iter().map(|n| cache.join(format!("{appid}_{n}"))));
+    ["library_600x900.jpg", "library_capsule.jpg", "library_header.jpg", "header.jpg"]
+        .iter()
+        .find_map(|want| files.iter().find(|f| f.file_name().is_some_and(|n| n.to_string_lossy().ends_with(want)) && f.exists()).cloned())
+}
+
+/// Makes a 240x360 PNG cover per game (once; again when Steam's picture changes). A wide header
+/// is fitted onto a darkened, enlarged copy of itself so every cover has the same shape.
+fn make_art(root: &Path, games: &mut [Game]) {
+    let cache = root.join("appcache").join("librarycache");
+    let out = dir().join("art");
+    let _ = std::fs::create_dir_all(&out);
+    let mut jobs = vec![];
+    for g in games.iter() {
+        let Some(src) = art_source(&cache, &g.appid) else { continue };
+        let dst = out.join(format!("{}.png", g.appid));
+        let stale = |d: &Path| match (std::fs::metadata(d).and_then(|m| m.modified()), std::fs::metadata(&src).and_then(|m| m.modified())) {
+            (Ok(d), Ok(s)) => d < s,
+            _ => true,
+        };
+        if stale(&dst) {
+            jobs.push(json!({ "src": src, "dst": dst }));
+        }
+    }
+    if !jobs.is_empty() {
+        let list = out.join("jobs.json");
+        if std::fs::write(&list, Value::from(jobs).to_string()).is_ok() {
+            let script = format!(
+                r#"Add-Type -AssemblyName System.Drawing
+foreach ($j in (Get-Content -LiteralPath '{}' -Raw | ConvertFrom-Json)) {{
+  try {{
+    $img = [Drawing.Image]::FromFile($j.src); $W = 240; $H = 360
+    $b = New-Object Drawing.Bitmap $W, $H; $g = [Drawing.Graphics]::FromImage($b)
+    $g.InterpolationMode = 'HighQualityBicubic'; $g.SmoothingMode = 'HighQuality'; $g.PixelOffsetMode = 'HighQuality'
+    $cover = [Math]::Max($W / $img.Width, $H / $img.Height)
+    $cw = $img.Width * $cover; $ch = $img.Height * $cover
+    $g.DrawImage($img, [single](($W - $cw) / 2), [single](($H - $ch) / 2), [single]$cw, [single]$ch)
+    if ($img.Width / $img.Height -gt 1.0) {{
+      $g.FillRectangle((New-Object Drawing.SolidBrush ([Drawing.Color]::FromArgb(150, 8, 8, 10))), 0, 0, $W, $H)
+      $fh = $img.Height * $W / $img.Width
+      $g.DrawImage($img, 0, [single](($H - $fh) / 2), [single]$W, [single]$fh)
+    }}
+    $b.Save($j.dst, [Drawing.Imaging.ImageFormat]::Png); $g.Dispose(); $b.Dispose(); $img.Dispose()
+  }} catch {{}}
+}}"#,
+                list.display()
+            );
+            let _ = crate::sys::ps_timeout(&script, 120);
+            let _ = std::fs::remove_file(list);
+        }
+    }
+    for g in games.iter_mut() {
+        g.art = Some(out.join(format!("{}.png", g.appid))).filter(|p| p.exists());
+    }
+}
+
+/// A cover made by `make_art` (RGBA PNG), ready for a texture.
+pub fn load_art(path: &Path) -> Option<eframe::egui::ColorImage> {
+    let mut r = png::Decoder::new(std::fs::File::open(path).ok()?).read_info().ok()?;
+    let mut buf = vec![0; r.output_buffer_size()];
+    let info = r.next_frame(&mut buf).ok()?;
+    (info.color_type == png::ColorType::Rgba && info.bit_depth == png::BitDepth::Eight)
+        .then(|| eframe::egui::ColorImage::from_rgba_unmultiplied([info.width as usize, info.height as usize], &buf[..info.buffer_size()]))
 }
 
 fn spawn(mode: &str, config: &Value) -> Result<(), String> {
@@ -235,7 +316,7 @@ mod tests {
     #[ignore]
     fn scan_steam() {
         for g in scan().unwrap() {
-            println!("{} {} {}", g.appid, g.name, g.folder.display());
+            println!("{} {} {} art={:?}", g.appid, g.name, g.folder.display(), g.art.as_ref().map(|a| load_art(a).map(|i| i.size)));
         }
     }
 }
@@ -270,7 +351,7 @@ mod live {
         let before = snapshot();
         println!("before: {before}");
         let mut game = std::process::Command::new(&exe).args(["/c", "ping -n 30 127.0.0.1 >nul"]).spawn().unwrap();
-        let g = Game { appid: "0".into(), name: "Arena test".into(), folder: folder.clone() };
+        let g = Game { appid: "0".into(), name: "Arena test".into(), folder: folder.clone(), art: None };
         let o = Opts { boost: true, cpu: "High".into(), gpu: "High".into(), io: "High".into(), focus: true, services: true, search: true, steam: false, latency: true, pin: true, standby: true, plan: None, close_app: false };
         start(&g, &o).unwrap();
         let t = Instant::now();
@@ -345,7 +426,7 @@ mod live_steam {
         std::fs::copy(r"C:\Windows\System32\cmd.exe", &exe).unwrap();
         let mut game = std::process::Command::new(&exe).args(["/c", "ping -n 40 127.0.0.1 >nul"]).spawn().unwrap();
         let o = Opts { boost: false, focus: false, services: false, steam: true, ..Default::default() };
-        start(&Game { appid: "0".into(), name: "Steam test".into(), folder: folder.clone() }, &o).unwrap();
+        start(&Game { appid: "0".into(), name: "Steam test".into(), folder: folder.clone(), art: None }, &o).unwrap();
         let live = wait_phase("active");
         std::thread::sleep(Duration::from_secs(8)); // Steam would respawn the helper within seconds if it could
         let during = helpers();
