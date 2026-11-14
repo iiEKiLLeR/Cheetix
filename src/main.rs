@@ -297,6 +297,9 @@ struct App {
     toast: Option<(String, String, Instant)>,
     /// a newer release, and the popup's state: None = offer, Some(None) = downloading, Some(Some(e)) = failed
     update: Option<(update::Release, Option<Option<String>>)>,
+    /// the notification panel under the bell is open; the bell's rect (clicks there toggle it)
+    notif_open: bool,
+    bell: Rect,
     procs: Vec<sys::Proc>,
     proc_total: usize,
     proc_filter: String,
@@ -366,6 +369,8 @@ impl App {
             scroll_to: None,
             toast: None,
             update: None,
+            notif_open: false,
+            bell: Rect::NOTHING,
             games: None,
             session: arena::status(),
             session_read: Instant::now(),
@@ -410,10 +415,27 @@ impl App {
 
     /// A small card under the top bar when a newer release is on GitHub.
     fn update_popup(&mut self, ctx: &egui::Context) {
-        let Some((r, st)) = self.update.clone() else { return };
+        if !self.notif_open {
+            return;
+        }
         let p = self.p;
         let (mut install, mut later) = (false, false);
-        egui::Area::new(egui::Id::new("update")).order(egui::Order::Foreground).anchor(Align2::RIGHT_TOP, vec2(-20.0, 64.0)).show(ctx, |ui| {
+        let anchor = vec2(self.bell.right() - ctx.screen_rect().right(), self.bell.bottom() + 8.0);
+        let area = egui::Area::new(egui::Id::new("update")).order(egui::Order::Foreground).anchor(Align2::RIGHT_TOP, anchor).show(ctx, |ui| {
+            let Some((r, st)) = self.update.clone() else {
+                // nothing new
+                let shadow = Shadow { offset: [0, 4], blur: 14, spread: 0, color: alpha(Color32::BLACK, if p.dark { 0.30 } else { 0.10 }) };
+                Frame::new().fill(p.solid).stroke(Stroke::new(1.0_f32, p.border)).corner_radius(R_CARD).shadow(shadow).inner_margin(Margin::symmetric(14, 12)).show(ui, |ui| {
+                    ui.set_width(300.0);
+                    ui.spacing_mut().item_spacing.y = 4.0;
+                    ui.horizontal(|ui| {
+                        icon(ui, icons::CHECK, 12.0, p.ok);
+                        ui.label(RichText::new("No new notifications").font(semi(13.0)).color(p.text));
+                    });
+                    label(ui, concat!("Cheetix ", env!("CARGO_PKG_VERSION"), " is up to date."), 12.0, p.dim);
+                });
+                return;
+            };
             let shadow = Shadow { offset: [0, 4], blur: 14, spread: 0, color: alpha(Color32::BLACK, if p.dark { 0.30 } else { 0.10 }) };
             Frame::new().fill(p.solid).stroke(Stroke::new(1.0_f32, p.border)).corner_radius(R_CARD).shadow(shadow).inner_margin(Margin::symmetric(14, 12)).show(ui, |ui| {
                 ui.set_width(300.0);
@@ -444,13 +466,14 @@ impl App {
                 });
             });
         });
-        if later {
-            self.update = None;
+        // Later / Close / a click elsewhere only close the panel; the bell keeps its badge
+        let outside = area.response.clicked_elsewhere() && !ctx.input(|i| i.pointer.interact_pos().is_some_and(|q| self.bell.contains(q)));
+        if later || outside {
+            self.notif_open = false;
         }
-        if install {
-            if let Some(u) = &mut self.update {
-                u.1 = Some(None);
-            }
+        if let (true, Some(u)) = (install, &mut self.update) {
+            u.1 = Some(None);
+            let r = u.0.clone();
             self.work(move |tx| match update::install(&r) {
                 // the installer is running; it replaces this exe, so get out of its way
                 Ok(()) => tx.1.send_viewport_cmd(ViewportCommand::Close),
@@ -845,7 +868,10 @@ impl App {
             }
             Msg::Toast(a, b) => self.toast(a, b),
             Msg::Games(g) => self.games = Some(g),
-            Msg::Update(r) => self.update = Some((r, None)),
+            Msg::Update(r) => {
+                self.update = Some((r, None));
+                self.notif_open = true;
+            }
             Msg::UpdateFailed(e) => {
                 if let Some(u) = &mut self.update {
                     u.1 = Some(Some(e));
@@ -1322,6 +1348,33 @@ fn card(ui: &mut egui::Ui, p: &Pal, flash: bool, body: impl FnOnce(&mut egui::Ui
     inner.response
 }
 
+/// "Liquid glass": a translucent pill tinted with the theme's accent, a soft sheen on its top
+/// half, a bright hairline along the top edge and an accent rim (stronger on hover / focus).
+fn glass_shapes(r: Rect, p: &Pal, h: f32, lit: bool) -> Vec<Shape> {
+    let rad = r.height() / 2.0;
+    let (glass, sheen) = if p.dark { (alpha(mix(p.panel.to_opaque(), p.acc, 0.10 + 0.06 * h), 0.55), 0.07) } else { (alpha(Color32::WHITE, 0.62), 0.45) };
+    // the sheen fades out by the middle, so it never cuts across the text
+    let top = Rect::from_min_max(pos2(r.left() + rad * 0.55, r.top() + 1.0), pos2(r.right() - rad * 0.55, r.center().y));
+    let mut m = egui::Mesh::default();
+    let shine = alpha(Color32::WHITE, sheen * (0.7 + 0.3 * h));
+    for (q, c) in [(top.left_top(), shine), (top.right_top(), shine), (top.right_bottom(), Color32::TRANSPARENT), (top.left_bottom(), Color32::TRANSPARENT)] {
+        m.colored_vertex(q, c);
+    }
+    m.add_triangle(0, 1, 2);
+    m.add_triangle(0, 2, 3);
+    let rim = alpha(p.acc, if lit { 0.85 } else { 0.22 + 0.30 * h });
+    vec![
+        Shape::rect_filled(r, rad, glass),
+        Shape::mesh(m),
+        Shape::line_segment([pos2(r.left() + rad, r.top() + 1.0), pos2(r.right() - rad, r.top() + 1.0)], Stroke::new(1.0_f32, alpha(Color32::WHITE, if p.dark { 0.18 } else { 0.9 }))),
+        Shape::rect_stroke(r, rad, Stroke::new(1.0_f32, rim), StrokeKind::Inside),
+    ]
+}
+
+fn glass(painter: &egui::Painter, r: Rect, p: &Pal, h: f32, lit: bool) {
+    painter.extend(glass_shapes(r, p, h, lit));
+}
+
 /// A card row: icon, name and description on the left, controls (`rw` wide) on the right.
 #[allow(clippy::too_many_arguments)]
 fn row(ui: &mut egui::Ui, p: &Pal, flash: bool, chip: Chip, name: &str, desc: &str, rw: f32, right: impl FnOnce(&mut egui::Ui)) -> egui::Response {
@@ -1622,11 +1675,28 @@ impl App {
                 // one click steps to the next theme; all of them are in Settings
                 let (r, resp) = ui.allocate_exact_size(vec2(32.0, 30.0), Sense::click());
                 let h = ui.ctx().animate_bool_with_time(resp.id, resp.hovered(), 0.10);
-                ui.painter().rect(r, R_CTRL, alpha(p.hover, h), Stroke::new(1.0_f32, mix(p.border, p.border_hi, h)), StrokeKind::Inside);
+                glass(ui.painter(), r, &p, h, false);
                 ui.painter().text(r.center(), Align2::CENTER_CENTER, icons::PALETTE, icon_font(13.0), mix(p.dim, p.text, h));
                 let next = &THEMES[(self.theme + 1) % THEMES.len()];
                 if resp.on_hover_cursor(egui::CursorIcon::PointingHand).on_hover_text(format!("Theme: {} (click for {})", THEMES[self.theme].name, next.name)).clicked() {
                     self.set_theme(next.id);
+                }
+                ui.add_space(6.0);
+                // notifications: a red badge with the count while an update is waiting
+                let (r, resp) = ui.allocate_exact_size(vec2(32.0, 30.0), Sense::click());
+                self.bell = r;
+                let h = ui.ctx().animate_bool_with_time(resp.id, resp.hovered() || self.notif_open, 0.10);
+                glass(ui.painter(), r, &p, h, self.notif_open);
+                ui.painter().text(r.center(), Align2::CENTER_CENTER, icons::BELL, icon_font(13.0), mix(p.dim, p.text, h));
+                let count = usize::from(self.update.is_some());
+                if count > 0 {
+                    let c = pos2(r.right() - 5.0, r.top() + 5.0);
+                    ui.painter().circle(c, 7.0, hex(0xef4444), Stroke::new(2.0_f32, p.side.to_opaque()));
+                    ui.painter().text(c, Align2::CENTER_CENTER, count.to_string(), FontId::proportional(9.5), Color32::WHITE);
+                }
+                let tip = if count > 0 { "1 notification: an update is available" } else { "Notifications" };
+                if resp.on_hover_cursor(egui::CursorIcon::PointingHand).on_hover_text(tip).clicked() {
+                    self.notif_open = !self.notif_open;
                 }
                 ui.add_space(8.0);
                 let w = ui.available_width().clamp(160.0, 320.0);
@@ -1639,11 +1709,9 @@ impl App {
         let p = self.p;
         let w = ui.available_width().clamp(160.0, 320.0);
         let focused = ui.memory(|m| m.has_focus(self.search_id));
+        let bg = ui.painter().add(Shape::Noop);
         let resp = Frame::new()
-            .fill(p.bg)
-            .stroke(Stroke::new(1.0_f32, if focused { p.acc } else { p.border }))
-            .corner_radius(R_CTRL)
-            .inner_margin(Margin::symmetric(10, 6))
+            .inner_margin(Margin::symmetric(12, 6))
             .show(ui, |ui| {
                 ui.horizontal(|ui| {
                     icon(ui, icons::SEARCH, 11.0, if focused { p.acc } else { p.muted });
@@ -1659,6 +1727,9 @@ impl App {
                 })
                 .inner
             });
+        let h = ui.ctx().animate_bool_with_time(resp.response.id.with("glass"), focused || ui.rect_contains_pointer(resp.response.rect), 0.12);
+        let shapes = glass_shapes(resp.response.rect, &p, h, focused);
+        ui.painter().set(bg, Shape::Vec(shapes));
         let edit = resp.inner;
         if edit.changed() {
             self.search_sel = 0;
