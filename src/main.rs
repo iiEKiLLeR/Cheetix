@@ -132,20 +132,37 @@ const NAV: &[NavGroup] = &[
     ("SAFETY", &[("history", "History"), ("settings", "Settings")]),
 ];
 
+/// Put before every cleaner: `Purge` deletes, and if anything refuses it takes ownership of
+/// what was refused (default permissions plus Administrators full control) and deletes again.
+const PURGE: &str = r#"$yes = 'Y'; try { $c = cmd /c 'choice <nul 2>nul'; if ($c -and "$c".Length -ge 2) { $yes = "$c"[1] } } catch {}
+function Purge([string[]]$Path) {
+  foreach ($p in $Path) {
+    Remove-Item $p -Recurse -Force -ErrorAction SilentlyContinue -ErrorVariable bad
+    # locked folders hide their contents from Test-Path, so go by the "access denied" errors
+    if ($bad | Where-Object { $_.CategoryInfo.Category -eq 'PermissionDenied' -or $_.Exception -is [UnauthorizedAccessException] }) {
+      takeown /f "$p" /a /r /d $yes 2>&1 | Out-Null
+      icacls "$p" /reset /t /c /q 2>&1 | Out-Null
+      icacls "$p" /grant '*S-1-5-32-544:F' /t /c /q 2>&1 | Out-Null
+      Remove-Item $p -Recurse -Force -ErrorAction SilentlyContinue
+    }
+  }
+}
+"#;
+
 /// (id, name, what it removes, PowerShell)
 const CLEANERS: &[(&str, &str, &str, &str)] = &[
-    ("win_temp", "Windows temp files", "Temp files in C:\\Windows\\Temp and your %TEMP% folder", "Remove-Item \"$env:TEMP\\*\" -Recurse -Force -ErrorAction SilentlyContinue; Remove-Item 'C:\\Windows\\Temp\\*' -Recurse -Force -ErrorAction SilentlyContinue"),
-    ("prefetch", "Prefetch", "Application prefetch cache", "Remove-Item 'C:\\Windows\\Prefetch\\*' -Recurse -Force -ErrorAction SilentlyContinue"),
-    ("recent", "Recent items", "Recent files and folders list", "Remove-Item \"$env:APPDATA\\Microsoft\\Windows\\Recent\\*\" -Recurse -Force -ErrorAction SilentlyContinue"),
+    ("win_temp", "Windows temp files", "Temp files in C:\\Windows\\Temp and your %TEMP% folder", "Purge \"$env:TEMP\\*\"; Purge 'C:\\Windows\\Temp\\*'"),
+    ("prefetch", "Prefetch", "Application prefetch cache", "Purge 'C:\\Windows\\Prefetch\\*'"),
+    ("recent", "Recent items", "Recent files and folders list", "Purge \"$env:APPDATA\\Microsoft\\Windows\\Recent\\*\""),
     ("recycle_bin", "Recycle Bin", "Empties every Recycle Bin", "Clear-RecycleBin -Force -ErrorAction SilentlyContinue"),
     ("event_logs", "Event logs", "Clears every Windows event log", "wevtutil el | ForEach-Object { wevtutil cl \"$_\" 2>$null }; exit 0"),
     ("dns_cache", "DNS cache", "Flushes the DNS resolver cache", "ipconfig /flushdns"),
-    ("wu_cache", "Windows Update cache", "Downloaded update files (SoftwareDistribution)", "Stop-Service wuauserv -Force -ErrorAction SilentlyContinue; Remove-Item 'C:\\Windows\\SoftwareDistribution\\Download' -Recurse -Force -ErrorAction SilentlyContinue; Start-Service wuauserv -ErrorAction SilentlyContinue"),
-    ("thumb_cache", "Thumbnail cache", "Explorer thumbnail cache (restarts Explorer)", "Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue; Remove-Item \"$env:LOCALAPPDATA\\Microsoft\\Windows\\Explorer\\thumbcache_*\" -Force -ErrorAction SilentlyContinue; Start-Process explorer"),
+    ("wu_cache", "Windows Update cache", "Downloaded update files (SoftwareDistribution)", "Stop-Service wuauserv -Force -ErrorAction SilentlyContinue; Purge 'C:\\Windows\\SoftwareDistribution\\Download'; Start-Service wuauserv -ErrorAction SilentlyContinue"),
+    ("thumb_cache", "Thumbnail cache", "Explorer thumbnail cache (restarts Explorer)", "Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue; Purge \"$env:LOCALAPPDATA\\Microsoft\\Windows\\Explorer\\thumbcache_*\"; Start-Process explorer"),
     ("privacy", "Privacy traces", "Windows logs, recent files, Run box, search and address bar history, Defender scan history", r#"$ErrorActionPreference = 'SilentlyContinue'
 $sr = $env:SystemRoot
-foreach ($d in "$sr\Logs\waasmedic", "$sr\Logs\SIH", "$sr\Traces\WindowsUpdate", "$sr\Logs\NetSetup", "$sr\System32\LogFiles\setupcln", "$sr\ServiceProfiles\LocalService\AppData\Local\Temp", "$env:LOCALAPPDATA\Microsoft\CLR_v4.0\UsageTraces", "$env:LOCALAPPDATA\Microsoft\CLR_v4.0_32\UsageTraces", "$env:ProgramData\Microsoft\Windows Defender\Scans\History", "$env:LOCALAPPDATA\Microsoft\Windows\ConnectedSearch\History") { Remove-Item "$d\*" -Recurse -Force }
-foreach ($f in "$sr\System32\catroot2\dberr.txt", "$sr\System32\catroot2.log", "$sr\System32\catroot2.jrs", "$sr\System32\catroot2.edb", "$sr\comsetup.log", "$sr\DtcInstall.log", "$sr\PFRO.log", "$sr\setupact.log", "$sr\setuperr.log", "$sr\setupapi.log", "$sr\inf\setupapi.app.log", "$sr\inf\setupapi.dev.log", "$sr\Performance\WinSAT\winsat.log", "$sr\debug\PASSWD.LOG", "$sr\Logs\CBS\CBS.log", "$sr\Logs\DISM\DISM.log", "$env:ProgramData\Microsoft\Diagnosis\ETLLogs\ShutdownLogger\AutoLogger-Diagtrack-Listener.etl") { Remove-Item -LiteralPath $f -Force }
+foreach ($d in "$sr\Logs\waasmedic", "$sr\Logs\SIH", "$sr\Traces\WindowsUpdate", "$sr\Logs\NetSetup", "$sr\System32\LogFiles\setupcln", "$sr\ServiceProfiles\LocalService\AppData\Local\Temp", "$env:LOCALAPPDATA\Microsoft\CLR_v4.0\UsageTraces", "$env:LOCALAPPDATA\Microsoft\CLR_v4.0_32\UsageTraces", "$env:ProgramData\Microsoft\Windows Defender\Scans\History", "$env:LOCALAPPDATA\Microsoft\Windows\ConnectedSearch\History") { Purge "$d\*" }
+foreach ($f in "$sr\System32\catroot2\dberr.txt", "$sr\System32\catroot2.log", "$sr\System32\catroot2.jrs", "$sr\System32\catroot2.edb", "$sr\comsetup.log", "$sr\DtcInstall.log", "$sr\PFRO.log", "$sr\setupact.log", "$sr\setuperr.log", "$sr\setupapi.log", "$sr\inf\setupapi.app.log", "$sr\inf\setupapi.dev.log", "$sr\Performance\WinSAT\winsat.log", "$sr\debug\PASSWD.LOG", "$sr\Logs\CBS\CBS.log", "$sr\Logs\DISM\DISM.log", "$env:ProgramData\Microsoft\Diagnosis\ETLLogs\ShutdownLogger\AutoLogger-Diagtrack-Listener.etl") { Purge $f }
 $cv = 'HKCU:\Software\Microsoft\Windows\CurrentVersion'
 foreach ($k in "$cv\Explorer\RecentDocs", "$cv\Explorer\RunMRU", "$cv\Explorer\TypedPaths", "$cv\Explorer\WordWheelQuery", "$cv\Explorer\ComDlg32\LastVisitedMRU", "$cv\Explorer\ComDlg32\LastVisitedPidlMRU", "$cv\Explorer\ComDlg32\LastVisitedPidlMRULegacy", "$cv\Explorer\ComDlg32\OpenSavePidlMRU", "$cv\Explorer\Map Network Drive MRU", "$cv\Applets\Paint\Recent File List", "$cv\Applets\Wordpad\Recent File List", 'HKCU:\Software\Microsoft\MediaPlayer\Player\RecentFileList', 'HKCU:\Software\Microsoft\MediaPlayer\Player\RecentURLList', 'HKCU:\Software\Microsoft\Direct3D\MostRecentApplication', 'HKCU:\Software\Microsoft\Search Assistant\ACMru', 'HKCU:\Software\Adobe\MediaBrowser\MRU') {
   if (Test-Path -LiteralPath $k) { @(Get-Item -LiteralPath $k) + @(Get-ChildItem -LiteralPath $k -Recurse) | ForEach-Object { Remove-ItemProperty -LiteralPath $_.PSPath -Name * -Force } }
@@ -157,7 +174,7 @@ Get-ChildItem -LiteralPath $k | ForEach-Object { New-ItemProperty -LiteralPath $
 Start-Process cleanmgr.exe -ArgumentList '/sagerun:99' -WindowStyle Hidden -Wait"#),
     ("component_store", "Component store (WinSxS)", "Removes old Windows components. Takes a few minutes; installed updates can't be uninstalled after", "Dism.exe /Online /Cleanup-Image /StartComponentCleanup /ResetBase | Out-Null; exit $LASTEXITCODE"),
     ("devices", "Non-present devices", "Removes devices that are no longer connected (old USB drives, leftover drivers)", "Get-PnpDevice | Where-Object { -not $_.Present } | ForEach-Object { pnputil /remove-device $_.InstanceId | Out-Null }; exit 0"),
-    ("crash_dumps", "Crash dumps", "Windows minidumps and app crash dumps", "Remove-Item 'C:\\Windows\\Minidump\\*' -Recurse -Force -ErrorAction SilentlyContinue; Remove-Item \"$env:LOCALAPPDATA\\CrashDumps\\*\" -Recurse -Force -ErrorAction SilentlyContinue"),
+    ("crash_dumps", "Crash dumps", "Windows minidumps and app crash dumps", "Purge 'C:\\Windows\\Minidump\\*'; Purge \"$env:LOCALAPPDATA\\CrashDumps\\*\""),
 ];
 
 type Shortcuts = (&'static str, &'static [(&'static str, &'static str)]);
@@ -2661,7 +2678,7 @@ impl App {
                     return tx.send(Msg::CleanDone(id, false));
                 }
                 // the component store can take many minutes
-                let ok = sys::ps_timeout(&script, 3600).is_ok_and(|o| o.status.success());
+                let ok = sys::ps_timeout(&format!("{PURGE}{script}"), 3600).is_ok_and(|o| o.status.success());
                 tx.log(format!("{} {}: {}", ts(), name, if ok { "CLEANED" } else { "ERROR" }));
                 tx.send(Msg::CleanDone(id, ok));
             });
@@ -3160,7 +3177,7 @@ mod tests {
     fn cleaner_scripts_parse() {
         for (id, _, _, s) in CLEANERS {
             let chk = format!("$e = $null; [void][Management.Automation.Language.Parser]::ParseInput(@'
-{s}
+{PURGE}{s}
 '@, [ref]$null, [ref]$e); $e.Count");
             let o = sys::ps(&chk).unwrap();
             assert_eq!(String::from_utf8_lossy(&o.stdout).trim(), "0", "{id} has a syntax error");
