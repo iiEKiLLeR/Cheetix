@@ -1,7 +1,7 @@
 // A GUI program in every build: a console-subsystem exe makes Windows open a console
 // window behind the app. Diagnostics still reach a terminal (see `attach_console`).
 #![cfg_attr(not(test), windows_subsystem = "windows")]
-//! SM7 — a Windows tweak toolbox: on/off switches with saved-original restore,
+//! Cheetix — a Windows tweak toolbox: on/off switches with saved-original restore,
 //! a live dashboard, process monitor, startup manager, cleaner, power plans,
 //! shortcuts, history with undo, and switchable themes. See MECHANICS.md.
 
@@ -187,15 +187,16 @@ struct Hist {
 
 fn state_path() -> PathBuf {
     let base = std::env::var("APPDATA").map(PathBuf::from).unwrap_or_else(|_| std::env::temp_dir());
-    base.join("SM7").join("state.json")
+    base.join("Cheetix").join("state.json")
 }
 
 /// The app was called TweakBox before: its saved states and saved originals move over once
 /// (copied, so the old folder stays as a fallback).
 fn migrate_state() {
     let new = state_path();
-    let old = new.parent().and_then(|d| d.parent()).map(|b| b.join("TweakBox").join("state.json"));
-    if let (false, Some(old)) = (new.exists(), old.filter(|o| o.exists())) {
+    // earlier names of the app, newest first
+    let old = new.parent().and_then(|d| d.parent()).and_then(|b| ["SM7", "TweakBox"].iter().map(|n| b.join(n).join("state.json")).find(|o| o.exists()));
+    if let (false, Some(old)) = (new.exists(), old) {
         if let Some(d) = new.parent() {
             let _ = std::fs::create_dir_all(d);
         }
@@ -292,9 +293,10 @@ struct App {
     shot: Option<(PathBuf, u32, Instant, bool)>,
     /// engine probe results per "category|id"
     probe: HashMap<String, String>,
-    probed: HashSet<&'static str>,
     /// tweaks whose details panel is open
     expanded: HashSet<String>,
+    /// drives the background animation
+    started: Instant,
 }
 
 impl App {
@@ -352,10 +354,14 @@ impl App {
             reverting: false,
             shot: shot.map(|p| (p, 0, Instant::now(), false)),
             probe: HashMap::new(),
-            probed: HashSet::new(),
             expanded: HashSet::new(),
+            started: Instant::now(),
         };
         app.poll_metrics();
+        // read the real state of every tweak once at launch
+        let scripts = app.tweaks.iter().filter(|t| t.ops.is_none()).map(|t| (format!("{}|{}", t.c, t.id), t.check.clone())).collect();
+        let ops = app.tweaks.iter().filter_map(|t| t.ops.as_ref().map(|o| json!({"key": format!("{}|{}", t.c, t.id), "ops": o}))).collect();
+        app.check_state(scripts, ops);
         if let Some(v) = NAV.iter().flat_map(|g| g.1.iter()).map(|i| i.0).find(|v| Some(*v) == start_view.as_deref()) {
             app.go(v);
         }
@@ -400,12 +406,8 @@ impl App {
             "monitor" => self.refresh_procs(),
             "startup" => self.refresh_startup(),
             "powerplans" => self.refresh_plans(),
-            _ => {
-                if !self.probed.contains(v) {
-                    self.probed.insert(v);
-                    self.probe_page(v);
-                }
-            }
+            // every visit reads the page's real state again
+            _ => self.probe_page(v),
         }
     }
 
@@ -438,7 +440,7 @@ impl App {
         });
     }
 
-    /// Another tweak that SM7 applied (and holds the original for) changes one of this
+    /// Another tweak that Cheetix applied (and holds the original for) changes one of this
     /// tweak's settings. Switching this one would overwrite or undo that tweak's work.
     fn conflict(&self, t: &Tweak) -> Option<String> {
         conflict_with(&self.tweaks, &self.saved.backups, t).map(|o| format!("\"{}\" ({} page) changes the same setting and is ON. Turn that one off first.", o.name, page_title(&o.c)))
@@ -832,7 +834,7 @@ fn conflict_with<'a>(tweaks: &'a [Tweak], backups: &HashMap<String, Value>, t: &
         .find(|o| o.targets.iter().any(|x| t.targets.contains(x)))
 }
 
-/// The real state of a tweak as last read from Windows, and how it relates to what SM7 did.
+/// The real state of a tweak as last read from Windows, and how it relates to what Cheetix did.
 #[derive(Clone, Copy, PartialEq, Debug)]
 enum State {
     /// not read yet
@@ -847,7 +849,7 @@ enum State {
     Missing,
 }
 
-/// `probe`: last read ("on"/"off"/"partial"/"na"/"error"); `ours`: SM7 applied it and holds the original.
+/// `probe`: last read ("on"/"off"/"partial"/"na"/"error"); `ours`: Cheetix applied it and holds the original.
 fn state_of(probe: Option<&str>) -> State {
     match probe {
         None => State::Checking,
@@ -860,7 +862,7 @@ fn state_of(probe: Option<&str>) -> State {
 }
 
 /// Runs an engine tweak on a worker thread. ON: apply with backup. OFF: restore the backup,
-/// or (no backup: the tweak was on before SM7 saw it) write documented Windows defaults.
+/// or (no backup: the tweak was on before Cheetix saw it) write documented Windows defaults.
 fn run_ops(tx: &Tx, name: &str, on: bool, ops: Vec<Value>, backup: Option<Value>) -> Result<Option<Value>, String> {
     const T: u64 = 900; // optional-feature changes can take minutes
     // services marked "stop" are stopped when disabled and started again once restored, as the
@@ -892,7 +894,7 @@ fn run_ops(tx: &Tx, name: &str, on: bool, ops: Vec<Value>, backup: Option<Value>
     let r = match backup {
         Some(b) => engine::run("restore", json!({ "backup": b }), T)?,
         None => {
-            tx.log(format!("{} {}: no saved original (it was already on before SM7) - writing the documented Windows defaults", ts(), name));
+            tx.log(format!("{} {}: no saved original (it was already on before Cheetix) - writing the documented Windows defaults", ts(), name));
             engine::run("reset", json!({ "ops": ops }), T)?
         }
     };
@@ -1247,7 +1249,7 @@ struct Card<'a> {
     /// a short-lived result ("OK", "FAIL", "ADMIN", ...) right after a click
     st: Option<(&'static str, Color32)>,
     state: State,
-    /// SM7 applied it and holds the saved original
+    /// Cheetix applied it and holds the saved original
     ours: bool,
     /// why it can't be used on this PC
     na: Option<String>,
@@ -1283,9 +1285,9 @@ impl Card<'_> {
             State::Unknown => ("Unknown: the current setting couldn't be read".into(), p.muted),
             State::Missing => ("Not available on this PC".into(), p.muted),
             State::Partial => ("Partly set: some of its values differ from what this tweak writes".into(), p.run),
-            State::Applied if !self.ours && self.t.ops.is_some() => (format!("{} · set outside SM7", l.state), p.ok),
+            State::Applied if !self.ours && self.t.ops.is_some() => (format!("{} · set outside Cheetix", l.state), p.ok),
             State::Applied => (l.state.clone(), p.ok),
-            State::NotApplied if self.ours => ("Changed outside SM7: Windows no longer has this setting".into(), p.run),
+            State::NotApplied if self.ours => ("Changed outside Cheetix: Windows no longer has this setting".into(), p.run),
             State::NotApplied => ("Not changed by this tweak (your current Windows setting)".into(), p.dim),
         }
     }
@@ -1371,7 +1373,7 @@ fn details(ui: &mut egui::Ui, p: &Pal, c: &Card) {
         ui.add_space(8.0);
         if t.ops.is_some() {
             let restore = if c.backup.is_empty() {
-                "Before applying, SM7 reads and saves the current value of every item above, applies the change and reads it back. If anything fails, everything is put back. Turning it OFF writes those saved values back exactly (including deleting values or keys that did not exist). If the tweak was already set before SM7 saw it, there is nothing saved, so OFF writes the Windows default instead (and refuses where no default is known).".to_string()
+                "Before applying, Cheetix reads and saves the current value of every item above, applies the change and reads it back. If anything fails, everything is put back. Turning it OFF writes those saved values back exactly (including deleting values or keys that did not exist). If the tweak was already set before Cheetix saw it, there is nothing saved, so OFF writes the Windows default instead (and refuses where no default is known).".to_string()
             } else {
                 "Turning it OFF writes back exactly these saved originals, then reads them back to verify:".to_string()
             };
@@ -1409,55 +1411,6 @@ fn tile(ui: &mut egui::Ui, p: &Pal, size: Vec2, glyph: &str, text: &str) -> egui
     painter.text(pos2(r.left() + 20.0, r.center().y), Align2::CENTER_CENTER, glyph, icon_font(13.0), mix(p.muted, p.acc, h));
     painter.text(pos2(r.left() + 38.0, r.center().y), Align2::LEFT_CENTER, text, FontId::proportional(12.5), mix(p.dim, p.text, h));
     resp.on_hover_cursor(egui::CursorIcon::PointingHand)
-}
-
-/// A panel with a title strip.
-fn panel(ui: &mut egui::Ui, p: &Pal, _glyph: &str, title: &str, head: impl FnOnce(&mut egui::Ui), body: impl FnOnce(&mut egui::Ui)) {
-    ui.add_space(16.0);
-    Frame::new().fill(p.panel).stroke(Stroke::new(1.0_f32, p.border)).corner_radius(R_CARD).show(ui, |ui| {
-        ui.set_width(ui.available_width());
-        Frame::new().inner_margin(Margin::symmetric(14, 8)).show(ui, |ui| {
-            ui.horizontal(|ui| {
-                ui.label(RichText::new(title).font(semi(12.5)).color(p.text));
-                ui.with_layout(Layout::right_to_left(Align::Center), head);
-            });
-        });
-        let r = ui.available_rect_before_wrap();
-        ui.painter().hline(r.x_range(), r.top(), Stroke::new(1.0_f32, p.border));
-        Frame::new().inner_margin(Margin::symmetric(14, 10)).show(ui, body);
-    });
-}
-
-fn console(ui: &mut egui::Ui, p: &Pal, title: &str, lines: &mut Vec<String>) {
-    let mut clear = false;
-    panel(
-        ui,
-        p,
-        icons::CMD,
-        title,
-        |ui| {
-            clear = ui.add(egui::Button::new(RichText::new("Clear").size(12.0).color(p.dim)).frame(false)).on_hover_cursor(egui::CursorIcon::PointingHand).clicked();
-        },
-        |ui| {
-            egui::ScrollArea::vertical().id_salt(title).max_height(200.0).stick_to_bottom(true).auto_shrink([false, true]).show(ui, |ui| {
-                ui.set_min_height(80.0);
-                let text = if lines.is_empty() { "Nothing has run yet.".to_string() } else { lines.join("\n") };
-                ui.add(egui::Label::new(RichText::new(text).monospace().size(11.0).color(p.dim)).wrap());
-            });
-        },
-    );
-    if clear {
-        lines.clear();
-    }
-}
-
-fn boxed(ui: &mut egui::Ui, p: &Pal, title: &str, body: &str) {
-    panel(ui, p, icons::CODE, title, |_| {}, |ui| {
-        egui::ScrollArea::vertical().id_salt(title).max_height(220.0).auto_shrink([false, true]).show(ui, |ui| {
-            ui.set_min_height(90.0);
-            ui.add(egui::Label::new(RichText::new(body).monospace().size(11.0).color(p.dim)).wrap());
-        });
-    });
 }
 
 /// A text field with a leading icon; the border takes the accent while focused.
@@ -1533,13 +1486,10 @@ impl App {
             ui.ctx().send_viewport_cmd(ViewportCommand::Maximized(!maxed));
         }
         ui.with_layout(Layout::left_to_right(Align::Center), |ui| {
-            // brand mark: a ring with a core, drawn here (no logo copied)
             let (r, _) = ui.allocate_exact_size(Vec2::splat(24.0), Sense::hover());
-            ui.painter().rect_filled(r, R_CTRL, p.acc);
-            ui.painter().circle_stroke(r.center(), 6.5, Stroke::new(1.5_f32, p.on_acc));
-            ui.painter().circle_filled(r.center(), 2.4, p.on_acc);
+            ui.painter().image(p.logo, r, Rect::from_min_max(pos2(0.0, 0.0), pos2(1.0, 1.0)), Color32::WHITE);
             ui.add_space(4.0);
-            ui.label(RichText::new("SM7").font(semi(14.0)).color(p.text));
+            ui.label(RichText::new("Cheetix").font(semi(14.0)).color(p.text));
             ui.add_space(14.0);
             let cpu = self.metrics.as_ref().map(|m| format!("{}%", m.0.cpu)).unwrap_or("--".into());
             let ver = if self.os.1.is_empty() { "--".to_string() } else { self.os.1.clone() };
@@ -1728,7 +1678,7 @@ impl App {
             let busy = self.busy.len() + usize::from(self.checking);
             let (dot, _) = ui.allocate_exact_size(Vec2::splat(8.0), Sense::hover());
             ui.painter().circle_filled(dot.center(), 3.0, if busy > 0 { p.run } else { p.ok });
-            label(ui, if busy > 0 { format!("Working on {busy} change(s)…") } else { "Ready".to_string() }, 11.0, p.muted);
+            label(ui, if !self.busy.is_empty() { format!("Working on {} change(s)…", self.busy.len()) } else if self.checking { "Reading Windows state…".to_string() } else { "Ready".to_string() }, 11.0, p.muted);
             ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                 let (r, resp) = ui.allocate_exact_size(vec2(14.0, 14.0), Sense::drag());
                 for i in 0..3 {
@@ -1739,7 +1689,7 @@ impl App {
                     ui.ctx().send_viewport_cmd(ViewportCommand::BeginResize(egui::viewport::ResizeDirection::SouthEast));
                 }
                 ui.add_space(8.0);
-                label(ui, concat!("SM7 ", env!("CARGO_PKG_VERSION")), 11.0, p.muted);
+                label(ui, concat!("Cheetix ", env!("CARGO_PKG_VERSION")), 11.0, p.muted);
                 ui.add_space(14.0);
                 label(ui, if self.admin { "Administrator" } else { "Standard user" }, 11.0, if self.admin { p.ok } else { p.muted });
                 icon(ui, icons::ADMIN, 10.0, if self.admin { p.ok } else { p.muted });
@@ -1896,14 +1846,9 @@ impl App {
             }
         }
         if !self.admin {
-            admin_warn(ui, &p, "Many tweaks need administrator rights. Restart SM7 with \"Run as administrator\" to change system-wide settings.");
+            admin_warn(ui, &p, "Many tweaks need administrator rights. Restart Cheetix with \"Run as administrator\" to change system-wide settings.");
         }
         ui.horizontal(|ui| {
-            let lab = if self.checking { "Reading…" } else { "Re-check state" };
-            if btn_ex(ui, &p, Some(icons::SYNC), lab, Kind::Ghost).on_hover_text("Read the current Windows setting of every tweak on this page again").clicked() {
-                let ops_items = all.iter().filter_map(|t| t.ops.as_ref().map(|o| json!({"key": format!("{}|{}", t.c, t.id), "ops": o}))).collect();
-                self.check_state(all.iter().filter(|t| t.ops.is_none()).map(|t| (format!("{}|{}", t.c, t.id), t.check.clone())).collect(), ops_items);
-            }
             field(ui, &p, &mut self.page_filter, "Filter this page", 200.0);
             ui.with_layout(Layout::right_to_left(Align::Center), |ui| label(ui, format!("{active} applied"), 12.0, if active > 0 { p.ok } else { p.muted }));
         });
@@ -2042,9 +1987,6 @@ impl App {
         if let Some((t, on)) = clicked {
             self.apply(&t.c, &t.id, on, true);
         }
-        let lines: Vec<String> = all.iter().filter(|t| self.is_on(&t.c, &t.id)).filter_map(|t| t.cmd.clone()).collect();
-        boxed(ui, &p, "Changes made by the applied tweaks", &if lines.is_empty() { "No tweaks on this page are applied.".into() } else { lines.join("\n") });
-        console(ui, &p, "Activity log", &mut self.log);
     }
 
     fn monitor(&mut self, ui: &mut egui::Ui) {
@@ -2089,7 +2031,6 @@ impl App {
                 tx.send(Msg::Procs(v, n));
             });
         }
-        console(ui, &p, "Activity log", &mut self.log);
     }
 
     fn shortcuts(&mut self, ui: &mut egui::Ui) {
@@ -2154,7 +2095,6 @@ impl App {
                 tx.send(Msg::CleanDone(id, ok));
             });
         }
-        console(ui, &p, "Activity log", &mut self.log);
     }
 
     fn power_plans(&mut self, ui: &mut egui::Ui) {
@@ -2201,7 +2141,6 @@ impl App {
                 tx.send(Msg::Plans(sys::plans()));
             });
         }
-        console(ui, &p, "Activity log", &mut self.log);
     }
 
     fn startup_page(&mut self, ui: &mut egui::Ui) {
@@ -2245,7 +2184,6 @@ impl App {
         if let Some((id, name, en)) = flip {
             self.startup_toggle(id, name, en, true);
         }
-        console(ui, &p, "Activity log", &mut self.log);
     }
 
     fn history(&mut self, ui: &mut egui::Ui) {
@@ -2335,7 +2273,6 @@ impl App {
                 tx.send(Msg::HistoryCleared);
             });
         }
-        console(ui, &p, "Activity log", &mut self.log);
     }
 
     fn settings(&mut self, ui: &mut egui::Ui) {
@@ -2351,8 +2288,8 @@ impl App {
                 let h = ui.ctx().animate_bool_with_time(resp.id, resp.hovered(), 0.10);
                 let tp = theme::pal(i, &self.tex);
                 let painter = ui.painter();
-                // a miniature of the theme: window, sidebar, a card and its accent switch
-                painter.rect_filled(r, R_CARD, tp.bg);
+                // a miniature of the theme: window (with its aurora), sidebar, a card and its accent switch
+                theme::paint_ground(&painter.with_clip_rect(r), r, &tp, 0.0, r.width() / 1280.0);
                 let side = Rect::from_min_size(r.min, vec2(38.0, r.height()));
                 painter.rect_filled(side, CornerRadius { nw: R_CARD as u8, sw: R_CARD as u8, ne: 0, se: 0 }, tp.side);
                 let crd = Rect::from_min_size(r.min + vec2(48.0, 34.0), vec2(r.width() - 58.0, 26.0));
@@ -2380,29 +2317,28 @@ impl App {
             self.set_theme(t);
         }
         subhead(ui, &p, icons::nav("settings"), "App");
-        row(ui, &p, false, Chip::Glyph(icons::ADMIN, if self.admin { 1.0 } else { 0.0 }), "Administrator rights", "Most system tweaks only work when SM7 is started with \"Run as administrator\".", 130.0, |ui| {
+        row(ui, &p, false, Chip::Glyph(icons::ADMIN, if self.admin { 1.0 } else { 0.0 }), "Administrator rights", "Most system tweaks only work when Cheetix is started with \"Run as administrator\".", 130.0, |ui| {
             tag(ui, if self.admin { "Elevated" } else { "Not elevated" }, if self.admin { p.ok } else { p.run });
         });
         ui.add_space(8.0);
         let mut reset = false;
-        row(ui, &p, false, Chip::Glyph(icons::REFRESH, 0.0), "Forget remembered switch states", "Clears which switches SM7 remembers as on. Saved originals are kept, so restores still work. Each page reads the real state again when you open it.", 100.0, |ui| {
+        row(ui, &p, false, Chip::Glyph(icons::REFRESH, 0.0), "Forget remembered switch states", "Clears which switches Cheetix remembers as on. Saved originals are kept, so restores still work. Each page reads the real state again when you open it.", 100.0, |ui| {
             reset = btn_ex(ui, &p, None, "Reset", Kind::Danger).clicked();
         });
         if reset {
             self.saved.states.clear();
             self.probe.clear();
-            self.probed.clear();
             self.save();
             self.toast("Switch states cleared", "Pages read the real state again when opened");
         }
         ui.add_space(8.0);
         let n = self.saved.backups.len();
-        row(ui, &p, false, Chip::Glyph(icons::UNDO, if n > 0 { 1.0 } else { 0.0 }), "Saved originals", "Before a tweak changes anything, SM7 saves the exact original settings; turning the tweak OFF writes them back. They are stored in the file below.", 110.0, |ui| {
+        row(ui, &p, false, Chip::Glyph(icons::UNDO, if n > 0 { 1.0 } else { 0.0 }), "Saved originals", "Before a tweak changes anything, Cheetix saves the exact original settings; turning the tweak OFF writes them back. They are stored in the file below.", 110.0, |ui| {
             tag(ui, &format!("{n} saved"), if n > 0 { p.ok } else { p.muted });
         });
         ui.add_space(8.0);
         row(ui, &p, false, Chip::Glyph(icons::FOLDER, 0.0), "Saved data", &state_path().display().to_string(), 110.0, |ui| {
-            tag(ui, concat!("SM7 ", env!("CARGO_PKG_VERSION")), p.muted);
+            tag(ui, concat!("Cheetix ", env!("CARGO_PKG_VERSION")), p.muted);
         });
     }
 }
@@ -2427,6 +2363,12 @@ impl eframe::App for App {
             self.poll_metrics();
         }
 
+        let now = self.started.elapsed().as_secs_f32();
+        theme::paint_ground(&ctx.layer_painter(egui::LayerId::background()), ctx.screen_rect(), &p, now, ctx.screen_rect().width() / 1280.0);
+        if p.aura.is_some() {
+            // the aurora drifts slowly; ~25 fps is smooth enough
+            ctx.request_repaint_after(Duration::from_millis(40));
+        }
         let chrome = |m: Margin| Frame::new().fill(p.side).inner_margin(m);
         egui::TopBottomPanel::top("top").exact_height(52.0).frame(chrome(Margin { left: 14, right: 6, top: 0, bottom: 0 })).show_separator_line(false).show(ctx, |ui| {
             self.top_bar(ui);
@@ -2443,7 +2385,7 @@ impl eframe::App for App {
             self.sidebar(ui);
             ui.painter().vline(r.right() + 7.5, r.y_range(), Stroke::new(1.0_f32, p.border));
         });
-        egui::CentralPanel::default().frame(Frame::new().fill(p.bg)).show(ctx, |ui| {
+        egui::CentralPanel::default().frame(Frame::new()).show(ctx, |ui| {
             egui::ScrollArea::vertical().id_salt(self.view).auto_shrink([false, false]).show(ui, |ui| {
                 Frame::new().inner_margin(Margin { left: 28, right: 28, top: 22, bottom: 24 }).show(ui, |ui| {
                     ui.set_width(ui.available_width());
@@ -2564,9 +2506,9 @@ fn attach_console() {
 
 /// The taskbar / Alt+Tab icon (the exe's file icon is embedded by build.rs).
 fn window_icon() -> egui::IconData {
-    let mut r = png::Decoder::new(&include_bytes!("../assets/sm7-256.png")[..]).read_info().expect("sm7-256.png");
+    let mut r = png::Decoder::new(&include_bytes!("../assets/cheetix-256.png")[..]).read_info().expect("cheetix-256.png");
     let mut buf = vec![0; r.output_buffer_size()];
-    let info = r.next_frame(&mut buf).expect("sm7-256.png");
+    let info = r.next_frame(&mut buf).expect("cheetix-256.png");
     buf.truncate(info.buffer_size());
     egui::IconData { rgba: buf, width: info.width, height: info.height }
 }
@@ -2580,7 +2522,7 @@ fn main() -> eframe::Result {
     // --open "category|id" opens that tweak's details panel
     let (view, theme, open) = (arg("--view"), arg("--theme"), arg("--open"));
     let mut vp = egui::ViewportBuilder::default()
-        .with_title("SM7")
+        .with_title("Cheetix")
         .with_icon(window_icon())
         .with_inner_size([1280.0, 800.0])
         .with_min_inner_size([960.0, 600.0])
@@ -2593,7 +2535,7 @@ fn main() -> eframe::Result {
         }
     }
     let opts = eframe::NativeOptions { viewport: vp, ..Default::default() };
-    eframe::run_native("SM7", opts, Box::new(move |cc| Ok(Box::new(App::new(cc, shot, view, theme, open)))))
+    eframe::run_native("Cheetix", opts, Box::new(move |cc| Ok(Box::new(App::new(cc, shot, view, theme, open)))))
 }
 
 #[cfg(test)]
@@ -2663,16 +2605,16 @@ mod tests {
         let script_t = tweaks.iter().find(|t| t.ops.is_none()).unwrap();
         let p = theme::pal(0, &theme::Textures::new(&egui::Context::default()));
         let mk = |t, state, ours| Card { t, key: String::new(), on: false, busy: false, flash: false, st: None, state, ours, na: None, open: false, backup: vec![] };
-        // SM7 applied it, then something else undid it
+        // Cheetix applied it, then something else undid it
         let (txt, col) = mk(engine_t, State::NotApplied, true).windows_now(&p);
-        assert!(txt.contains("Changed outside SM7") && col == p.run, "{txt}");
+        assert!(txt.contains("Changed outside Cheetix") && col == p.run, "{txt}");
         // never guessed
         assert!(mk(engine_t, State::Unknown, false).windows_now(&p).0.starts_with("Unknown"));
         assert!(mk(engine_t, State::Checking, false).windows_now(&p).0.starts_with("Reading"));
-        // applied by SM7: the saved original comes back
+        // applied by Cheetix: the saved original comes back
         assert_eq!(mk(engine_t, State::Applied, true).windows_now(&p).0, engine_t.lab.state);
         assert!(mk(engine_t, State::Applied, true).off_text().starts_with("Restores your previous"));
-        // already set before SM7: OFF says it writes the default, and why
+        // already set before Cheetix: OFF says it writes the default, and why
         assert!(mk(engine_t, State::Applied, false).off_text().contains("no original saved"));
         // script tweaks state their fixed undo command
         assert_eq!(mk(script_t, State::Applied, false).off_text(), script_t.lab.off.clone().unwrap());

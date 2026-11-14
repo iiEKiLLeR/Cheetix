@@ -1,9 +1,9 @@
-; SM7 installer (Inno Setup 6). Build: tools\build_installer.ps1
-; Produces installer\Output\SM7-Setup-<version>.exe
+; Cheetix installer (Inno Setup 6). Build: tools\build_installer.ps1
+; Produces installer\Output\Cheetix-Setup-<version>.exe
 
-#define AppName "SM7"
-#define AppVersion "0.2.0"
-#define AppExe "sm7.exe"
+#define AppName "Cheetix"
+#define AppVersion "0.3.0"
+#define AppExe "cheetix.exe"
 
 [Setup]
 ; never change AppId: upgrades and uninstall find the installed copy by it
@@ -16,24 +16,26 @@ VersionInfoVersion={#AppVersion}
 VersionInfoProductName={#AppName}
 VersionInfoDescription={#AppName} Setup
 DefaultDirName={autopf}\{#AppName}
+; the app was called SM7 before: move an SM7 install to the new folder instead of reusing it
+UsePreviousAppDir=no
 DefaultGroupName={#AppName}
 DisableProgramGroupPage=yes
-; SM7 changes system settings, so it installs for all users into Program Files
+; Cheetix changes system settings, so it installs for all users into Program Files
 PrivilegesRequired=admin
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 MinVersion=10.0
 WizardStyle=modern
-SetupIconFile=..\assets\sm7.ico
+SetupIconFile=..\assets\cheetix.ico
 UninstallDisplayIcon={app}\{#AppExe}
 UninstallDisplayName={#AppName}
-; close a running SM7 before files are replaced (upgrade / uninstall)
+; close a running Cheetix before files are replaced (upgrade / uninstall)
 CloseApplications=yes
 RestartApplications=no
 Compression=lzma2/ultra64
 SolidCompression=yes
 OutputDir=Output
-OutputBaseFilename=SM7-Setup-{#AppVersion}
+OutputBaseFilename=Cheetix-Setup-{#AppVersion}
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -44,6 +46,12 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 [Files]
 Source: "..\target\release\{#AppExe}"; DestDir: "{app}"; Flags: ignoreversion
 
+[InstallDelete]
+; leftovers of the SM7 install this one replaces (same AppId)
+Type: filesandordirs; Name: "{autopf}\SM7"
+Type: files; Name: "{autoprograms}\SM7.lnk"
+Type: files; Name: "{autodesktop}\SM7.lnk"
+
 [Icons]
 Name: "{autoprograms}\{#AppName}"; Filename: "{app}\{#AppExe}"
 Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: desktopicon
@@ -51,31 +59,33 @@ Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: desktopico
 [Run]
 Filename: "{app}\{#AppExe}"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags: nowait postinstall skipifsilent
 
-; Settings, switch states and the saved originals that OFF restores live in %APPDATA%\SM7.
+; Settings, switch states and the saved originals that OFF restores live in %APPDATA%\Cheetix.
 ; They are deliberately kept on uninstall: without them, tweaks that are still ON could
 ; only be reset to Windows defaults instead of your own earlier settings.
 
 [Code]
-// Windows' Restart Manager can't close SM7's window, so ask it to close (like clicking X;
+// Windows' Restart Manager can't close Cheetix's window, so ask it to close (like clicking X;
 // its state is saved after every change), and force it only if it is still running.
-procedure CloseSM7();
+procedure CloseCheetix();
 var Code: Integer;
 begin
-  Exec(ExpandConstant('{sys}\taskkill.exe'), '/im sm7.exe', '', SW_HIDE, ewWaitUntilTerminated, Code);
+  // sm7.exe: the same app under its earlier name, when upgrading from it
+  Exec(ExpandConstant('{sys}\taskkill.exe'), '/f /im sm7.exe', '', SW_HIDE, ewWaitUntilTerminated, Code);
+  Exec(ExpandConstant('{sys}\taskkill.exe'), '/im cheetix.exe', '', SW_HIDE, ewWaitUntilTerminated, Code);
   if Code = 0 then begin
     Sleep(4000);
-    Exec(ExpandConstant('{sys}\taskkill.exe'), '/f /im sm7.exe', '', SW_HIDE, ewWaitUntilTerminated, Code);
+    Exec(ExpandConstant('{sys}\taskkill.exe'), '/f /im cheetix.exe', '', SW_HIDE, ewWaitUntilTerminated, Code);
   end;
 end;
 
 function PrepareToInstall(var NeedsRestart: Boolean): String;
 begin
-  CloseSM7();
+  CloseCheetix();
   Result := '';
 end;
 
 function InitializeUninstall(): Boolean;
 begin
-  CloseSM7();
+  CloseCheetix();
   Result := True;
 end;

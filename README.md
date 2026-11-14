@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="assets/sm7-256.png" width="96" alt="SM7 icon">
+  <img src="assets/cheetix-256.png" width="96" alt="Cheetix icon">
 </p>
 
-<h1 align="center">SM7</h1>
+<h1 align="center">Cheetix</h1>
 
 <p align="center">
   A clean, honest Windows tweaking and debloat tool.<br>
@@ -10,23 +10,23 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/iiEKiLLeR/SM7/releases/latest"><b>Download the installer</b></a> ·
+  <a href="https://github.com/iiEKiLLeR/Cheetix/releases/latest"><b>Download the installer</b></a> ·
   <a href="#features">Features</a> ·
   <a href="#how-the-switches-work">How the switches work</a> ·
   <a href="#building-from-source">Build from source</a>
 </p>
 
-![SM7 dashboard](docs/screenshots/dashboard.png)
+![Cheetix dashboard](docs/screenshots/dashboard.png)
 
-## What SM7 does
+## What Cheetix does
 
-SM7 brings hundreds of Windows tweaks together in one place: privacy and telemetry, gaming and latency, services, scheduled tasks, network and DNS, power, visual effects, debloating and more. Each tweak is its own switch. Nothing is bundled and nothing is applied automatically: you decide what changes on your PC.
+Cheetix brings hundreds of Windows tweaks together in one place: privacy and telemetry, gaming and latency, services, scheduled tasks, network and DNS, power, visual effects, debloating and more. Each tweak is its own switch. Nothing is bundled and nothing is applied automatically: you decide what changes on your PC.
 
 What makes it different is how carefully it changes things:
 
-- **It saves your original settings first.** Before a tweak changes anything, SM7 reads and stores the exact current value of every setting involved. Turning the tweak OFF writes those values back. It doesn't write a "default" that might not be what you had.
+- **It saves your original settings first.** Before a tweak changes anything, Cheetix reads and stores the exact current value of every setting involved. Turning the tweak OFF writes those values back. It doesn't write a "default" that might not be what you had.
 - **It checks its work.** After applying a change it reads the setting back. If any part fails, the whole tweak is rolled back.
-- **It shows what Windows is actually doing.** Each page reads the real state from Windows when you open it. If something outside SM7 changes a setting later, the card says so.
+- **It shows what Windows is actually doing.** Cheetix reads the real state of every tweak from Windows when it starts, and again each time you open a page. If something outside Cheetix changes a setting later, the card says so.
 - **It explains every switch.** Each tweak says what ON does and what OFF restores. An info panel covers why you'd use it, the drawbacks, the risk level, whether a restart is needed, and the exact registry values, services, tasks or power settings it touches.
 
 ## Screenshots
@@ -61,22 +61,22 @@ What makes it different is how carefully it changes things:
 - **Shortcuts**: one click to 85 Windows settings pages and tools.
 - **History**: every change you make, with one-click revert or *Revert all*.
 - **Search** (Ctrl+K) across every tweak.
-- **Five themes**: Graphite, Carbon, Slate, Midnight and Light.
+- **Five themes**: Cheetah (black and orange), Mono (black and white) and Violet (black and purple) have a slow, animated aurora background; Slate and Light are flat.
 
 
 ## Install
 
-1. Download `SM7-Setup-<version>.exe` from the [latest release](https://github.com/iiEKiLLeR/SM7/releases/latest).
+1. Download `Cheetix-Setup-<version>.exe` from the [latest release](https://github.com/iiEKiLLeR/Cheetix/releases/latest).
 2. Run it. Because the installer isn't code-signed yet, Windows SmartScreen may show *"Windows protected your PC"*. Click **More info**, then **Run anyway**.
-3. Open SM7 from the Start menu.
+3. Open Cheetix from the Start menu.
 
-To update, run the newer installer over the old one; your saved originals are kept. To uninstall, go to *Settings → Apps → Installed apps → SM7*.
+To update, run the newer installer over the old one; your saved originals are kept. To uninstall, go to *Settings → Apps → Installed apps → Cheetix*.
 
 Requires Windows 10 or 11 (64-bit).
 
 ## Building from source
 
-SM7 is written in Rust with [egui](https://github.com/emilk/egui). The settings engine is a PowerShell script embedded in the app.
+Cheetix is written in Rust with [egui](https://github.com/emilk/egui). The settings engine is a PowerShell script embedded in the app.
 
 Requirements:
 
@@ -85,9 +85,9 @@ Requirements:
 - [Inno Setup 6](https://jrsoftware.org/isinfo.php), only needed to build the installer (`winget install JRSoftware.InnoSetup`)
 
 ```powershell
-cargo build --release              # target\release\sm7.exe
+cargo build --release              # target\release\cheetix.exe
 cargo test                         # data and logic tests
-.\tools\build_installer.ps1        # installer\Output\SM7-Setup-<version>.exe
+.\tools\build_installer.ps1        # installer\Output\Cheetix-Setup-<version>.exe
 ```
 
 `cargo test -- --ignored` runs extra tests against the real system. They read every tweak's state without changing anything, and run restore tests on throw-away registry keys, services, tasks and power plans that they create and delete themselves. Run them as administrator.
@@ -106,8 +106,7 @@ cargo test                         # data and logic tests
 | `tools/gen_ops.py` | Generates `data/ops.json`; fails on duplicate or overlapping tweaks |
 | `tools/convert_legacy.py` | Moves script tweaks onto the restore engine where possible |
 | `tools/gen_labels.py` | Generates `data/labels.json` |
-| `tools/make_icon.py` | Draws the app icon |
-| `installer/sm7.iss` | The installer script |
+| `installer/cheetix.iss` | The installer script |
 
 
 ## License

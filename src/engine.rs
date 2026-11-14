@@ -369,19 +369,19 @@ ConvertTo-Json -InputObject $res -Depth 12 -Compress
 mod tests {
     use super::*;
 
-    /// Only touches HKCU\Software\TweakBoxSelfTest, a key this test creates and deletes.
+    /// Only touches HKCU\Software\CheetixSelfTest, a key this test creates and deletes.
     #[test]
     #[ignore] // runs PowerShell against the registry sandbox; run with --ignored
     fn registry_round_trip_restores_exactly() {
-        let base = r"HKCU\Software\TweakBoxSelfTest";
-        crate::sys::ps(&format!("Remove-Item 'Registry::HKEY_CURRENT_USER\\Software\\TweakBoxSelfTest' -Recurse -ErrorAction SilentlyContinue; New-Item 'Registry::HKEY_CURRENT_USER\\Software\\TweakBoxSelfTest\\Existing' -Force | Out-Null; Set-ItemProperty 'Registry::HKEY_CURRENT_USER\\Software\\TweakBoxSelfTest\\Existing' -Name Str -Value 'hello' -Type String; Set-ItemProperty 'Registry::HKEY_CURRENT_USER\\Software\\TweakBoxSelfTest\\Existing' -Name Bin -Value ([byte[]](1,2,255)) -Type Binary; Set-ItemProperty 'Registry::HKEY_CURRENT_USER\\Software\\TweakBoxSelfTest\\Existing' -Name Gone -Value 7 -Type DWord")).unwrap();
+        let base = r"HKCU\Software\CheetixSelfTest";
+        crate::sys::ps(&format!("Remove-Item 'Registry::HKEY_CURRENT_USER\\Software\\CheetixSelfTest' -Recurse -ErrorAction SilentlyContinue; New-Item 'Registry::HKEY_CURRENT_USER\\Software\\CheetixSelfTest\\Existing' -Force | Out-Null; Set-ItemProperty 'Registry::HKEY_CURRENT_USER\\Software\\CheetixSelfTest\\Existing' -Name Str -Value 'hello' -Type String; Set-ItemProperty 'Registry::HKEY_CURRENT_USER\\Software\\CheetixSelfTest\\Existing' -Name Bin -Value ([byte[]](1,2,255)) -Type Binary; Set-ItemProperty 'Registry::HKEY_CURRENT_USER\\Software\\CheetixSelfTest\\Existing' -Name Gone -Value 7 -Type DWord")).unwrap();
         let ops = json!([
             {"t":"reg","p":format!("{base}\\Existing"),"n":"Str","k":"dword","v":4294967295u64},   // type and value change
             {"t":"reg","p":format!("{base}\\Existing"),"n":"Bin","k":"binary","v":"00FF"},
             {"t":"reg","p":format!("{base}\\Existing"),"n":"Gone","k":"dword","v":null},          // value removed
             {"t":"reg","p":format!("{base}\\New\\Deep"),"n":"Q","k":"qword","v":18446744073709551615u64}, // key created
             {"t":"reg","p":format!("{base}\\Existing"),"n":"M","k":"multi","v":"a\nb"},
-            {"t":"svc","n":"TweakBoxNoSuchService","s":4,"d":3},                                   // skipped: not on this PC
+            {"t":"svc","n":"CheetixNoSuchService","s":4,"d":3},                                   // skipped: not on this PC
         ]);
         let snapshot = |ops: &Value| {
             let r = run("probe", json!({"items":[{"key":"k","ops":ops}]}), 60).unwrap();
@@ -395,24 +395,24 @@ mod tests {
         assert_eq!(snapshot(&ops), "on");
         let r2 = run("restore", json!({ "backup": r["backup"] }), 60).unwrap();
         assert_eq!(r2["ok"], true, "{r2}");
-        let check = crate::sys::ps("$k='Registry::HKEY_CURRENT_USER\\Software\\TweakBoxSelfTest'; $e=Get-ItemProperty \"$k\\Existing\"; $kind=(Get-Item \"$k\\Existing\").GetValueKind('Str'); \"$($e.Str)|$kind|$(($e.Bin) -join ',')|$($e.Gone)|$([bool]$e.PSObject.Properties['M'])|$(Test-Path \"$k\\New\")\"").unwrap();
+        let check = crate::sys::ps("$k='Registry::HKEY_CURRENT_USER\\Software\\CheetixSelfTest'; $e=Get-ItemProperty \"$k\\Existing\"; $kind=(Get-Item \"$k\\Existing\").GetValueKind('Str'); \"$($e.Str)|$kind|$(($e.Bin) -join ',')|$($e.Gone)|$([bool]$e.PSObject.Properties['M'])|$(Test-Path \"$k\\New\")\"").unwrap();
         let got = String::from_utf8_lossy(&check.stdout).trim().to_string();
         assert_eq!(got, "hello|String|1,2,255|7|False|False");
 
         // failure in the middle: the first change must be rolled back
         let bad = json!([
             {"t":"reg","p":format!("{base}\\Existing"),"n":"Str","k":"sz","v":"changed"},
-            {"t":"reg","p":"HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager","n":"TweakBoxSelfTest","k":"nonsense","v":1},
+            {"t":"reg","p":"HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager","n":"CheetixSelfTest","k":"nonsense","v":1},
         ]);
         let r3 = run("apply", json!({ "ops": bad }), 60).unwrap();
         assert_eq!(r3["ok"], false);
-        let s = crate::sys::ps("(Get-ItemProperty 'Registry::HKEY_CURRENT_USER\\Software\\TweakBoxSelfTest\\Existing').Str").unwrap();
+        let s = crate::sys::ps("(Get-ItemProperty 'Registry::HKEY_CURRENT_USER\\Software\\CheetixSelfTest\\Existing').Str").unwrap();
         assert_eq!(String::from_utf8_lossy(&s.stdout).trim(), "hello", "rollback failed: {r3}");
 
         // nothing on this PC -> not supported, nothing written
-        let r4 = run("apply", json!({ "ops": [{"t":"svc","n":"TweakBoxNoSuchService","s":4,"d":3}] }), 60).unwrap();
+        let r4 = run("apply", json!({ "ops": [{"t":"svc","n":"CheetixNoSuchService","s":4,"d":3}] }), 60).unwrap();
         assert!(r4["error"].as_str().unwrap().starts_with("NOT_SUPPORTED"), "{r4}");
-        crate::sys::ps("Remove-Item 'Registry::HKEY_CURRENT_USER\\Software\\TweakBoxSelfTest' -Recurse").unwrap();
+        crate::sys::ps("Remove-Item 'Registry::HKEY_CURRENT_USER\\Software\\CheetixSelfTest' -Recurse").unwrap();
     }
 
     /// Creates a throw-away service, scheduled task and power plan, disables/changes them through
@@ -421,30 +421,30 @@ mod tests {
     #[ignore]
     fn service_task_power_round_trip_on_sandbox_objects() {
         let setup = r#"
-sc.exe create TweakBoxSelfTest binPath= "C:\Windows\System32\cmd.exe /c exit" start= demand | Out-Null
+sc.exe create CheetixSelfTest binPath= "C:\Windows\System32\cmd.exe /c exit" start= demand | Out-Null
 $a = New-ScheduledTaskAction -Execute 'cmd.exe' -Argument '/c exit'
 $t = New-ScheduledTaskTrigger -Once -At ([datetime]'2099-01-01')
-Register-ScheduledTask -TaskPath '\TweakBoxSelfTest\' -TaskName 'Probe' -Action $a -Trigger $t -Force | Out-Null
+Register-ScheduledTask -TaskPath '\CheetixSelfTest\' -TaskName 'Probe' -Action $a -Trigger $t -Force | Out-Null
 $g = ((powercfg /duplicatescheme SCHEME_CURRENT) -join ' ') -replace '.*?([0-9a-fA-F]{8}-[0-9a-fA-F-]{27}).*','$1'
-powercfg /changename $g 'TweakBox self-test' | Out-Null
+powercfg /changename $g 'Cheetix self-test' | Out-Null
 "PLAN=$g"
 "#;
         let out = crate::sys::ps(setup).unwrap();
         let text = String::from_utf8_lossy(&out.stdout).to_string();
         let plan = text.lines().find_map(|l| l.strip_prefix("PLAN=")).unwrap().trim().to_string();
-        let cleanup = format!("sc.exe delete TweakBoxSelfTest | Out-Null; Unregister-ScheduledTask -TaskPath '\\TweakBoxSelfTest\\' -TaskName 'Probe' -Confirm:$false; powercfg /delete {plan}");
+        let cleanup = format!("sc.exe delete CheetixSelfTest | Out-Null; Unregister-ScheduledTask -TaskPath '\\CheetixSelfTest\\' -TaskName 'Probe' -Confirm:$false; powercfg /delete {plan}");
         let result = std::panic::catch_unwind(|| {
             let ops = json!([
-                {"t":"svc","n":"TweakBoxSelfTest","s":4,"d":3},
-                {"t":"task","p":"\\TweakBoxSelfTest\\","n":"Probe","d":true},
+                {"t":"svc","n":"CheetixSelfTest","s":4,"d":3},
+                {"t":"task","p":"\\CheetixSelfTest\\","n":"Probe","d":true},
             ]);
             let r = run("apply", json!({ "ops": ops }), 120).unwrap();
             assert_eq!(r["ok"], true, "{r}");
-            let st = crate::sys::ps("(Get-ItemProperty 'HKLM:\\SYSTEM\\CurrentControlSet\\Services\\TweakBoxSelfTest').Start; (Get-ScheduledTask -TaskPath '\\TweakBoxSelfTest\\' -TaskName Probe).State").unwrap();
+            let st = crate::sys::ps("(Get-ItemProperty 'HKLM:\\SYSTEM\\CurrentControlSet\\Services\\CheetixSelfTest').Start; (Get-ScheduledTask -TaskPath '\\CheetixSelfTest\\' -TaskName Probe).State").unwrap();
             assert_eq!(String::from_utf8_lossy(&st.stdout).split_whitespace().collect::<Vec<_>>(), ["4", "Disabled"]);
             let r2 = run("restore", json!({ "backup": r["backup"] }), 120).unwrap();
             assert_eq!(r2["ok"], true, "{r2}");
-            let st = crate::sys::ps("(Get-ItemProperty 'HKLM:\\SYSTEM\\CurrentControlSet\\Services\\TweakBoxSelfTest').Start; (Get-ScheduledTask -TaskPath '\\TweakBoxSelfTest\\' -TaskName Probe).State").unwrap();
+            let st = crate::sys::ps("(Get-ItemProperty 'HKLM:\\SYSTEM\\CurrentControlSet\\Services\\CheetixSelfTest').Start; (Get-ScheduledTask -TaskPath '\\CheetixSelfTest\\' -TaskName Probe).State").unwrap();
             assert_eq!(String::from_utf8_lossy(&st.stdout).split_whitespace().collect::<Vec<_>>(), ["3", "Ready"]);
 
             // power setting on the inactive self-test plan: change, verify, restore
@@ -499,15 +499,15 @@ mod single {
     #[test]
     #[ignore]
     fn single_target_round_trip() {
-        crate::sys::ps(r"New-Item 'HKCU:\Software\TweakBoxSelfTest1' -Force | Out-Null").unwrap();
-        let ops = json!([{"t":"reg","p":r"HKCU\Software\TweakBoxSelfTest1","n":"V","k":"dword","v":1}]);
+        crate::sys::ps(r"New-Item 'HKCU:\Software\CheetixSelfTest1' -Force | Out-Null").unwrap();
+        let ops = json!([{"t":"reg","p":r"HKCU\Software\CheetixSelfTest1","n":"V","k":"dword","v":1}]);
         let r = run("apply", json!({ "ops": ops }), 60).unwrap();
         eprintln!("apply: {r}");
         assert_eq!(r["ok"], true);
         let r2 = run("restore", json!({ "backup": r["backup"] }), 60).unwrap();
         eprintln!("restore: {r2}");
-        let left = crate::sys::ps(r"[bool](Get-ItemProperty 'HKCU:\Software\TweakBoxSelfTest1' -Name V -ErrorAction SilentlyContinue)").unwrap();
-        crate::sys::ps(r"Remove-Item 'HKCU:\Software\TweakBoxSelfTest1' -Recurse").unwrap();
+        let left = crate::sys::ps(r"[bool](Get-ItemProperty 'HKCU:\Software\CheetixSelfTest1' -Name V -ErrorAction SilentlyContinue)").unwrap();
+        crate::sys::ps(r"Remove-Item 'HKCU:\Software\CheetixSelfTest1' -Recurse").unwrap();
         assert_eq!(r2["ok"], true);
         assert_eq!(String::from_utf8_lossy(&left.stdout).trim(), "False");
     }

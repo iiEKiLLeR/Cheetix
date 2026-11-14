@@ -62,7 +62,7 @@ static SEQ: AtomicU64 = AtomicU64::new(0);
 
 fn temp_file(ext: &str, body: &str) -> std::io::Result<std::path::PathBuf> {
     let n = SEQ.fetch_add(1, Ordering::Relaxed);
-    let p = std::env::temp_dir().join(format!("sm7_{}_{}.{}", std::process::id(), n, ext));
+    let p = std::env::temp_dir().join(format!("cheetix_{}_{}.{}", std::process::id(), n, ext));
     // Batch files want CRLF; PowerShell accepts either.
     std::fs::write(&p, body.replace("\r\n", "\n").replace('\n', "\r\n"))?;
     Ok(p)
