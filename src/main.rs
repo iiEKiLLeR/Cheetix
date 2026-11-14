@@ -216,9 +216,6 @@ struct Saved {
     /// programs added to Arena's library by hand
     #[serde(default)]
     arena_apps: Vec<arena::App>,
-    /// where Dism++ is (asked once, from the Cleaner page)
-    #[serde(default)]
-    dismpp: Option<PathBuf>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -272,8 +269,6 @@ enum Msg {
     Games(Result<Vec<arena::Game>, String>),
     /// a program picked with "Add a program" (None: cancelled)
     Picked(Result<Option<arena::App>, String>),
-    /// Dism++ located by the user (None: cancelled)
-    DismPicked(Option<PathBuf>),
     /// a newer release is on GitHub
     Update(update::Release),
     /// the update could not be downloaded or started
@@ -920,12 +915,6 @@ impl App {
                 self.clean.insert(id, (if ok { "CLEANED" } else { "FAILED" }, Instant::now()));
             }
             Msg::Toast(a, b) => self.toast(a, b),
-            Msg::DismPicked(Some(f)) => {
-                sys::open(&format!("\"{}\"", f.display()));
-                self.saved.dismpp = Some(f);
-                self.save();
-            }
-            Msg::DismPicked(None) => {}
             Msg::Games(g) => self.games = Some(g),
             Msg::Picked(Ok(Some(a))) => {
                 self.arts.remove(&a.id);
@@ -2685,21 +2674,19 @@ impl App {
         }
 
         subhead(ui, &p, icons::OPEN, "More tools");
-        let found = self.saved.dismpp.as_ref().filter(|f| f.exists()).cloned();
-        let sub = found.as_ref().map_or("Deeper cleanup in its own window. Open asks once where Dism++ is.".to_string(), |f| f.display().to_string());
-        let (mut open, mut change) = (false, false);
-        row(ui, &p, false, Chip::Glyph(icons::OPEN, 0.0), "Dism++", &sub, 190.0, |ui| {
+        // installed with Cheetix in its hidden tools folder
+        let dismpp = std::env::current_exe().ok().and_then(|e| Some(e.parent()?.join("tools").join("Dism++").join("Dism++x64.exe"))).filter(|f| f.exists());
+        let mut open = false;
+        row(ui, &p, false, Chip::Glyph(icons::OPEN, 0.0), "Dism++", "Deeper cleanup and Windows image tools, in its own window", 110.0, |ui| {
             open = btn_ex(ui, &p, Some(icons::OPEN), "Open", Kind::Ghost).clicked();
-            if found.is_some() {
-                change = btn_ex(ui, &p, Some(icons::FOLDER), "Change", Kind::Ghost).on_hover_text("Pick a different Dism++").clicked();
-            }
         });
-        match found {
-            Some(f) if open && !change => {
-                std::thread::spawn(move || sys::open(&format!("\"{}\"", f.display())));
+        if open {
+            match dismpp {
+                Some(f) => {
+                    std::thread::spawn(move || sys::open(&format!("\"{}\"", f.display())));
+                }
+                None => self.toast("Dism++ is missing", "It comes with Cheetix. Reinstall Cheetix to get it back."),
             }
-            _ if open || change => self.work(|tx| tx.send(Msg::DismPicked(sys::pick_exe("Where is Dism++? (Dism++x64.exe)")))),
-            _ => {}
         }
     }
 

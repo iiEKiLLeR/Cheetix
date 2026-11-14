@@ -518,20 +518,6 @@ pub fn plan_activate(guid: &str) -> Result<(), String> {
 }
 
 /// Open a Windows setting or tool (`cmd /c start "" <cmd>`).
-/// Asks for a program (.exe). None: cancelled.
-pub fn pick_exe(title: &str) -> Option<std::path::PathBuf> {
-    let s = format!(
-        "Add-Type -AssemblyName System.Windows.Forms
-$owner = New-Object Windows.Forms.Form -Property @{{ TopMost = $true; ShowInTaskbar = $false }}
-$d = New-Object Windows.Forms.OpenFileDialog -Property @{{ Title = '{}'; Filter = 'Programs (*.exe)|*.exe' }}
-if ($d.ShowDialog($owner) -eq 'OK') {{ $d.FileName }}",
-        title.replace('\'', "''")
-    );
-    let o = ps_timeout(&s, 900).ok()?;
-    let f = String::from_utf8_lossy(&o.stdout).trim().to_string();
-    (!f.is_empty()).then(|| f.into())
-}
-
 pub fn open(cmd: &str) {
     let _ = cmd_raw(&format!("start \"\" {cmd}"));
 }

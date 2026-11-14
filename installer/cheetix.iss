@@ -45,6 +45,15 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: "..\target\release\{#AppExe}"; DestDir: "{app}"; Flags: ignoreversion
+; Dism++ (Chuyu Team freeware), opened from the Cleaner page
+Source: "..\vendor\Dism++\*"; DestDir: "{app}\tools\Dism++"; Flags: ignoreversion recursesubdirs createallsubdirs
+
+[Dirs]
+Name: "{app}\tools"; Attribs: hidden
+
+[UninstallDelete]
+; Dism++ writes its settings and logs next to itself
+Type: filesandordirs; Name: "{app}\tools"
 
 [InstallDelete]
 ; leftovers of the SM7 install this one replaces (same AppId)
