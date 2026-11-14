@@ -269,8 +269,6 @@ enum Msg {
     Games(Result<Vec<arena::Game>, String>),
     /// a program picked with "Add a program" (None: cancelled)
     Picked(Result<Option<arena::App>, String>),
-    /// command -> its Windows icon (PNG), for the Shortcuts page
-    ShortcutIcons(HashMap<String, String>),
     /// a newer release is on GitHub
     Update(update::Release),
     /// the update could not be downloaded or started
@@ -355,8 +353,6 @@ struct App {
     arena_open: bool,
     /// game covers (None: Steam has no picture)
     arts: HashMap<String, Option<egui::TextureHandle>>,
-    /// Windows icons of the shortcuts (None: not read yet)
-    sc_icons: Option<HashMap<String, String>>,
     clean: HashMap<String, (&'static str, Instant)>,
     reverting: bool,
     shot: Option<(PathBuf, u32, Instant, bool)>,
@@ -421,7 +417,6 @@ impl App {
             close_when_live: false,
             arena_open: false,
             arts: HashMap::new(),
-            sc_icons: None,
             procs: vec![],
             proc_total: 0,
             proc_filter: String::new(),
@@ -563,11 +558,6 @@ impl App {
             "dashboard" => self.poll_metrics(),
             "monitor" => self.refresh_procs(),
             "startup" => self.refresh_startup(),
-            "shortcuts" if self.sc_icons.is_none() => {
-                self.sc_icons = Some(HashMap::new());
-                let cmds: Vec<String> = SHORTCUTS.iter().flat_map(|g| g.1.iter().map(|s| s.1.to_string())).collect();
-                self.work(move |tx| tx.send(Msg::ShortcutIcons(sys::shell_icons(&cmds))));
-            }
             "powerplans" => self.refresh_plans(),
             "arena" => {
                 if self.games.is_none() {
@@ -925,7 +915,6 @@ impl App {
                 self.clean.insert(id, (if ok { "CLEANED" } else { "FAILED" }, Instant::now()));
             }
             Msg::Toast(a, b) => self.toast(a, b),
-            Msg::ShortcutIcons(m) => self.sc_icons = Some(m),
             Msg::Games(g) => self.games = Some(g),
             Msg::Picked(Ok(Some(a))) => {
                 self.arts.remove(&a.id);
@@ -1651,21 +1640,14 @@ fn grid<T>(ui: &mut egui::Ui, items: &[T], mut each: impl FnMut(&mut egui::Ui, &
 }
 
 /// A clickable tile: icon and one line of text.
-fn tile(ui: &mut egui::Ui, p: &Pal, size: Vec2, img: Option<egui::TextureId>, glyph: &str, text: &str) -> egui::Response {
+fn tile(ui: &mut egui::Ui, p: &Pal, size: Vec2, glyph: &str, text: &str) -> egui::Response {
     let (r, resp) = ui.allocate_exact_size(size, Sense::click());
     let h = ui.ctx().animate_bool_with_time(resp.id, resp.hovered(), 0.10);
     let down = resp.is_pointer_button_down_on();
     let painter = ui.painter().with_clip_rect(r);
     painter.rect(r, R_CARD, if down { p.border } else { mix(p.panel, p.hover, h) }, Stroke::new(1.0_f32, mix(p.border, p.border_hi, h)), StrokeKind::Inside);
-    match img {
-        Some(t) => {
-            painter.image(t, Rect::from_center_size(pos2(r.left() + 22.0, r.center().y), Vec2::splat(22.0)), UV, Color32::WHITE);
-        }
-        None => {
-            painter.text(pos2(r.left() + 22.0, r.center().y), Align2::CENTER_CENTER, glyph, icon_font(13.0), mix(p.muted, p.acc, h));
-        }
-    }
-    painter.text(pos2(r.left() + 42.0, r.center().y), Align2::LEFT_CENTER, text, FontId::proportional(12.5), mix(p.dim, p.text, h));
+    painter.text(pos2(r.left() + 20.0, r.center().y), Align2::CENTER_CENTER, glyph, icon_font(13.0), mix(p.muted, p.acc, h));
+    painter.text(pos2(r.left() + 38.0, r.center().y), Align2::LEFT_CENTER, text, FontId::proportional(12.5), mix(p.dim, p.text, h));
     resp.on_hover_cursor(egui::CursorIcon::PointingHand)
 }
 
@@ -2631,14 +2613,6 @@ impl App {
         let p = self.p;
         let total: usize = SHORTCUTS.iter().map(|c| c.1.len()).sum();
         header(ui, &p, icons::nav("shortcuts"), "Shortcuts", Some(format!("{total} shortcuts")), "Click any tile to open the matching Windows setting or tool.");
-        // each shortcut's own Windows icon, once it has been read
-        let mut ids = HashMap::new();
-        for (cmd, f) in self.sc_icons.iter().flatten() {
-            let tex = self.arts.entry(f.clone()).or_insert_with(|| arena::load_art(std::path::Path::new(f)).map(|img| ui.ctx().load_texture(f.as_str(), img, egui::TextureOptions::LINEAR)));
-            if let Some(t) = tex {
-                ids.insert(cmd.as_str(), t.id());
-            }
-        }
         for (cat, items) in SHORTCUTS {
             let glyph = icons::shortcut_group(cat);
             subhead(ui, &p, glyph, cat);
@@ -2647,7 +2621,7 @@ impl App {
             ui.horizontal_wrapped(|ui| {
                 ui.spacing_mut().item_spacing = vec2(8.0, 8.0);
                 for (name, cmd) in items.iter() {
-                    if tile(ui, &p, vec2(w, 40.0), ids.get(cmd).copied(), glyph, name).clicked() {
+                    if tile(ui, &p, vec2(w, 40.0), glyph, name).clicked() {
                         let c = cmd.to_string();
                         std::thread::spawn(move || sys::open(&c));
                     }
