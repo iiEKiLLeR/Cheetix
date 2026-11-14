@@ -4701,5 +4701,833 @@
    "restart": "none",
    "risk": "low"
   }
+ },
+ {
+  "c": "update",
+  "id": "wu_no_auto_restart",
+  "name": "NO AUTOMATIC RESTART WHILE SIGNED IN",
+  "desc": "Policy 'No auto-restart with logged on users': Windows Update installs updates but waits for you to restart instead of restarting on its own while someone is signed in.",
+  "ops": [
+   {
+    "t": "reg",
+    "p": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU",
+    "n": "NoAutoRebootWithLoggedOnUsers",
+    "k": "dword",
+    "v": 1,
+    "d": null
+   }
+  ],
+  "info": {
+   "why": "Stops updates from restarting the PC in the middle of a game, download or render.",
+   "gain": "No surprise restarts while you are signed in.",
+   "cost": "Installed updates only take effect once you restart, so you have to restart yourself now and then.",
+   "who": "Everyone who leaves the PC on.",
+   "restart": "none",
+   "risk": "low"
+  }
+ },
+ {
+  "c": "update",
+  "id": "wu_notify_download",
+  "name": "ASK BEFORE DOWNLOADING UPDATES",
+  "desc": "Policy 'Configure Automatic Updates' set to 'Notify for download and auto install': Windows Update tells you when updates are available and only downloads them when you start it from Settings.",
+  "ops": [
+   {
+    "t": "reg",
+    "p": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU",
+    "n": "NoAutoUpdate",
+    "k": "dword",
+    "v": 0,
+    "d": null
+   },
+   {
+    "t": "reg",
+    "p": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU",
+    "n": "AUOptions",
+    "k": "dword",
+    "v": 2,
+    "d": null
+   }
+  ],
+  "info": {
+   "why": "Keeps update downloads from using your connection or disk while you play.",
+   "gain": "Updates download only when you choose.",
+   "cost": "Security fixes wait until you install them: check Windows Update regularly.",
+   "who": "Users on slow or capped connections who update by hand.",
+   "restart": "none",
+   "risk": "medium"
+  }
+ },
+ {
+  "c": "update",
+  "id": "wu_no_msrt",
+  "name": "SKIP THE MALICIOUS SOFTWARE REMOVAL TOOL",
+  "desc": "Stops Windows Update from offering the monthly Malicious Software Removal Tool (MRT), which runs a background scan after it installs.",
+  "ops": [
+   {
+    "t": "reg",
+    "p": "HKLM\\SOFTWARE\\Policies\\Microsoft\\MRT",
+    "n": "DontOfferThroughWUAU",
+    "k": "dword",
+    "v": 1,
+    "d": null
+   }
+  ],
+  "info": {
+   "why": "The monthly tool runs a scan in the background after each Patch Tuesday.",
+   "gain": "No monthly MRT download and background scan.",
+   "cost": "One fewer second-opinion malware scan; Microsoft Defender or your antivirus still protects you.",
+   "who": "PCs with an antivirus that is kept up to date.",
+   "restart": "none",
+   "risk": "low"
+  }
+ },
+ {
+  "c": "update",
+  "id": "wu_no_early_updates",
+  "name": "DON'T GET UPDATES AS SOON AS THEY'RE AVAILABLE",
+  "desc": "Turns off 'Get the latest updates as soon as they're available' (Settings > Windows Update), so new features arrive with the normal monthly updates instead of early.",
+  "ops": [
+   {
+    "t": "reg",
+    "p": "HKLM\\SOFTWARE\\Microsoft\\WindowsUpdate\\UX\\Settings",
+    "n": "IsContinuousInnovationOptedIn",
+    "k": "dword",
+    "v": 0,
+    "d": null
+   }
+  ],
+  "info": {
+   "why": "Early feature updates are the ones most likely to bring new bugs.",
+   "gain": "New Windows features arrive later, once they have been tested more widely.",
+   "cost": "You get new features a little later than other people.",
+   "who": "Everyone who prefers stability over new features.",
+   "restart": "none",
+   "risk": "low"
+  },
+  "builds": [
+   22621,
+   99999
+  ]
+ },
+ {
+  "c": "update",
+  "id": "wu_restart_notice",
+  "name": "TELL ME WHEN A RESTART IS NEEDED",
+  "desc": "Turns on 'Notify me when a restart is required to finish updating' (Settings > Windows Update > Advanced options).",
+  "ops": [
+   {
+    "t": "reg",
+    "p": "HKLM\\SOFTWARE\\Microsoft\\WindowsUpdate\\UX\\Settings",
+    "n": "RestartNotificationsAllowed2",
+    "k": "dword",
+    "v": 1,
+    "d": null
+   }
+  ],
+  "info": {
+   "why": "Pairs with the no-automatic-restart setting so you know when updates are waiting.",
+   "gain": "A notification when an update needs a restart.",
+   "cost": "One more notification after some updates.",
+   "who": "Everyone who restarts the PC themselves.",
+   "restart": "none",
+   "risk": "low"
+  }
+ },
+ {
+  "c": "notifications",
+  "id": "notif_lock_screen_off",
+  "name": "NO NOTIFICATIONS ON THE LOCK SCREEN",
+  "desc": "Turns off 'Show notifications on the lock screen' and 'Show reminders and incoming VoIP calls on the lock screen' (Settings > System > Notifications).",
+  "ops": [
+   {
+    "t": "reg",
+    "p": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\PushNotifications",
+    "n": "LockScreenToastEnabled",
+    "k": "dword",
+    "v": 0,
+    "d": null
+   },
+   {
+    "t": "reg",
+    "p": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Notifications\\Settings",
+    "n": "NOC_GLOBAL_SETTING_ALLOW_CRITICAL_TOASTS_ABOVE_LOCK",
+    "k": "dword",
+    "v": 0,
+    "d": null
+   }
+  ],
+  "info": {
+   "why": "Message previews on the lock screen can be read by anyone near the PC.",
+   "gain": "Nothing shows on the lock screen until you sign in.",
+   "cost": "You don't see reminders or calls until you unlock the PC.",
+   "who": "Everyone, especially shared or office PCs.",
+   "restart": "none",
+   "risk": "low"
+  }
+ },
+ {
+  "c": "notifications",
+  "id": "notif_sound_off",
+  "name": "SILENT NOTIFICATIONS",
+  "desc": "Turns off 'Allow notifications to play sounds' (Settings > System > Notifications). Banners still appear, without the chime.",
+  "ops": [
+   {
+    "t": "reg",
+    "p": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Notifications\\Settings",
+    "n": "NOC_GLOBAL_SETTING_ALLOW_NOTIFICATION_SOUND",
+    "k": "dword",
+    "v": 0,
+    "d": null
+   }
+  ],
+  "info": {
+   "why": "Notification chimes cut into game and voice-chat audio.",
+   "gain": "Notifications stay silent.",
+   "cost": "You may miss a notification if you're not looking at the screen.",
+   "who": "Gamers and anyone using headphones.",
+   "restart": "none",
+   "risk": "low"
+  }
+ },
+ {
+  "c": "notifications",
+  "id": "notif_badges_off",
+  "name": "NO BADGES ON TASKBAR APPS",
+  "desc": "Turns off 'Show badges on taskbar apps' (the unread counters on taskbar icons).",
+  "ops": [
+   {
+    "t": "reg",
+    "p": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+    "n": "TaskbarBadges",
+    "k": "dword",
+    "v": 0,
+    "d": null
+   }
+  ],
+  "info": {
+   "why": "Unread counters pull your attention to the taskbar.",
+   "gain": "A calmer taskbar.",
+   "cost": "You don't see unread counts for mail and chat apps.",
+   "who": "Users who check apps themselves.",
+   "restart": "explorer",
+   "risk": "low"
+  },
+  "builds": [
+   22000,
+   99999
+  ]
+ },
+ {
+  "c": "notifications",
+  "id": "notif_flashing_off",
+  "name": "NO FLASHING TASKBAR APPS",
+  "desc": "Turns off 'Show flashing on taskbar apps', so apps that want your attention no longer flash orange in the taskbar.",
+  "ops": [
+   {
+    "t": "reg",
+    "p": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+    "n": "TaskbarFlashing",
+    "k": "dword",
+    "v": 0,
+    "d": null
+   }
+  ],
+  "info": {
+   "why": "Flashing taskbar buttons are distracting, especially across a second monitor while you play.",
+   "gain": "No flashing taskbar buttons.",
+   "cost": "An app waiting for you (a finished download, a chat message) is easier to miss.",
+   "who": "Multi-monitor users and gamers.",
+   "restart": "explorer",
+   "risk": "low"
+  },
+  "builds": [
+   22621,
+   99999
+  ]
+ },
+ {
+  "c": "sound",
+  "id": "sound_ducking_off",
+  "name": "DON'T LOWER OTHER SOUNDS DURING CALLS",
+  "desc": "Sets 'When Windows detects communications activity' (Sound Control Panel > Communications) to 'Do nothing', so game and music volume no longer drops by 80% when a voice app opens the microphone.",
+  "ops": [
+   {
+    "t": "reg",
+    "p": "HKCU\\Software\\Microsoft\\Multimedia\\Audio",
+    "n": "UserDuckingPreference",
+    "k": "dword",
+    "v": 3,
+    "d": null
+   }
+  ],
+  "info": {
+   "why": "Windows treats Discord, Teams and in-game voice as 'calls' and turns everything else down.",
+   "gain": "Game audio stays at full volume while you talk.",
+   "cost": "Other sounds stay loud during real calls; turn them down yourself.",
+   "who": "Gamers who use voice chat.",
+   "restart": "none",
+   "risk": "low"
+  }
+ },
+ {
+  "c": "sound",
+  "id": "sound_startup_off",
+  "name": "NO WINDOWS STARTUP SOUND",
+  "desc": "Turns off 'Play Windows Startup sound'.",
+  "ops": [
+   {
+    "t": "reg",
+    "p": "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Authentication\\LogonUI\\BootAnimation",
+    "n": "DisableStartupSound",
+    "k": "dword",
+    "v": 1,
+    "d": null
+   },
+   {
+    "t": "reg",
+    "p": "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\EditionOverrides",
+    "n": "UserSetting_DisableStartupSound",
+    "k": "dword",
+    "v": 1,
+    "d": null
+   }
+  ],
+  "info": {
+   "why": "A quieter start, for example at night.",
+   "gain": "No startup chime.",
+   "cost": "None.",
+   "who": "Everyone.",
+   "restart": "none",
+   "risk": "low"
+  }
+ },
+ {
+  "c": "sound",
+  "id": "sound_bt_absolute_volume_off",
+  "name": "SEPARATE BLUETOOTH HEADPHONE VOLUME",
+  "desc": "Turns off Bluetooth 'absolute volume', so Windows' volume and your headphones' own volume are separate again.",
+  "ops": [
+   {
+    "t": "reg",
+    "p": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Bluetooth\\Audio\\AVRCP\\CT",
+    "n": "DisableAbsoluteVolume",
+    "k": "dword",
+    "v": 1,
+    "d": null
+   }
+  ],
+  "info": {
+   "why": "With absolute volume, some headsets are far too loud at low settings or jump in volume.",
+   "gain": "Finer volume control on headsets that misbehave.",
+   "cost": "You may need to set the volume on both the PC and the headphones.",
+   "who": "Bluetooth headphone users with volume problems.",
+   "restart": "reboot",
+   "risk": "low"
+  }
+ },
+ {
+  "c": "uac",
+  "id": "uac_no_dim",
+  "name": "UAC PROMPTS WITHOUT DIMMING THE SCREEN",
+  "desc": "Shows User Account Control prompts on your normal desktop instead of the dimmed secure desktop (the 'Notify me only when apps try to make changes (do not dim my desktop)' level).",
+  "ops": [
+   {
+    "t": "reg",
+    "p": "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+    "n": "PromptOnSecureDesktop",
+    "k": "dword",
+    "v": 0,
+    "d": 1
+   }
+  ],
+  "info": {
+   "why": "Switching to the secure desktop flickers the screen and minimises full-screen games.",
+   "gain": "Prompts appear instantly, without the screen going dark.",
+   "cost": "Other programs running as you could interact with the prompt; the secure desktop prevents that.",
+   "who": "Users who want fewer interruptions and accept a little less protection.",
+   "restart": "none",
+   "risk": "medium"
+  }
+ },
+ {
+  "c": "uac",
+  "id": "uac_hide_admin_list",
+  "name": "DON'T LIST ADMINISTRATOR ACCOUNTS IN UAC PROMPTS",
+  "desc": "Policy 'Enumerate administrator accounts on elevation': off. When a standard user is asked for an administrator password, the prompt no longer lists the administrator accounts; the account name must be typed.",
+  "ops": [
+   {
+    "t": "reg",
+    "p": "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\CredUI",
+    "n": "EnumerateAdministrators",
+    "k": "dword",
+    "v": 0,
+    "d": null
+   }
+  ],
+  "info": {
+   "why": "Listing admin account names helps someone guessing passwords.",
+   "gain": "Admin account names are not shown in prompts.",
+   "cost": "Standard users have to type the admin account name as well as the password.",
+   "who": "PCs with standard (non-admin) users.",
+   "restart": "none",
+   "risk": "low"
+  }
+ },
+ {
+  "c": "uac",
+  "id": "uac_builtin_admin_approval",
+  "name": "UAC FOR THE BUILT-IN ADMINISTRATOR",
+  "desc": "Policy 'Admin Approval Mode for the Built-in Administrator account': on. The hidden built-in 'Administrator' account gets UAC prompts like every other admin account instead of running everything with full rights.",
+  "ops": [
+   {
+    "t": "reg",
+    "p": "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+    "n": "FilterAdministratorToken",
+    "k": "dword",
+    "v": 1,
+    "d": null
+   }
+  ],
+  "info": {
+   "why": "Anything run by the built-in Administrator otherwise gets full rights silently.",
+   "gain": "The built-in Administrator is protected by UAC too.",
+   "cost": "Only matters if you use the built-in Administrator account; it then sees UAC prompts.",
+   "who": "PCs where the built-in Administrator account is enabled.",
+   "restart": "reboot",
+   "risk": "low"
+  }
+ },
+ {
+  "c": "privacy",
+  "id": "language_list_off",
+  "name": "DON'T SHARE YOUR LANGUAGE LIST WITH WEBSITES",
+  "desc": "Turns off 'Let websites show me locally relevant content by accessing my language list'.",
+  "ops": [
+   {
+    "t": "reg",
+    "p": "HKCU\\Control Panel\\International\\User Profile",
+    "n": "HttpAcceptLanguageOptOut",
+    "k": "dword",
+    "v": 1,
+    "d": null
+   }
+  ],
+  "info": {
+   "why": "Your language list adds to the fingerprint websites can build of you.",
+   "gain": "Websites can't read your Windows language list.",
+   "cost": "Some sites may not pick your language automatically.",
+   "who": "Everyone.",
+   "restart": "none",
+   "risk": "low"
+  }
+ },
+ {
+  "c": "privacy",
+  "id": "cloud_clipboard_off",
+  "name": "DISABLE CLIPBOARD SYNC ACROSS DEVICES",
+  "desc": "Policy 'Allow Clipboard synchronization across devices': off. What you copy is no longer uploaded to sync with your other devices.",
+  "ops": [
+   {
+    "t": "reg",
+    "p": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\System",
+    "n": "AllowCrossDeviceClipboard",
+    "k": "dword",
+    "v": 0,
+    "d": null
+   }
+  ],
+  "info": {
+   "why": "Copied passwords and text are otherwise uploaded to your Microsoft account.",
+   "gain": "Nothing you copy leaves the PC.",
+   "cost": "You can't paste on another device what you copied here.",
+   "who": "Everyone who doesn't paste across devices.",
+   "restart": "signout",
+   "risk": "low"
+  }
+ },
+ {
+  "c": "privacy",
+  "id": "find_my_device_off",
+  "name": "DISABLE FIND MY DEVICE",
+  "desc": "Policy 'Turn On/Off Find My Device': off. The PC no longer reports its location to your Microsoft account for Find my device.",
+  "ops": [
+   {
+    "t": "reg",
+    "p": "HKLM\\SOFTWARE\\Policies\\Microsoft\\FindMyDevice",
+    "n": "AllowFindMyDevice",
+    "k": "dword",
+    "v": 0,
+    "d": null
+   }
+  ],
+  "info": {
+   "why": "Find my device periodically sends the PC's location to Microsoft.",
+   "gain": "No location reports to your account.",
+   "cost": "You can't locate or lock the PC from account.microsoft.com if it's lost or stolen.",
+   "who": "Desktop PCs that never leave the house.",
+   "restart": "none",
+   "risk": "medium"
+  }
+ },
+ {
+  "c": "privacy",
+  "id": "settings_sync_off",
+  "name": "DISABLE SETTINGS SYNC",
+  "desc": "Policy 'Do not sync': Windows stops syncing your settings (theme, passwords, language, accessibility) to your Microsoft account.",
+  "ops": [
+   {
+    "t": "reg",
+    "p": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\SettingSync",
+    "n": "DisableSettingSync",
+    "k": "dword",
+    "v": 2,
+    "d": null
+   },
+   {
+    "t": "reg",
+    "p": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\SettingSync",
+    "n": "DisableSettingSyncUserOverride",
+    "k": "dword",
+    "v": 1,
+    "d": null
+   }
+  ],
+  "info": {
+   "why": "Settings are otherwise uploaded and copied to every PC you sign in to.",
+   "gain": "Settings stay on this PC.",
+   "cost": "A new PC you sign in to won't pick up this PC's settings.",
+   "who": "Users with one PC, or who set each PC up themselves.",
+   "restart": "signout",
+   "risk": "low"
+  }
+ },
+ {
+  "c": "power",
+  "id": "wifi_max_performance_ac",
+  "name": "WI-FI ADAPTER AT MAXIMUM PERFORMANCE (PLUGGED IN)",
+  "desc": "Sets the power plan's 'Wireless Adapter Settings > Power Saving Mode' to Maximum Performance when plugged in.",
+  "ops": [
+   {
+    "t": "pwr",
+    "sub": "19cbb8fa-5279-450e-9fac-8a3d5fedd0c1",
+    "set": "12bbebe6-58d6-4636-95bb-3217ef867c1a",
+    "ac": 0,
+    "dc": null,
+    "d": null
+   }
+  ],
+  "info": {
+   "why": "Wi-Fi power saving can add latency spikes in online games.",
+   "gain": "Steadier Wi-Fi latency when plugged in.",
+   "cost": "Slightly more power use when plugged in; battery behaviour is unchanged.",
+   "who": "Laptops and PCs on Wi-Fi.",
+   "restart": "none",
+   "risk": "low"
+  }
+ },
+ {
+  "c": "power",
+  "id": "video_quality_ac",
+  "name": "VIDEO PLAYBACK FAVOURS QUALITY (PLUGGED IN)",
+  "desc": "Sets the power plan's 'Multimedia settings > Video playback quality bias' to performance when plugged in.",
+  "ops": [
+   {
+    "t": "pwr",
+    "sub": "9596fb26-9850-41fd-ac3e-f7c3c00afd4b",
+    "set": "10778347-1370-4ee0-8bbd-33bdacaade49",
+    "ac": 1,
+    "dc": null,
+    "d": null
+   }
+  ],
+  "info": {
+   "why": "Windows may lower video quality to save power.",
+   "gain": "Full-quality video playback when plugged in.",
+   "cost": "Slightly more power use during video when plugged in.",
+   "who": "Everyone.",
+   "restart": "none",
+   "risk": "low"
+  }
+ },
+ {
+  "c": "gaming",
+  "id": "mmcss_games_high",
+  "name": "HIGHER CPU AND GPU PRIORITY FOR GAMES (MMCSS)",
+  "desc": "Sets the multimedia scheduler's 'Games' task to High scheduling category, priority 6 and GPU priority 8, which games that register with MMCSS get.",
+  "ops": [
+   {
+    "t": "reg",
+    "p": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games",
+    "n": "GPU Priority",
+    "k": "dword",
+    "v": 8,
+    "d": null
+   },
+   {
+    "t": "reg",
+    "p": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games",
+    "n": "Priority",
+    "k": "dword",
+    "v": 6,
+    "d": null
+   },
+   {
+    "t": "reg",
+    "p": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games",
+    "n": "Scheduling Category",
+    "k": "sz",
+    "v": "High",
+    "d": null
+   },
+   {
+    "t": "reg",
+    "p": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games",
+    "n": "SFIO Priority",
+    "k": "sz",
+    "v": "High",
+    "d": null
+   }
+  ],
+  "info": {
+   "why": "Gives game threads registered with MMCSS an edge over background work.",
+   "gain": "Can reduce stutter while things run in the background.",
+   "cost": "Only affects games that use MMCSS; the effect is small on fast PCs.",
+   "who": "Gamers.",
+   "restart": "reboot",
+   "risk": "low"
+  }
+ },
+ {
+  "c": "gaming",
+  "id": "xbox_button_gamebar_off",
+  "name": "XBOX BUTTON DOESN'T OPEN GAME BAR",
+  "desc": "Turns off 'Open Game Bar using this button on a controller', so pressing the Xbox button doesn't pop up Game Bar in the middle of a game.",
+  "ops": [
+   {
+    "t": "reg",
+    "p": "HKCU\\Software\\Microsoft\\GameBar",
+    "n": "UseNexusForGameBarEnabled",
+    "k": "dword",
+    "v": 0,
+    "d": null
+   }
+  ],
+  "info": {
+   "why": "The Xbox button is easy to press by accident and pauses the game behind an overlay.",
+   "gain": "No accidental Game Bar pop-ups.",
+   "cost": "You open Game Bar with Win+G instead.",
+   "who": "Controller players.",
+   "restart": "none",
+   "risk": "low"
+  }
+ },
+ {
+  "c": "taskbar",
+  "id": "taskbar_copilot_button_off",
+  "name": "HIDE THE COPILOT BUTTON",
+  "desc": "Turns off 'Copilot' under Settings > Personalisation > Taskbar > Taskbar items.",
+  "ops": [
+   {
+    "t": "reg",
+    "p": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+    "n": "ShowCopilotButton",
+    "k": "dword",
+    "v": 0,
+    "d": null
+   }
+  ],
+  "info": {
+   "why": "Frees taskbar space if you don't use Copilot.",
+   "gain": "One fewer taskbar button.",
+   "cost": "You open Copilot from Start instead.",
+   "who": "Everyone who doesn't use Copilot.",
+   "restart": "explorer",
+   "risk": "low"
+  },
+  "builds": [
+   22621,
+   99999
+  ]
+ },
+ {
+  "c": "taskbar",
+  "id": "taskbar_no_combine_other",
+  "name": "NEVER COMBINE BUTTONS ON OTHER TASKBARS",
+  "desc": "Sets 'Combine taskbar buttons and hide labels on other taskbars' to Never, for the taskbars on your second and further monitors.",
+  "ops": [
+   {
+    "t": "reg",
+    "p": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+    "n": "MMTaskbarGlomLevel",
+    "k": "dword",
+    "v": 2,
+    "d": null
+   }
+  ],
+  "info": {
+   "why": "Shows each window as its own labelled button on extra monitors.",
+   "gain": "Easier switching between windows of the same app.",
+   "cost": "Buttons take more room on those taskbars.",
+   "who": "Multi-monitor users.",
+   "restart": "explorer",
+   "risk": "low"
+  }
+ },
+ {
+  "c": "start",
+  "id": "start_more_pins",
+  "name": "MORE PINS IN START",
+  "desc": "Sets the Start layout to 'More pins' (Settings > Personalisation > Start), so a row more of pinned apps shows and the Recommended section shrinks.",
+  "ops": [
+   {
+    "t": "reg",
+    "p": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+    "n": "Start_Layout",
+    "k": "dword",
+    "v": 1,
+    "d": null
+   }
+  ],
+  "info": {
+   "why": "Fits more of your own apps on the first page of Start.",
+   "gain": "More pinned apps without scrolling.",
+   "cost": "Fewer recommended files are shown.",
+   "who": "Everyone who pins apps.",
+   "restart": "explorer",
+   "risk": "low"
+  },
+  "builds": [
+   22621,
+   99999
+  ]
+ },
+ {
+  "c": "start",
+  "id": "start_hide_recent_apps",
+  "name": "HIDE RECENTLY ADDED APPS IN START",
+  "desc": "Policy 'Remove Recently added list from Start Menu': newly installed apps are no longer listed at the top of Start.",
+  "ops": [
+   {
+    "t": "reg",
+    "p": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\Explorer",
+    "n": "HideRecentlyAddedApps",
+    "k": "dword",
+    "v": 1,
+    "d": null
+   }
+  ],
+  "info": {
+   "why": "Keeps the top of Start for your own apps.",
+   "gain": "A tidier Start menu.",
+   "cost": "New apps aren't highlighted; find them in All apps.",
+   "who": "Everyone.",
+   "restart": "explorer",
+   "risk": "low"
+  }
+ },
+ {
+  "c": "explorer",
+  "id": "explorer_full_path",
+  "name": "SHOW THE FULL PATH IN THE TITLE BAR",
+  "desc": "Turns on 'Display the full path in the title bar' (Folder Options > View).",
+  "ops": [
+   {
+    "t": "reg",
+    "p": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\CabinetState",
+    "n": "FullPath",
+    "k": "dword",
+    "v": 1,
+    "d": null
+   }
+  ],
+  "info": {
+   "why": "Shows exactly which folder a window is in.",
+   "gain": "Full folder path in the title and on taskbar previews.",
+   "cost": "None.",
+   "who": "Everyone.",
+   "restart": "explorer",
+   "risk": "low"
+  }
+ },
+ {
+  "c": "explorer",
+  "id": "explorer_private_home",
+  "name": "DON'T SHOW RECENT FILES AND FOLDERS IN HOME",
+  "desc": "Turns off 'Show recently used files' and 'Show frequently used folders' (Folder Options > General > Privacy).",
+  "ops": [
+   {
+    "t": "reg",
+    "p": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer",
+    "n": "ShowRecent",
+    "k": "dword",
+    "v": 0,
+    "d": null
+   },
+   {
+    "t": "reg",
+    "p": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer",
+    "n": "ShowFrequent",
+    "k": "dword",
+    "v": 0,
+    "d": null
+   }
+  ],
+  "info": {
+   "why": "Anyone looking at your screen sees what you opened recently.",
+   "gain": "Home and Quick access only show what you pinned.",
+   "cost": "No quick way back to recent files from Explorer.",
+   "who": "Shared PCs, streamers.",
+   "restart": "explorer",
+   "risk": "low"
+  }
+ },
+ {
+  "c": "explorer",
+  "id": "explorer_sync_ads_off",
+  "name": "NO ADS IN FILE EXPLORER",
+  "desc": "Turns off 'Show sync provider notifications' (Folder Options > View), the banners that advertise OneDrive and Microsoft 365 inside File Explorer.",
+  "ops": [
+   {
+    "t": "reg",
+    "p": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+    "n": "ShowSyncProviderNotifications",
+    "k": "dword",
+    "v": 0,
+    "d": null
+   }
+  ],
+  "info": {
+   "why": "Removes promotional banners from File Explorer.",
+   "gain": "No OneDrive or Microsoft 365 adverts in Explorer.",
+   "cost": "None.",
+   "who": "Everyone.",
+   "restart": "explorer",
+   "risk": "low"
+  }
+ },
+ {
+  "c": "explorer",
+  "id": "explorer_no_shortcut_suffix",
+  "name": "NO '- SHORTCUT' ON NEW SHORTCUTS",
+  "desc": "Stops Windows adding ' - Shortcut' to the name of every shortcut you create.",
+  "ops": [
+   {
+    "t": "reg",
+    "p": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\NamingTemplates",
+    "n": "ShortcutNameTemplate",
+    "k": "sz",
+    "v": "%s.lnk",
+    "d": null
+   }
+  ],
+  "info": {
+   "why": "Saves renaming every shortcut you make.",
+   "gain": "Shortcuts keep the original name.",
+   "cost": "None.",
+   "who": "Everyone.",
+   "restart": "explorer",
+   "risk": "low"
+  }
  }
 ]

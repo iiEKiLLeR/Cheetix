@@ -6,6 +6,7 @@
 //! shortcuts, history with undo, and switchable themes. See MECHANICS.md.
 
 mod arena;
+mod config;
 mod engine;
 mod icons;
 mod sys;
@@ -99,6 +100,14 @@ const PAGES: &[(&str, &str, &str)] = &[
     ("dns", "DNS & Name Resolution", "DNS"),
     ("privacy", "Privacy & Telemetry", "PRIVACY"),
     ("security", "Security", "SECURITY"),
+    ("uac", "User Account Control", "UAC"),
+    ("update", "Windows Update", "UPDATE"),
+    ("notifications", "Notifications", "NOTIFY"),
+    ("sound", "Sound", "SOUND"),
+    ("theme", "Theme & Desktop", "THEME"),
+    ("taskbar", "Taskbar", "TASKBAR"),
+    ("start", "Start Menu", "START"),
+    ("explorer", "File Explorer", "EXPLORER"),
     ("services", "Windows Services", "SERVICE"),
     ("tasks", "Scheduled Tasks", "TASK"),
     ("background", "Startup & Background Apps", "BACKGROUND"),
@@ -108,6 +117,51 @@ const PAGES: &[(&str, &str, &str)] = &[
     ("brave", "Brave Browser", "BRAVE"),
     ("contextmenu", "Context Menu", "MENU"),
 ];
+
+/// Tweaks shown on a newer page than their category. Their category stays the same, because
+/// History, backups and configuration files are keyed by "category|id".
+const MOVED: &[(&str, &str, &str)] = &[
+    ("debloat", "exclude_wu_drivers", "update"),
+    ("debloat", "toast_notifications_off", "notifications"),
+    ("security", "uac_always_notify", "uac"),
+    // Customize
+    ("windows", "enable_dark_theme", "theme"),
+    ("windows", "disable_transparency", "theme"),
+    ("personalize", "tb_tint", "theme"),
+    ("personalize", "dwm_tint", "theme"),
+    ("personalize", "desk_thispc", "theme"),
+    ("personalize", "desk_recyclebin", "theme"),
+    ("personalize", "desk_userfiles", "theme"),
+    ("windows", "left_align_taskbar_win11", "taskbar"),
+    ("windows", "set_taskbar_left", "taskbar"),
+    ("windows", "hide_taskbar_search", "taskbar"),
+    ("windows", "hide_taskbar_taskview", "taskbar"),
+    ("windows", "remove_chat", "taskbar"),
+    ("windows", "enable_end_task", "taskbar"),
+    ("windows", "enable_battery_pct", "taskbar"),
+    ("personalize", "taskbar_no_combine", "taskbar"),
+    ("personalize", "clock_seconds", "taskbar"),
+    ("personalize", "tray_all_icons", "taskbar"),
+    ("windows", "disable_start_recommended", "start"),
+    ("windows", "enable_start_layout", "start"),
+    ("windows", "disable_start_bing", "start"),
+    ("windows", "disable_search_highlights", "start"),
+    ("personalize", "start_recent", "start"),
+    ("personalize", "start_frequent", "start"),
+    ("windows", "explorer_open_this_pc", "explorer"),
+    ("windows", "disable_extensions", "explorer"),
+    ("windows", "disable_hidden", "explorer"),
+    ("windows", "enable_compact_mode", "explorer"),
+    ("windows", "disable_folder_discovery", "explorer"),
+    ("windows", "disable_home_gallery", "explorer"),
+    ("windows", "disable_tabs_explorer", "explorer"),
+    ("windows", "enable_classic_menu", "explorer"),
+];
+
+/// The page a tweak is shown on
+fn page_of(t: &Tweak) -> &str {
+    MOVED.iter().find(|m| m.0 == t.c && m.1 == t.id).map_or(t.c.as_str(), |m| m.2)
+}
 
 fn page_title(view: &str) -> &'static str {
     PAGES.iter().find(|p| p.0 == view).map(|p| p.1).unwrap_or("")
@@ -121,16 +175,62 @@ const NAV: &[NavGroup] = &[
         &[("gaming", "Gaming"), ("cpu", "CPU & Processor"), ("gpu", "GPU & Graphics"), ("memory", "RAM & Memory"), ("storage", "Storage & SSD"), ("power", "Power"), ("usb", "USB & Peripherals"), ("responsiveness", "Responsiveness")],
     ),
     ("NETWORK", &[("network", "Network"), ("dns", "DNS")]),
-    ("PRIVACY & SECURITY", &[("privacy", "Privacy & Telemetry"), ("security", "Security")]),
+    ("PRIVACY & SECURITY", &[("privacy", "Privacy & Telemetry"), ("security", "Security"), ("uac", "User Account Control")]),
     (
         "SYSTEM",
-        &[("windows", "Windows & Explorer"), ("services", "Services"), ("tasks", "Scheduled Tasks"), ("background", "Startup & Background"), ("features", "Optional Features"), ("contextmenu", "Context Menu")],
+        &[("windows", "Windows & Effects"), ("update", "Windows Update"), ("notifications", "Notifications"), ("sound", "Sound"), ("services", "Services"), ("tasks", "Scheduled Tasks"), ("background", "Startup & Background"), ("features", "Optional Features"), ("contextmenu", "Context Menu")],
     ),
+    ("CUSTOMIZE", &[("theme", "Theme & Desktop"), ("taskbar", "Taskbar"), ("start", "Start Menu"), ("explorer", "File Explorer")]),
     // "apps" is not a category of its own: it gathers the app-specific tweaks of every category
     ("DEBLOAT", &[("debloat", "Windows Debloat"), ("apps", "Windows Apps"), ("edge", "Microsoft Edge"), ("brave", "Brave Browser")]),
     ("TOOLS", &[("cleaner", "Cleaner"), ("powerplans", "Power Plans"), ("startup", "Startup Manager")]),
     ("SAFETY", &[("history", "History"), ("settings", "Settings")]),
 ];
+
+/// NAV groups open to everyone; every other group is a page of individual tweaks and sits in the
+/// Advanced Tweaks section, behind its warning
+const OPEN_GROUPS: [&str; 3] = ["OVERVIEW", "TOOLS", "SAFETY"];
+
+/// A configuration file under review: which page categories (and Arena tuning) to import.
+struct Import {
+    cfg: config::Config,
+    file: String,
+    cats: std::collections::BTreeMap<String, bool>,
+    arena: bool,
+}
+
+/// The beginner presets: (name, who it's for, what it does). Their tweaks are in data/presets.json.
+const PRESETS: [(&str, &str, &str); 3] = [
+    (
+        "Minor Tweaks",
+        "Beginners and everyday PCs",
+        "Turns off telemetry, advertising, tips and suggested-app installs. Lightweight changes: nothing you normally use stops working.",
+    ),
+    (
+        "Moderate Tweaks",
+        "More noticeable optimization",
+        "Everything in Minor, plus performance and power settings for when the PC is plugged in, Edge clean-up, and rarely used services such as Fax and error reporting switched off.",
+    ),
+    (
+        "Heavy Tweaks",
+        "Aggressive optimization",
+        "Everything in Moderate, plus deeper service and feature changes: location, Game Bar captures, SysMain, network extras and some optional Windows features. Some Windows features stop working.",
+    ),
+];
+
+/// Cheetix's documentation folder on GitHub (the Read More pages)
+const DOCS: &str = "https://github.com/iiEKiLLeR/Cheetix/blob/main/docs";
+
+/// The tweaks of preset `level` (0 Minor, 1 Moderate, 2 Heavy) as "category|id": each level
+/// includes the ones before it.
+fn preset_keys(level: usize) -> Vec<String> {
+    let v: Value = serde_json::from_str(include_str!("../data/presets.json")).expect("preset data");
+    ["minor", "moderate", "heavy"][..=level.min(2)].iter().flat_map(|k| v[*k].as_array().cloned().unwrap_or_default()).filter_map(|s| s.as_str().map(String::from)).collect()
+}
+
+fn advanced_page(view: &str) -> bool {
+    NAV.iter().filter(|g| !OPEN_GROUPS.contains(&g.0)).any(|g| g.1.iter().any(|i| i.0 == view))
+}
 
 /// Put before every cleaner: `Purge` deletes, and if anything refuses it takes ownership of
 /// what was refused (default permissions plus Administrators full control) and deletes again.
@@ -216,6 +316,9 @@ struct Saved {
     /// programs added to Arena's library by hand
     #[serde(default)]
     arena_apps: Vec<arena::App>,
+    /// the Advanced Tweaks warning was confirmed ("I Understand, Continue")
+    #[serde(default)]
+    advanced_ok: bool,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -269,6 +372,8 @@ enum Msg {
     Games(Result<Vec<arena::Game>, String>),
     /// a program picked with "Add a program" (None: cancelled)
     Picked(Result<Option<arena::App>, String>),
+    /// a configuration file was picked and read (None: cancelled)
+    Imported(Result<Option<(PathBuf, config::Config)>, String>),
     /// a newer release is on GitHub
     Update(update::Release),
     /// the update could not be downloaded or started
@@ -335,6 +440,16 @@ struct App {
     update: Option<(update::Release, Option<Option<String>>)>,
     /// the notification panel under the bell is open; the bell's rect (clicks there toggle it)
     notif_open: bool,
+    /// the Advanced Tweaks warning is up for this page (and tweak, when it came from search)
+    adv_ask: Option<(&'static str, Option<String>)>,
+    /// the preset menu shown at every start; `preset_pick` is the preset under review
+    preset_menu: bool,
+    preset_pick: Option<usize>,
+    /// a confirmed preset being applied: its tweaks still to start, and which preset it is
+    preset_queue: Vec<String>,
+    batch: Option<(String, Vec<String>)>,
+    /// a configuration file being reviewed before import
+    import: Option<Import>,
     bell: Rect,
     procs: Vec<sys::Proc>,
     proc_total: usize,
@@ -409,6 +524,12 @@ impl App {
             toast: None,
             update: None,
             notif_open: false,
+            adv_ask: None,
+            preset_menu: shot.is_none(),
+            preset_pick: None,
+            preset_queue: vec![],
+            batch: None,
+            import: None,
             bell: Rect::NOTHING,
             games: None,
             session: arena::status(),
@@ -543,6 +664,11 @@ impl App {
     }
 
     fn go(&mut self, v: &'static str) {
+        // every way into a tweak page (sidebar, dashboard tiles, search, --view) passes here
+        if advanced_page(v) && !self.saved.advanced_ok {
+            self.adv_ask = Some((v, None));
+            return;
+        }
         if self.view != v {
             self.view = v;
             self.view_at = Instant::now();
@@ -921,6 +1047,13 @@ impl App {
             }
             Msg::Picked(Ok(None)) => {}
             Msg::Picked(Err(e)) => self.toast("Couldn't add the program", e),
+            Msg::Imported(Ok(Some((path, cfg)))) => {
+                let cats = cfg.tweaks.keys().map(|c| (c.clone(), true)).collect();
+                let file = path.file_name().map(|f| f.to_string_lossy().to_string()).unwrap_or_default();
+                self.import = Some(Import { arena: !cfg.arena.is_empty(), cfg, file, cats });
+            }
+            Msg::Imported(Ok(None)) => {}
+            Msg::Imported(Err(e)) => self.toast("Couldn't import", e),
             Msg::Update(r) => {
                 self.update = Some((r, None));
                 self.notif_open = true;
@@ -949,7 +1082,7 @@ impl App {
         let tokens: Vec<&str> = q.split_whitespace().collect();
         let mut hits = vec![];
         for (view, _, tag) in PAGES {
-            for t in self.tweaks.iter().filter(|t| t.c == *view) {
+            for t in self.tweaks.iter().filter(|t| page_of(t) == *view) {
                 let hay = format!("{} {} {}", t.name, t.id, t.desc).to_lowercase();
                 if !tokens.iter().all(|k| hay.contains(k)) {
                     continue;
@@ -972,6 +1105,11 @@ impl App {
     }
 
     fn jump(&mut self, view: &'static str, id: &str) {
+        if advanced_page(view) && !self.saved.advanced_ok {
+            self.adv_ask = Some((view, Some(id.to_string())));
+            self.search.clear();
+            return;
+        }
         self.go(view);
         let key = format!("{view}|{id}");
         self.flash = Some((key.clone(), Instant::now()));
@@ -988,6 +1126,7 @@ fn load_tweaks() -> Vec<Tweak> {
     let mut ops: Vec<Tweak> = serde_json::from_str(include_str!("../data/ops.json")).expect("ops data");
     v.append(&mut ops);
     let mut labels: HashMap<String, Label> = serde_json::from_str(include_str!("../data/labels.json")).expect("label data");
+    let mut details: HashMap<String, Value> = serde_json::from_str(include_str!("../data/details.json")).expect("details data");
     for t in &mut v {
         if let Some(ops) = &t.ops {
             // shown in the page's "changes" preview
@@ -1000,6 +1139,13 @@ fn load_tweaks() -> Vec<Tweak> {
                 t.desc = d.clone();
             }
             t.lab = l;
+        }
+        // the older tweaks' details card; their risk stays the one their label gives
+        if t.info.is_none() {
+            if let Some(mut d) = details.remove(&format!("{}|{}", t.c, t.id)) {
+                d["risk"] = json!(t.lab.risk.as_deref().unwrap_or("low"));
+                t.info = serde_json::from_value(d).ok();
+            }
         }
     }
     v
@@ -1213,6 +1359,26 @@ enum Kind {
     Ghost,
     Primary,
     Danger,
+}
+
+/// One sidebar entry: icon and name, an accent bar when selected.
+fn nav_item(ui: &mut egui::Ui, p: &Pal, selected: bool, glyph: &str, name: &str) -> egui::Response {
+    let (rect, resp) = ui.allocate_exact_size(vec2(ui.available_width(), 30.0), Sense::click());
+    let h = ui.ctx().animate_bool_with_time(resp.id, resp.hovered(), 0.10);
+    let a = ease(ui.ctx().animate_bool_with_time(resp.id.with("on"), selected, 0.16));
+    let r = rect.shrink2(vec2(4.0, 0.0));
+    let painter = ui.painter();
+    let fill = if resp.is_pointer_button_down_on() { p.border } else { mix(alpha(p.hover, h), p.acc_soft, a) };
+    painter.rect_filled(r, R_CTRL, fill);
+    if a > 0.0 {
+        // selected: a short accent bar on the left edge
+        let bar = Rect::from_center_size(pos2(r.left() + 1.5, r.center().y), vec2(3.0, 14.0 * a));
+        painter.rect_filled(bar, 1.5, p.acc);
+    }
+    let fg = mix(mix(p.dim, p.text, h), p.text, a);
+    painter.text(pos2(r.left() + 18.0, r.center().y), Align2::CENTER_CENTER, glyph, icon_font(13.0), mix(mix(p.muted, p.dim, h), p.acc, a));
+    painter.text(pos2(r.left() + 36.0, r.center().y), Align2::LEFT_CENTER, name, if a > 0.5 { semi(12.5) } else { FontId::proportional(12.5) }, fg);
+    resp.on_hover_cursor(egui::CursorIcon::PointingHand)
 }
 
 /// A button. Hover lifts the fill, press darkens it; the label never moves.
@@ -1529,10 +1695,18 @@ fn info_button(ui: &mut egui::Ui, p: &Pal, c: &Card) {
     let h = ui.ctx().animate_bool_with_time(resp.id, resp.hovered(), 0.10);
     ui.painter().rect(r, R_CTRL, mix(Color32::TRANSPARENT, p.acc_soft, h), Stroke::new(1.0_f32, mix(p.border, alpha(p.acc, 0.5), h)), StrokeKind::Inside);
     ui.painter().text(r.center(), Align2::CENTER_CENTER, "\u{E946}", icon_font(12.0), mix(p.dim, p.acc, h));
-    let max_h = ui.ctx().screen_rect().height() - 40.0;
-    resp.on_hover_ui(|ui| {
-        ui.set_width(460.0);
-        egui::ScrollArea::vertical().max_height(max_h).show(ui, |ui| details(ui, p, c));
+    if !resp.hovered() {
+        return;
+    }
+    // open on whichever side of the button has more room, so long details aren't cut off at the window edge
+    let screen = ui.ctx().screen_rect();
+    let (above, below) = (r.top() - screen.top(), screen.bottom() - r.bottom());
+    let (pivot, at, room) = if below >= above { (Align2::RIGHT_TOP, r.right_bottom(), below) } else { (Align2::RIGHT_BOTTOM, r.right_top(), above) };
+    egui::Area::new(resp.id.with("details")).order(egui::Order::Tooltip).pivot(pivot).fixed_pos(at + vec2(0.0, if below >= above { 4.0 } else { -4.0 })).interactable(false).show(ui.ctx(), |ui| {
+        egui::Frame::popup(ui.style()).show(ui, |ui| {
+            ui.set_width(520.0);
+            egui::ScrollArea::vertical().max_height(room - 30.0).show(ui, |ui| details(ui, p, c));
+        });
     });
 }
 
@@ -1632,7 +1806,7 @@ fn field(ui: &mut egui::Ui, p: &Pal, text: &mut String, hint: &str, width: f32) 
 
 fn subtitle(view: &str) -> &'static str {
     match view {
-        "windows" => "Windows behaviour, visual effects and Explorer.",
+        "windows" => "Windows behaviour and visual effects.",
         "gaming" => "Latency, scheduling and game features.",
         "gpu" => "Graphics driver behaviour and assorted system switches.",
         "power" => "Power plan settings, sleep and USB power.",
@@ -1648,6 +1822,14 @@ fn subtitle(view: &str) -> &'static str {
         "responsiveness" => "Timeouts and visual effects that make Windows feel quicker.",
         "dns" => "Name resolution: encryption, legacy protocols and caching.",
         "security" => "Hardening options; each one says what it can break.",
+        "uac" => "How and when User Account Control asks for permission. Turning UAC off entirely is not offered.",
+        "update" => "When Windows Update downloads, installs and restarts.",
+        "notifications" => "Banners, sounds and taskbar alerts.",
+        "sound" => "Volume ducking, startup sound and Bluetooth volume.",
+        "theme" => "Dark mode, transparency, accent colour and desktop icons.",
+        "taskbar" => "Alignment, buttons, clock and tray icons.",
+        "start" => "Layout, recommendations and web search in Start.",
+        "explorer" => "How File Explorer opens, what it shows and its right-click menu.",
         "services" => "Optional services, one switch each. ON disables the service; OFF puts back the start type it had before.",
         "tasks" => "Telemetry and maintenance tasks, one switch each. ON disables the task; OFF puts back its previous state.",
         "background" => "What starts after sign-in and what runs in the background.",
@@ -1668,7 +1850,7 @@ impl App {
 
     /// Tweaks shown on a page. "apps" gathers the app-specific ones from every category.
     fn page_tweaks(&self, view: &str) -> Vec<Tweak> {
-        self.tweaks.iter().filter(|t| if view == "apps" { icons::brand(&t.c, &t.id).is_some() && PAGES.iter().any(|p| p.0 == t.c) } else { t.c == view }).cloned().collect()
+        self.tweaks.iter().filter(|t| if view == "apps" { icons::brand(&t.c, &t.id).is_some() && PAGES.iter().any(|p| p.0 == t.c) } else { page_of(t) == view }).cloned().collect()
     }
 
     fn top_bar(&mut self, ui: &mut egui::Ui) {
@@ -1847,38 +2029,410 @@ impl App {
         egui::ScrollArea::vertical().show(ui, |ui| {
             ui.spacing_mut().item_spacing.y = 1.0;
             ui.add_space(4.0);
-            for (title, items) in NAV.iter() {
+            let cur = self.view;
+            let group = |ui: &mut egui::Ui, title: &str, items: &[(&'static str, &'static str)], go: &mut Option<&'static str>| {
                 ui.add_space(14.0);
                 ui.horizontal(|ui| {
                     ui.add_space(12.0);
                     overline(ui, &p, title);
                 });
                 ui.add_space(4.0);
-                for (view, name) in items.iter() {
-                    let (rect, resp) = ui.allocate_exact_size(vec2(ui.available_width(), 30.0), Sense::click());
-                    let h = ui.ctx().animate_bool_with_time(resp.id, resp.hovered(), 0.10);
-                    let a = ease(ui.ctx().animate_bool_with_time(resp.id.with("on"), self.view == *view, 0.16));
-                    let r = rect.shrink2(vec2(4.0, 0.0));
-                    let painter = ui.painter();
-                    let fill = if resp.is_pointer_button_down_on() { p.border } else { mix(alpha(p.hover, h), p.acc_soft, a) };
-                    painter.rect_filled(r, R_CTRL, fill);
-                    if a > 0.0 {
-                        // selected: a short accent bar on the left edge
-                        let bar = Rect::from_center_size(pos2(r.left() + 1.5, r.center().y), vec2(3.0, 14.0 * a));
-                        painter.rect_filled(bar, 1.5, p.acc);
-                    }
-                    let fg = mix(mix(p.dim, p.text, h), p.text, a);
-                    painter.text(pos2(r.left() + 18.0, r.center().y), Align2::CENTER_CENTER, icons::nav(view), icon_font(13.0), mix(mix(p.muted, p.dim, h), p.acc, a));
-                    painter.text(pos2(r.left() + 36.0, r.center().y), Align2::LEFT_CENTER, *name, if a > 0.5 { semi(12.5) } else { FontId::proportional(12.5) }, fg);
-                    if resp.on_hover_cursor(egui::CursorIcon::PointingHand).clicked() {
-                        go = Some(*view);
+                for (view, name) in items {
+                    if nav_item(ui, &p, cur == *view, icons::nav(view), name).clicked() {
+                        *go = Some(*view);
                     }
                 }
+            };
+            let open = |t: &str| NAV.iter().find(|g| g.0 == t).map(|g| g.1).unwrap_or(&[]);
+            group(ui, "OVERVIEW", open("OVERVIEW"), &mut go);
+            group(ui, "TOOLS", open("TOOLS"), &mut go);
+            // ---- Advanced Tweaks: every page of individual tweaks, behind a one-time warning ----
+            ui.add_space(18.0);
+            ui.horizontal(|ui| {
+                ui.add_space(12.0);
+                ui.label(RichText::new("ADVANCED TWEAKS").font(semi(10.5)).color(p.acc));
+            });
+            if self.saved.advanced_ok {
+                for (title, items) in NAV.iter().filter(|g| !OPEN_GROUPS.contains(&g.0)) {
+                    group(ui, title, items, &mut go);
+                }
+            } else {
+                ui.add_space(4.0);
+                if nav_item(ui, &p, false, icons::LOCK, "Advanced Tweaks").on_hover_text("Individual Windows tweaks for experienced users. A short warning comes first.").clicked() {
+                    // any tweak page opens the warning; the first one is where it leads
+                    go = Some("gaming");
+                }
             }
+            group(ui, "SAFETY", open("SAFETY"), &mut go);
             ui.add_space(10.0);
         });
         if let Some(v) = go {
             self.go(v);
+        }
+    }
+
+    /// Whether a tweak is already on (remembered, or read from Windows).
+    fn already_on(&self, key: &str) -> bool {
+        let (c, id) = key.split_once('|').unwrap_or_default();
+        self.is_on(c, id) || self.probe.get(key).is_some_and(|s| s == "on")
+    }
+
+    /// The preset menu (every start) and the review of a picked preset. Nothing is applied until
+    /// "Apply" on the review; Skip closes it without changing anything.
+    fn preset_menu(&mut self, ctx: &egui::Context) {
+        if !self.preset_menu {
+            return;
+        }
+        let p = self.p;
+        let (mut skip, mut pick, mut back, mut apply) = (false, None, false, false);
+        let frame = Frame::new().fill(p.solid).stroke(Stroke::new(1.0_f32, p.border_hi)).corner_radius(R_CARD).inner_margin(Margin::symmetric(26, 22));
+        egui::Modal::new(egui::Id::new("presets")).frame(frame).backdrop_color(alpha(Color32::BLACK, 0.6)).show(ctx, |ui| {
+            ui.set_width(780.0);
+            ui.spacing_mut().item_spacing.y = 6.0;
+            match self.preset_pick {
+                None => {
+                    ui.label(RichText::new("How would you like to optimize this PC?").font(semi(20.0)).color(p.text));
+                    label(ui, "Pick a preset to review exactly what it changes. Nothing is applied until you confirm, and every change can be undone from History.", 12.5, p.dim);
+                    ui.add_space(10.0);
+                    ui.horizontal_top(|ui| {
+                        ui.spacing_mut().item_spacing.x = 12.0;
+                        for (i, (name, who, what)) in PRESETS.iter().enumerate() {
+                          ui.vertical(|ui| {
+                            let n = preset_keys(i).len();
+                            let r = Frame::new().fill(p.panel).stroke(Stroke::new(1.0_f32, p.border)).corner_radius(R_CARD).inner_margin(Margin::same(14)).show(ui, |ui| {
+                                // the row is left-to-right; the card itself stacks top to bottom
+                                ui.vertical(|ui| {
+                                    ui.set_width(220.0);
+                                    ui.set_min_height(200.0);
+                                    ui.spacing_mut().item_spacing.y = 6.0;
+                                    ui.label(RichText::new(*name).font(semi(15.0)).color(p.text));
+                                    tag(ui, who, p.acc);
+                                    ui.add(egui::Label::new(RichText::new(*what).size(12.0).color(p.dim)).wrap());
+                                    label(ui, format!("{n} changes"), 11.5, p.muted);
+                                });
+                            });
+                            let hit = ui.interact(r.response.rect, ui.id().with(("preset", i)), Sense::click());
+                            if hit.hovered() {
+                                ui.painter().rect_stroke(r.response.rect, R_CARD, Stroke::new(1.5_f32, p.acc), StrokeKind::Inside);
+                            }
+                            if hit.on_hover_cursor(egui::CursorIcon::PointingHand).on_hover_text("Review this preset").clicked() {
+                                pick = Some(i);
+                            }
+                            ui.add_space(2.0);
+                            let url = format!("{DOCS}/presets/{}.md", ["minor", "moderate", "heavy"][i]);
+                            let link = ui.add(egui::Label::new(RichText::new("Read More").size(12.5).color(Color32::from_rgb(0x4d, 0xa3, 0xff)).underline()).sense(Sense::click()));
+                            if link.on_hover_cursor(egui::CursorIcon::PointingHand).on_hover_text(&url).clicked() {
+                                sys::open(&url);
+                            }
+                          });
+                        }
+                    });
+                    ui.add_space(8.0);
+                    ui.horizontal(|ui| {
+                        label(ui, "Experienced users can set individual tweaks in Advanced Tweaks instead.", 11.5, p.muted);
+                        ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                            skip = btn_ex(ui, &p, None, "Skip for now", Kind::Ghost).clicked();
+                        });
+                    });
+                }
+                Some(i) => {
+                    let keys = preset_keys(i);
+                    let todo = keys.iter().filter(|k| !self.already_on(k)).count();
+                    ui.label(RichText::new(format!("Review: {}", PRESETS[i].0)).font(semi(20.0)).color(p.text));
+                    label(ui, format!("{} changes in this preset · {} already on and left as they are · {} will be applied.", keys.len(), keys.len() - todo, todo), 12.5, p.dim);
+                    if !self.admin {
+                        label(ui, "Cheetix isn't running as administrator, so most of these changes can't be applied. Restart it with \"Run as administrator\".", 12.0, p.fail);
+                    }
+                    ui.add_space(6.0);
+                    egui::ScrollArea::vertical().max_height((ctx.screen_rect().height() - 260.0).clamp(160.0, 460.0)).show(ui, |ui| {
+                        ui.set_width(ui.available_width());
+                        let mut last = "";
+                        for k in &keys {
+                            let Some(t) = self.tweaks.iter().find(|t| format!("{}|{}", t.c, t.id) == *k) else { continue };
+                            let page = page_title(&t.c);
+                            if page != last {
+                                ui.add_space(6.0);
+                                overline(ui, &p, page);
+                                last = page;
+                            }
+                            ui.horizontal_top(|ui| {
+                                let on = self.already_on(k);
+                                icon(ui, if on { icons::CHECK } else { icons::BOLT }, 11.0, if on { p.ok } else { p.acc });
+                                ui.vertical(|ui| {
+                                    ui.spacing_mut().item_spacing.y = 1.0;
+                                    ui.label(RichText::new(&t.name).font(semi(12.5)).color(if on { p.muted } else { p.text }));
+                                    if let Some(info) = &t.info {
+                                        ui.add(egui::Label::new(RichText::new(format!("Drawback: {}", info.cost)).size(11.5).color(p.muted)).wrap());
+                                    }
+                                });
+                            });
+                        }
+                    });
+                    ui.add_space(8.0);
+                    label(ui, "Some changes take effect after a restart or sign-out. Each one is listed in History and can be turned off again there or on its page.", 11.5, p.muted);
+                    ui.horizontal(|ui| {
+                        ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                            apply = btn_ex(ui, &p, None, &format!("Apply {todo} changes"), Kind::Primary).clicked() && todo > 0;
+                            back = btn_ex(ui, &p, None, "Back", Kind::Ghost).clicked();
+                        });
+                    });
+                }
+            }
+        });
+        if skip {
+            self.preset_menu = false;
+        }
+        if let Some(i) = pick {
+            self.preset_pick = Some(i);
+        }
+        if back {
+            self.preset_pick = None;
+        }
+        if apply {
+            if let Some(i) = self.preset_pick.take() {
+                self.start_batch(PRESETS[i].0, preset_keys(i));
+                self.preset_menu = false;
+            }
+        }
+    }
+
+    /// Turns on a list of tweaks ("category|id") a few at a time: a preset or an import. Ones
+    /// already on are left alone; each change goes to History.
+    fn start_batch(&mut self, label: &str, keys: Vec<String>) {
+        let mut q: Vec<String> = keys.iter().filter(|k| !self.already_on(k)).cloned().collect();
+        q.reverse(); // popped from the end: applied in list order
+        self.toast(format!("Applying {label}"), format!("{} changes, a few at a time", q.len()));
+        self.preset_queue = q;
+        self.batch = Some((label.to_string(), keys));
+    }
+
+    /// This PC's setup as a configuration: the tweaks that are on (or `keys`), plus Arena tuning.
+    fn make_config(&self, name: &str, keys: Option<Vec<String>>) -> config::Config {
+        let keys = keys.unwrap_or_else(|| self.tweaks.iter().map(|t| format!("{}|{}", t.c, t.id)).filter(|k| self.already_on(k)).collect());
+        let mut tweaks: std::collections::BTreeMap<String, Vec<String>> = Default::default();
+        for k in keys {
+            if let Some((c, id)) = k.split_once('|') {
+                tweaks.entry(c.to_string()).or_default().push(id.to_string());
+            }
+        }
+        let (t, d) = sys::local_time();
+        let mine = name == "My setup";
+        config::Config {
+            format: config::FORMAT,
+            name: name.into(),
+            cheetix: env!("CARGO_PKG_VERSION").into(),
+            windows: self.os.1.clone(),
+            created: format!("{d} {t}"),
+            tweaks,
+            arena: if mine { self.saved.arena.iter().map(|(k, v)| (k.clone(), v.clone())).collect() } else { Default::default() },
+        }
+    }
+
+    fn export_config(&mut self, recommended: bool) {
+        let (cfg, file) = if recommended {
+            (self.make_config(&format!("Recommended ({})", PRESETS[1].0), Some(preset_keys(1))), "Cheetix recommended.cheetix.json")
+        } else {
+            (self.make_config("My setup", None), "My Cheetix setup.cheetix.json")
+        };
+        let n = cfg.count();
+        self.work(move |tx| match config::export(&cfg, file) {
+            Ok(Some(p)) => tx.send(Msg::Toast("Configuration saved".into(), format!("{n} changes saved to {}", p.display()))),
+            Ok(None) => {}
+            Err(e) => tx.send(Msg::Toast("Couldn't save the configuration".into(), e)),
+        });
+    }
+
+    /// The review of a configuration file before importing: a switch per category, what's
+    /// skipped and why. Only Import applies anything.
+    fn import_review(&mut self, ctx: &egui::Context) {
+        let Some(imp) = &self.import else { return };
+        let p = self.p;
+        // (category, page, will apply, already on, unsupported)
+        let mut rows: Vec<(String, String, usize, usize, usize)> = vec![];
+        let mut skipped: Vec<(String, String)> = vec![];
+        let mut unknown = 0;
+        for (cat, ids) in &imp.cfg.tweaks {
+            // a category without a page of its own (Personalize) still gets a readable name
+            let page = match page_title(cat) {
+                "" => cat.chars().take(1).flat_map(char::to_uppercase).chain(cat.chars().skip(1)).collect(),
+                t => t.to_string(),
+            };
+            let mut row = (cat.clone(), page, 0, 0, 0);
+            for id in ids {
+                match self.tweaks.iter().find(|t| t.c == *cat && t.id == *id) {
+                    None => unknown += 1,
+                    Some(t) => match self.unsupported(t) {
+                        Some(why) => {
+                            row.4 += 1;
+                            skipped.push((t.name.clone(), why));
+                        }
+                        None if self.already_on(&format!("{cat}|{id}")) => row.3 += 1,
+                        None => row.2 += 1,
+                    },
+                }
+            }
+            rows.push(row);
+        }
+        let (mut cats, mut arena) = (imp.cats.clone(), imp.arena);
+        let build = |s: &str| s.rsplit('.').next().unwrap_or("").to_string();
+        let same = build(&imp.cfg.windows) == build(&self.os.1);
+        let todo: usize = rows.iter().filter(|r| cats.get(&r.0).copied().unwrap_or(false)).map(|r| r.2).sum();
+        let (mut cancel, mut go) = (false, false);
+        let frame = Frame::new().fill(p.solid).stroke(Stroke::new(1.0_f32, p.border_hi)).corner_radius(R_CARD).inner_margin(Margin::symmetric(26, 22));
+        egui::Modal::new(egui::Id::new("import")).frame(frame).backdrop_color(alpha(Color32::BLACK, 0.6)).show(ctx, |ui| {
+            ui.set_width(640.0);
+            ui.spacing_mut().item_spacing.y = 6.0;
+            ui.label(RichText::new(format!("Import: {}", imp.cfg.name)).font(semi(20.0)).color(p.text));
+            label(ui, format!("{} · made by Cheetix {} on Windows {} ({}). This PC: Windows {}.", imp.file, imp.cfg.cheetix, imp.cfg.windows, imp.cfg.created, self.os.1), 12.0, p.dim);
+            if !same {
+                label(ui, "Made on a different Windows build: anything that doesn't apply to this PC is skipped and listed below.", 12.0, p.run);
+            }
+            label(ui, "Importing only turns tweaks on. Nothing you already have on is turned off.", 12.0, p.dim);
+            if !self.admin {
+                label(ui, "Cheetix isn't running as administrator, so most of these changes can't be applied.", 12.0, p.fail);
+            }
+            ui.add_space(4.0);
+            egui::ScrollArea::vertical().max_height((ctx.screen_rect().height() - 300.0).clamp(140.0, 420.0)).show(ui, |ui| {
+                ui.set_width(ui.available_width());
+                for (cat, page, will, on, na) in &rows {
+                    ui.horizontal(|ui| {
+                        let sel = cats.get(cat).copied().unwrap_or(false);
+                        if toggle(ui, &p, sel, false).clicked() {
+                            cats.insert(cat.clone(), !sel);
+                        }
+                        ui.label(RichText::new(page).font(semi(12.5)).color(if sel { p.text } else { p.muted }));
+                        let mut parts = vec![format!("{will} to apply")];
+                        if *on > 0 {
+                            parts.push(format!("{on} already on"));
+                        }
+                        if *na > 0 {
+                            parts.push(format!("{na} not supported here"));
+                        }
+                        label(ui, parts.join(" · "), 11.5, p.muted);
+                    });
+                }
+                if !imp.cfg.arena.is_empty() {
+                    ui.add_space(4.0);
+                    ui.horizontal(|ui| {
+                        if toggle(ui, &p, arena, false).clicked() {
+                            arena = !arena;
+                        }
+                        ui.label(RichText::new("Arena tuning").font(semi(12.5)).color(if arena { p.text } else { p.muted }));
+                        label(ui, format!("{} games; replaces the tuning saved here for those games", imp.cfg.arena.len()), 11.5, p.muted);
+                    });
+                }
+                if !skipped.is_empty() || unknown > 0 {
+                    ui.add_space(8.0);
+                    overline(ui, &p, "Skipped on this PC");
+                    for (name, why) in &skipped {
+                        ui.add(egui::Label::new(RichText::new(format!("{name}: {why}")).size(11.5).color(p.muted)).wrap());
+                    }
+                    if unknown > 0 {
+                        label(ui, format!("{unknown} {} this version of Cheetix doesn't have (made by a different version).", if unknown == 1 { "setting" } else { "settings" }), 11.5, p.muted);
+                    }
+                }
+            });
+            ui.add_space(8.0);
+            ui.horizontal(|ui| {
+                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                    let text = match (todo, arena) {
+                        (0, true) => "Import Arena tuning".to_string(),
+                        (0, false) => "Nothing to import".to_string(),
+                        (n, true) => format!("Import {n} changes + Arena"),
+                        (n, false) => format!("Import {n} changes"),
+                    };
+                    go = ui.add_enabled_ui(todo > 0 || arena, |ui| btn_ex(ui, &p, None, &text, Kind::Primary)).inner.clicked();
+                    cancel = btn_ex(ui, &p, None, "Cancel", Kind::Ghost).clicked();
+                });
+            });
+        });
+        if cancel {
+            self.import = None;
+        } else if let Some(imp) = &mut self.import {
+            imp.cats = cats;
+            imp.arena = arena;
+        }
+        if go {
+            let Some(imp) = self.import.take() else { return };
+            let keys: Vec<String> = imp
+                .cfg
+                .tweaks
+                .iter()
+                .filter(|(c, _)| imp.cats.get(*c).copied().unwrap_or(false))
+                .flat_map(|(c, ids)| ids.iter().map(move |id| (c, id)))
+                .filter(|(c, id)| self.tweaks.iter().find(|t| t.c == **c && t.id == **id).is_some_and(|t| self.unsupported(t).is_none()))
+                .map(|(c, id)| format!("{c}|{id}"))
+                .collect();
+            if imp.arena {
+                self.saved.arena.extend(imp.cfg.arena.clone());
+                self.save();
+            }
+            if keys.is_empty() {
+                self.toast("Configuration imported", "Arena tuning was imported; no tweaks needed changing");
+            } else {
+                self.start_batch(&format!("Import: {}", imp.cfg.name), keys);
+            }
+        }
+    }
+
+    /// Starts the batch's tweaks a few at a time, and reports when all are done.
+    fn preset_pump(&mut self) {
+        while self.busy.len() < 3 {
+            let Some(k) = self.preset_queue.pop() else { break };
+            let (c, id) = k.split_once('|').unwrap_or_default();
+            self.apply(c, id, true, true);
+        }
+        if self.batch.is_some() && self.preset_queue.is_empty() && self.busy.is_empty() {
+            let (label, keys) = self.batch.take().unwrap_or_default();
+            let done = keys.iter().filter(|k| self.already_on(k)).count();
+            self.toast(format!("{label} applied"), format!("{done} of {} changes are on. Restart Windows to finish; anything that couldn't be applied is in the log.", keys.len()));
+        }
+    }
+
+    /// The Advanced Tweaks warning. It closes only through its two buttons: clicking outside it
+    /// or pressing Esc does nothing, so it can't be skipped by accident.
+    fn advanced_warning(&mut self, ctx: &egui::Context) {
+        let Some((view, id)) = self.adv_ask.clone() else { return };
+        let p = self.p;
+        let (mut back, mut cont) = (false, false);
+        let frame = Frame::new().fill(p.solid).stroke(Stroke::new(1.0_f32, p.border_hi)).corner_radius(R_CARD).inner_margin(Margin::symmetric(26, 22));
+        egui::Modal::new(egui::Id::new("advanced-warning")).frame(frame).backdrop_color(alpha(Color32::BLACK, 0.55)).show(ctx, |ui| {
+            ui.set_width(500.0);
+            ui.spacing_mut().item_spacing.y = 8.0;
+            ui.horizontal(|ui| {
+                icon(ui, icons::WARN, 18.0, p.run);
+                ui.label(RichText::new("Advanced Tweaks").font(semi(19.0)).color(p.text));
+            });
+            label(ui, "This section holds individual Windows changes meant for experienced users.", 13.0, p.text);
+            for s in [
+                "Changing settings you don't fully understand can cause unexpected Windows behavior, compatibility problems, or features that stop working.",
+                "Only change what you understand: hover the (i) on any tweak to read what it does, its drawbacks, and how to undo it.",
+                "Cheetix can't guarantee your system's stability if advanced tweaks are applied without understanding their effects.",
+            ] {
+                ui.horizontal_top(|ui| {
+                    label(ui, "•", 12.5, p.dim);
+                    ui.add(egui::Label::new(RichText::new(s).size(12.5).color(p.dim)).wrap());
+                });
+            }
+            ui.add_space(8.0);
+            ui.horizontal(|ui| {
+                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                    cont = btn_ex(ui, &p, None, "I Understand, Continue", Kind::Primary).clicked();
+                    back = btn_ex(ui, &p, None, "Go Back", Kind::Ghost).clicked();
+                });
+            });
+        });
+        if back {
+            self.adv_ask = None;
+        }
+        if cont {
+            self.adv_ask = None;
+            self.saved.advanced_ok = true;
+            self.save();
+            match id {
+                Some(id) => self.jump(view, &id),
+                None => self.go(view),
+            }
         }
     }
 
@@ -1916,6 +2470,14 @@ impl App {
         let p = self.p;
         let applied: usize = self.saved.states.values().map(|m| m.values().filter(|v| **v).count()).sum();
         header(ui, &p, icons::nav("dashboard"), "Dashboard", None, &format!("{} tweaks available · {} applied · {} with a saved original", self.tweaks.len(), applied, self.saved.backups.len()));
+        let running = self.batch.is_some();
+        ui.add_enabled_ui(!running, |ui| {
+            if btn_ex(ui, &p, Some(icons::BOLT), if running { "Applying a preset…" } else { "Choose a preset" }, Kind::Primary).on_hover_text("Minor, Moderate or Heavy: review what it changes before anything is applied").clicked() {
+                self.preset_menu = true;
+                self.preset_pick = None;
+            }
+        });
+        ui.add_space(10.0);
 
         // (label, value, detail, percent, icon)
         type Metric = (&'static str, String, String, Option<u32>, &'static str);
@@ -1967,7 +2529,7 @@ impl App {
 
         // every tweak page as a tile: how many of its switches are on, click to open
         subhead(ui, &p, icons::TILES, "Tweak library");
-        let pages: Vec<(&'static str, &'static str)> = NAV.iter().filter(|g| !["OVERVIEW", "TOOLS", "SAFETY"].contains(&g.0)).flat_map(|g| g.1.iter().copied()).collect();
+        let pages: Vec<(&'static str, &'static str)> = NAV.iter().filter(|g| !OPEN_GROUPS.contains(&g.0)).flat_map(|g| g.1.iter().copied()).collect();
         let n = if ui.available_width() > 900.0 { 4 } else { 3 };
         let w = ((ui.available_width() - 10.0 * (n as f32 - 1.0)) / n as f32).floor();
         let mut go = None;
@@ -2894,6 +3456,21 @@ impl App {
             self.toast("Switch states cleared", "Pages read the real state again when opened");
         }
         ui.add_space(8.0);
+        let mut relock = false;
+        let ok = self.saved.advanced_ok;
+        row(ui, &p, false, Chip::Glyph(icons::LOCK, if ok { 0.0 } else { 1.0 }), "Advanced Tweaks warning", "Show the warning again the next time someone opens Advanced Tweaks, and hide its pages from the sidebar until then.", 110.0, |ui| {
+            if ok {
+                relock = btn_ex(ui, &p, None, "Show again", Kind::Ghost).clicked();
+            } else {
+                tag(ui, "Will show", p.muted);
+            }
+        });
+        if relock {
+            self.saved.advanced_ok = false;
+            self.save();
+            self.toast("Advanced Tweaks locked", "The warning shows again before the next visit");
+        }
+        ui.add_space(8.0);
         let n = self.saved.backups.len();
         row(ui, &p, false, Chip::Glyph(icons::UNDO, if n > 0 { 1.0 } else { 0.0 }), "Saved originals", "Before a tweak changes anything, Cheetix saves the exact original settings; turning the tweak OFF writes them back. They are stored in the file below.", 110.0, |ui| {
             tag(ui, &format!("{n} saved"), if n > 0 { p.ok } else { p.muted });
@@ -2902,6 +3479,27 @@ impl App {
         row(ui, &p, false, Chip::Glyph(icons::FOLDER, 0.0), "Saved data", &state_path().display().to_string(), 110.0, |ui| {
             tag(ui, concat!("Cheetix ", env!("CARGO_PKG_VERSION")), p.muted);
         });
+
+        subhead(ui, &p, icons::SYNC, "Configuration");
+        let busy = self.batch.is_some();
+        let (mut mine, mut rec, mut imp) = (false, false, false);
+        row(ui, &p, false, Chip::Glyph(icons::OPEN, 0.0), "Export my setup", "Saves which tweaks are on and your Arena tuning to a .cheetix.json file. Import it on another PC to reproduce this setup.", 110.0, |ui| {
+            mine = btn_ex(ui, &p, None, "Export", Kind::Ghost).clicked();
+        });
+        ui.add_space(8.0);
+        row(ui, &p, false, Chip::Glyph(icons::BOLT, 0.0), "Export the recommended setup", &format!("Saves the {} preset ({} changes) as a configuration file: a good starting point to share.", PRESETS[1].0, preset_keys(1).len()), 110.0, |ui| {
+            rec = btn_ex(ui, &p, None, "Export", Kind::Ghost).clicked();
+        });
+        ui.add_space(8.0);
+        row(ui, &p, false, Chip::Glyph(icons::FOLDER, 0.0), "Import a configuration", "Pick a .cheetix.json file, choose which categories to use, and review what will change before anything is applied.", 110.0, |ui| {
+            ui.add_enabled_ui(!busy, |ui| imp = btn_ex(ui, &p, None, "Import", Kind::Primary).clicked());
+        });
+        if mine || rec {
+            self.export_config(rec);
+        }
+        if imp {
+            self.work(|tx| tx.send(Msg::Imported(config::import())));
+        }
     }
 }
 
@@ -3007,6 +3605,10 @@ impl eframe::App for App {
         }
 
         self.update_popup(ctx);
+        self.preset_pump();
+        self.preset_menu(ctx);
+        self.import_review(ctx);
+        self.advanced_warning(ctx);
         // follow the Arena session (it runs as its own process)
         if self.session_read.elapsed() >= Duration::from_secs(1) {
             self.session_read = Instant::now();
@@ -3126,6 +3728,113 @@ fn main() -> eframe::Result {
 #[cfg(test)]
 mod tests {
     use super::*;
+    /// The Read More page of preset `level` (docs/presets/*.md), made from the tweak data.
+    fn preset_doc(level: usize) -> String {
+        let all = load_tweaks();
+        let file = ["minor", "moderate", "heavy"];
+        let (name, who, what) = PRESETS[level];
+        let mine: Vec<String> = if level == 0 { preset_keys(0) } else { preset_keys(level).split_off(preset_keys(level - 1).len()) };
+        let tweaks: Vec<&Tweak> = mine.iter().filter_map(|k| all.iter().find(|t| format!("{}|{}", t.c, t.id) == *k)).collect();
+        let when = |r: &str| match r {
+            "reboot" => "After a restart",
+            "signout" => "After signing out",
+            "explorer" => "After Explorer restarts",
+            "app" => "When the app restarts",
+            "adapter" => "Right away (the network adapter restarts)",
+            _ => "Right away",
+        };
+        let cell = |s: &str| s.replace('|', "\\|").replace('\n', " ");
+        let mut d = format!("# {name}\n\n*A Cheetix preset · for: {who}*\n\n{what}\n\n");
+        d += &format!("**{} changes in total.** ", preset_keys(level).len());
+        if level > 0 {
+            d += &format!("This preset includes all {} changes of [{}]({}.md) and adds the {} below.\n\n", preset_keys(level - 1).len(), PRESETS[level - 1].0, file[level - 1], tweaks.len());
+        } else {
+            d += "All of them are low risk.\n\n";
+        }
+        d += "Nothing is applied until you review the list in Cheetix and press **Apply**. Changes that are already on are left alone, and changes your version of Windows doesn't support are skipped.\n\n";
+        d += "## What it changes\n";
+        let mut page = "";
+        for t in &tweaks {
+            let i = t.info.as_ref().unwrap();
+            if page_title(&t.c) != page {
+                page = page_title(&t.c);
+                d += &format!("\n### {page}\n\n| Change | What it does | Benefit | Drawback | Takes effect |\n|---|---|---|---|---|\n");
+            }
+            d += &format!("| **{}** | {} | {} | {} | {} |\n", cell(&t.name), cell(&t.desc), cell(&i.gain), cell(&i.cost), when(&i.restart));
+        }
+        d += "\n## Windows features that change or stop working\n\n";
+        let mut any = false;
+        for t in &tweaks {
+            let c = &t.info.as_ref().unwrap().cost;
+            if !c.starts_with("None") {
+                d += &format!("- **{}**: {}\n", t.name, c);
+                any = true;
+            }
+        }
+        if !any {
+            d += "None worth noting.\n";
+        }
+        d += "\n## Compatibility\n\n- Made for Windows 10 and 11. A change that doesn't apply to your Windows version is skipped and shown as not supported.\n- Cheetix must run as administrator to apply system changes.\n- Power settings in these presets only change the plugged-in values; battery behavior on laptops is left alone.\n";
+        if level == 2 {
+            d += "- Some optional Windows features are removed. Turning the change off adds them back, which can take a few minutes.\n";
+        }
+        d += "\n## Undoing it\n\nBefore each change, Cheetix saves the exact original setting. Every change is listed in **History**, and turning it off there (or on its page in Advanced Tweaks) writes the original back. Changes marked \"after a restart\" need one more restart to go back as well.\n";
+        d
+    }
+
+    /// Writes docs/presets/*.md. `cargo test write_preset_docs -- --ignored`
+    #[test]
+    #[ignore]
+    fn write_preset_docs() {
+        let _ = std::fs::create_dir_all("docs/presets");
+        for (i, f) in ["minor", "moderate", "heavy"].iter().enumerate() {
+            std::fs::write(format!("docs/presets/{f}.md"), preset_doc(i)).unwrap();
+        }
+    }
+
+    /// The Read More pages match the presets (run write_preset_docs after changing either).
+    #[test]
+    fn preset_docs_up_to_date() {
+        for (i, f) in ["minor", "moderate", "heavy"].iter().enumerate() {
+            let on_disk = std::fs::read_to_string(format!("docs/presets/{f}.md")).unwrap_or_default().replace("\r\n", "\n");
+            assert!(on_disk == preset_doc(i), "docs/presets/{f}.md is out of date: run `cargo test write_preset_docs -- --ignored`");
+        }
+    }
+
+    /// Presets use only reversible, documented tweaks, each in one level only; Minor is low risk.
+    #[test]
+    fn presets_are_valid() {
+        let all = load_tweaks();
+        let find = |k: &str| all.iter().find(|t| format!("{}|{}", t.c, t.id) == k);
+        let heavy = preset_keys(2);
+        let uniq: HashSet<&String> = heavy.iter().collect();
+        assert_eq!(uniq.len(), heavy.len(), "a tweak is in two preset levels");
+        for k in &heavy {
+            let t = find(k).unwrap_or_else(|| panic!("{k} doesn't exist"));
+            assert!(t.ops.is_some() && t.info.is_some(), "{k} isn't a reversible, documented tweak");
+        }
+        for k in preset_keys(0) {
+            assert_eq!(find(&k).unwrap().info.as_ref().unwrap().risk, "low", "{k} is too risky for Minor");
+        }
+        assert!(preset_keys(0).len() < preset_keys(1).len() && preset_keys(1).len() < heavy.len());
+    }
+
+    #[test]
+    fn advanced_tweaks_hold_every_tweak_page() {
+        for v in ["dashboard", "monitor", "arena", "shortcuts", "cleaner", "powerplans", "startup", "history", "settings"] {
+            assert!(!advanced_page(v), "{v} must stay open");
+        }
+        for (v, _, _) in PAGES {
+            assert!(advanced_page(v) || *v == "personalize", "{v} is a tweak page outside Advanced");
+        }
+        assert!(advanced_page("apps"));
+        let all = load_tweaks();
+        for &(c, id, page) in MOVED {
+            let t = all.iter().find(|t| t.c == c && t.id == id).unwrap_or_else(|| panic!("{c}|{id} is gone"));
+            assert!(page_of(t) == page && PAGES.iter().any(|p| p.0 == page) && advanced_page(page));
+        }
+    }
+
     #[test]
     fn cleaner_scripts_parse() {
         for (id, _, _, s) in CLEANERS {
@@ -3141,6 +3850,13 @@ mod tests {
         let all = load_tweaks();
         let mut ids = HashSet::new();
         let mut targets = HashMap::new();
+        let newer: Vec<Value> = serde_json::from_str(include_str!("../data/ops.json")).unwrap();
+        let newer: HashSet<String> = newer.iter().map(|t| format!("{}|{}", t["c"].as_str().unwrap(), t["id"].as_str().unwrap())).collect();
+        // every tweak, older script ones included, has a details card
+        for t in &all {
+            let i = t.info.as_ref().unwrap_or_else(|| panic!("{}|{} has no details", t.c, t.id));
+            assert!(["none", "reboot", "signout", "app", "adapter", "explorer"].contains(&i.restart.as_str()), "{}|{} restart", t.c, t.id);
+        }
         for t in all.iter().filter(|t| t.ops.is_some()) {
             assert!(ids.insert(format!("{}|{}", t.c, t.id)), "duplicate {}", t.id);
             // personalize has no page any more; its tweaks stay loaded so History can still undo them
@@ -3153,9 +3869,9 @@ mod tests {
             }
             let ops = t.ops.as_ref().unwrap();
             assert!(!ops.is_empty() && engine::describe(ops).len() == ops.len(), "{}", t.id);
-            // the documented tweaks (with details) never share a setting; the original data has a few
+            // the newer tweaks (ops.json) never share a setting; the older data has a few
             // duplicates across pages, which the conflict guard handles at run time
-            if t.info.is_some() {
+            if newer.contains(&format!("{}|{}", t.c, t.id)) {
                 for tg in &t.targets {
                     if let Some(other) = targets.insert(tg.clone(), t.id.clone()) {
                         panic!("{} and {} both change {tg}", t.id, other);

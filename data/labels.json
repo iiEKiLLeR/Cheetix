@@ -2610,5 +2610,191 @@
   "on": "Opens the copy dialog with its details view expanded",
   "state": "Copy details shown",
   "subj": "copy dialog setting"
+ },
+ "update|wu_no_auto_restart": {
+  "name": "No automatic restart while signed in",
+  "on": "Stops Windows Update restarting the PC while you are signed in",
+  "state": "No automatic update restarts",
+  "subj": "update restart policy"
+ },
+ "update|wu_notify_download": {
+  "name": "Ask before downloading updates",
+  "on": "Makes Windows Update ask before downloading updates",
+  "state": "Updates download only when you choose",
+  "subj": "automatic update policy"
+ },
+ "update|wu_no_msrt": {
+  "name": "Skip the Malicious Software Removal Tool",
+  "on": "Stops Windows Update offering the Malicious Software Removal Tool",
+  "state": "Malicious Software Removal Tool not offered",
+  "subj": "MRT update policy"
+ },
+ "update|wu_no_early_updates": {
+  "name": "Don't get updates as soon as they're available",
+  "on": "Stops Windows getting new features before the normal monthly update",
+  "state": "Early feature updates off",
+  "subj": "early updates setting"
+ },
+ "update|wu_restart_notice": {
+  "name": "Tell me when a restart is needed",
+  "on": "Shows a notification when an update needs a restart",
+  "state": "Restart notifications on",
+  "subj": "update restart notification setting"
+ },
+ "notifications|notif_lock_screen_off": {
+  "name": "No notifications on the lock screen",
+  "on": "Hides notifications and reminders on the lock screen",
+  "state": "Lock screen notifications off",
+  "subj": "lock screen notification settings"
+ },
+ "notifications|notif_sound_off": {
+  "name": "Silent notifications",
+  "on": "Stops notifications playing a sound",
+  "state": "Notification sounds off",
+  "subj": "notification sound setting"
+ },
+ "notifications|notif_badges_off": {
+  "name": "No badges on taskbar apps",
+  "on": "Hides the unread badges on taskbar app icons",
+  "state": "Taskbar badges off",
+  "subj": "taskbar badge setting"
+ },
+ "notifications|notif_flashing_off": {
+  "name": "No flashing taskbar apps",
+  "on": "Stops taskbar apps flashing for attention",
+  "state": "Taskbar flashing off",
+  "subj": "taskbar flashing setting"
+ },
+ "sound|sound_ducking_off": {
+  "name": "Don't lower other sounds during calls",
+  "on": "Stops Windows lowering other sounds when a voice app is in use",
+  "state": "Volume ducking off",
+  "subj": "communications ducking setting"
+ },
+ "sound|sound_startup_off": {
+  "name": "No Windows startup sound",
+  "on": "Stops the sound Windows plays at startup",
+  "state": "Startup sound off",
+  "subj": "startup sound setting"
+ },
+ "sound|sound_bt_absolute_volume_off": {
+  "name": "Separate Bluetooth headphone volume",
+  "on": "Separates Windows' volume from Bluetooth headphones' own volume",
+  "state": "Bluetooth absolute volume off",
+  "subj": "Bluetooth volume setting"
+ },
+ "uac|uac_no_dim": {
+  "name": "UAC prompts without dimming the screen",
+  "on": "Shows UAC prompts without dimming the screen",
+  "state": "UAC prompts on the normal desktop",
+  "subj": "UAC secure desktop setting"
+ },
+ "uac|uac_hide_admin_list": {
+  "name": "Don't list administrator accounts in UAC prompts",
+  "on": "Hides administrator account names in UAC prompts",
+  "state": "Admin accounts hidden in UAC prompts",
+  "subj": "UAC account list policy"
+ },
+ "uac|uac_builtin_admin_approval": {
+  "name": "UAC for the built-in Administrator",
+  "on": "Turns on UAC for the built-in Administrator account",
+  "state": "Built-in Administrator uses UAC",
+  "subj": "built-in Administrator UAC policy"
+ },
+ "privacy|language_list_off": {
+  "name": "Don't share your language list with websites",
+  "on": "Stops websites reading your Windows language list",
+  "state": "Language list hidden from websites",
+  "subj": "language list setting"
+ },
+ "privacy|cloud_clipboard_off": {
+  "name": "Disable clipboard sync across devices",
+  "on": "Stops the clipboard syncing to your other devices",
+  "state": "Clipboard sync off",
+  "subj": "clipboard sync policy"
+ },
+ "privacy|find_my_device_off": {
+  "name": "Disable Find my device",
+  "on": "Turns off Find my device",
+  "state": "Find my device off",
+  "subj": "Find my device policy"
+ },
+ "privacy|settings_sync_off": {
+  "name": "Disable settings sync",
+  "on": "Stops Windows syncing your settings to your Microsoft account",
+  "state": "Settings sync off",
+  "subj": "settings sync policy"
+ },
+ "power|wifi_max_performance_ac": {
+  "name": "Wi-Fi adapter at maximum performance (plugged in)",
+  "on": "Runs the Wi-Fi adapter at maximum performance when plugged in",
+  "state": "Wi-Fi power saving off (plugged in)",
+  "subj": "Wi-Fi power setting"
+ },
+ "power|video_quality_ac": {
+  "name": "Video playback favours quality (plugged in)",
+  "on": "Favours video quality over power saving when plugged in",
+  "state": "Video quality bias on (plugged in)",
+  "subj": "video playback power setting"
+ },
+ "gaming|mmcss_games_high": {
+  "name": "Higher CPU and GPU priority for games (MMCSS)",
+  "on": "Raises the multimedia scheduler priority for games",
+  "state": "MMCSS game priority raised",
+  "subj": "MMCSS game task settings"
+ },
+ "gaming|xbox_button_gamebar_off": {
+  "name": "Xbox button doesn't open Game Bar",
+  "on": "Stops the controller's Xbox button opening Game Bar",
+  "state": "Xbox button Game Bar off",
+  "subj": "Game Bar controller setting"
+ },
+ "taskbar|taskbar_copilot_button_off": {
+  "name": "Hide the Copilot button",
+  "on": "Hides the Copilot button on the taskbar",
+  "state": "Copilot button hidden",
+  "subj": "taskbar Copilot setting"
+ },
+ "taskbar|taskbar_no_combine_other": {
+  "name": "Never combine buttons on other taskbars",
+  "on": "Shows separate labelled buttons on the other monitors' taskbars",
+  "state": "Other taskbars never combine",
+  "subj": "multi-monitor taskbar setting"
+ },
+ "start|start_more_pins": {
+  "name": "More pins in Start",
+  "on": "Shows more pinned apps in Start",
+  "state": "Start shows more pins",
+  "subj": "Start layout setting"
+ },
+ "start|start_hide_recent_apps": {
+  "name": "Hide recently added apps in Start",
+  "on": "Hides the Recently added list in Start",
+  "state": "Recently added apps hidden",
+  "subj": "Start recently added policy"
+ },
+ "explorer|explorer_full_path": {
+  "name": "Show the full path in the title bar",
+  "on": "Shows the full folder path in File Explorer's title bar",
+  "state": "Full path shown",
+  "subj": "title bar path setting"
+ },
+ "explorer|explorer_private_home": {
+  "name": "Don't show recent files and folders in Home",
+  "on": "Stops File Explorer listing recent files and frequent folders",
+  "state": "Recent files hidden in Explorer",
+  "subj": "Explorer recent items settings"
+ },
+ "explorer|explorer_sync_ads_off": {
+  "name": "No ads in File Explorer",
+  "on": "Stops File Explorer showing OneDrive and Microsoft 365 banners",
+  "state": "Explorer banners off",
+  "subj": "sync provider notification setting"
+ },
+ "explorer|explorer_no_shortcut_suffix": {
+  "name": "No '- Shortcut' on new shortcuts",
+  "on": "Stops Windows adding ' - Shortcut' to new shortcuts",
+  "state": "No '- Shortcut' suffix",
+  "subj": "shortcut naming setting"
  }
 }

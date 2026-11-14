@@ -1,0 +1,1683 @@
+{
+ "brave|apply_all_debloat": {
+  "why": "Applies every Brave setting on this page in one go.",
+  "gain": "All the Brave clean-up and security settings at once.",
+  "cost": "Everything the individual switches cost: no Rewards, Wallet, VPN, Leo, Sync, saved passwords or autofill.",
+  "who": "Brave users.",
+  "restart": "app",
+  "note": "Set by policy: Brave shows 'Managed by your organization'."
+ },
+ "brave|disable_ai_chat": {
+  "why": "Leo AI chat adds a sidebar and sends page content to Brave's servers when used.",
+  "gain": "No Leo button or sidebar.",
+  "cost": "You can't use Leo.",
+  "who": "Brave users.",
+  "restart": "app"
+ },
+ "brave|disable_autofill_address": {
+  "why": "Brave fills addresses into forms.",
+  "gain": "Addresses aren't stored in the browser.",
+  "cost": "You type addresses yourself.",
+  "who": "Brave users.",
+  "restart": "app"
+ },
+ "brave|disable_autofill_card": {
+  "why": "Brave can store and fill payment cards.",
+  "gain": "Card numbers aren't stored in the browser.",
+  "cost": "You type card details yourself.",
+  "who": "Brave users.",
+  "restart": "app"
+ },
+ "brave|disable_background_mode": {
+  "why": "Brave can keep running after you close it.",
+  "gain": "Brave fully exits when closed.",
+  "cost": "Extensions and notifications don't run while Brave is closed.",
+  "who": "Brave users.",
+  "restart": "app"
+ },
+ "brave|disable_error_pages": {
+  "why": "Brave uses a web service to suggest fixes for unreachable pages.",
+  "gain": "No lookups to that service.",
+  "cost": "Error pages don't suggest alternatives.",
+  "who": "Brave users.",
+  "restart": "app"
+ },
+ "brave|disable_metrics": {
+  "why": "Chromium can send usage and crash reports.",
+  "gain": "No metrics or crash reports sent.",
+  "cost": "Brave gets less crash information to fix bugs.",
+  "who": "Brave users.",
+  "restart": "app"
+ },
+ "brave|disable_network_prediction": {
+  "why": "Brave preloads pages it thinks you'll open.",
+  "gain": "Less network traffic and fewer requests to sites you never visit.",
+  "cost": "Pages you were about to open may load a little slower.",
+  "who": "Brave users.",
+  "restart": "app"
+ },
+ "brave|disable_password_manager": {
+  "why": "Brave offers to save passwords.",
+  "gain": "No save-password prompts; use a dedicated password manager instead.",
+  "cost": "Saved Brave passwords aren't filled in.",
+  "who": "Brave users.",
+  "restart": "app"
+ },
+ "brave|disable_rewards": {
+  "why": "Brave Rewards shows ads and runs a crypto wallet for BAT.",
+  "gain": "No Rewards ads or background tasks.",
+  "cost": "You can't earn or send BAT.",
+  "who": "Brave users.",
+  "restart": "app"
+ },
+ "brave|disable_search_suggest": {
+  "why": "What you type in the address bar is sent to the search engine for suggestions.",
+  "gain": "Keystrokes stay private until you press Enter.",
+  "cost": "No search suggestions while typing.",
+  "who": "Brave users.",
+  "restart": "app"
+ },
+ "brave|disable_stats_ping": {
+  "why": "Brave sends an anonymous daily usage ping.",
+  "gain": "No usage pings.",
+  "cost": "None.",
+  "who": "Brave users.",
+  "restart": "app"
+ },
+ "brave|disable_sync": {
+  "why": "Brave Sync shares bookmarks and settings between devices.",
+  "gain": "Nothing is synced.",
+  "cost": "Bookmarks and passwords don't sync to your other devices.",
+  "who": "Brave users.",
+  "restart": "app"
+ },
+ "brave|disable_vpn": {
+  "why": "Brave advertises its paid VPN.",
+  "gain": "No VPN buttons or promotions.",
+  "cost": "You can't use Brave VPN.",
+  "who": "Brave users.",
+  "restart": "app"
+ },
+ "brave|disable_wallet": {
+  "why": "Brave includes a crypto wallet.",
+  "gain": "Wallet UI and its background service are gone.",
+  "cost": "You can't use the built-in wallet.",
+  "who": "Brave users.",
+  "restart": "app"
+ },
+ "brave|enable_https_only": {
+  "why": "Some sites still load over unencrypted HTTP.",
+  "gain": "Every page loads over HTTPS or shows a warning first.",
+  "cost": "An extra click for the few sites that only work over HTTP.",
+  "who": "Brave users.",
+  "restart": "app"
+ },
+ "brave|enable_safe_browsing": {
+  "why": "Safe Browsing checks sites and downloads against a malware list.",
+  "gain": "Warnings before dangerous sites and downloads.",
+  "cost": "Lookups are made to Google's Safe Browsing service.",
+  "who": "Brave users.",
+  "restart": "app"
+ },
+ "brave|set_homepage_newtab": {
+  "why": "Sets the home button to the New Tab page.",
+  "gain": "A predictable home page.",
+  "cost": "Any custom home page is replaced.",
+  "who": "Brave users.",
+  "restart": "app"
+ },
+ "brave|set_restore_newtab": {
+  "why": "Brave can restore your last session on startup.",
+  "gain": "Starts clean with a new tab.",
+  "cost": "Your previous tabs don't reopen.",
+  "who": "Brave users.",
+  "restart": "app"
+ },
+ "contextmenu|cast_to_device": {
+  "why": "Removes 'Cast to device' from the right-click menu.",
+  "gain": "A shorter right-click menu.",
+  "cost": "'Cast to device' is no longer available from the right-click menu.",
+  "who": "Users who never use 'Cast to device'.",
+  "restart": "explorer"
+ },
+ "contextmenu|cmd_here": {
+  "why": "Adds 'Open CMD here' to folders.",
+  "gain": "A Command Prompt opened in that folder.",
+  "cost": "One more menu entry.",
+  "who": "Power users.",
+  "restart": "none"
+ },
+ "contextmenu|copy_path": {
+  "why": "Adds 'Copy as path' without holding Shift.",
+  "gain": "Copy a file's full path in one click.",
+  "cost": "One more menu entry.",
+  "who": "Everyone who pastes file paths.",
+  "restart": "none"
+ },
+ "contextmenu|copy_to_folder": {
+  "why": "Removes 'Copy to folder' from the right-click menu.",
+  "gain": "A shorter right-click menu.",
+  "cost": "'Copy to folder' is no longer available from the right-click menu.",
+  "who": "Users who never use 'Copy to folder'.",
+  "restart": "explorer"
+ },
+ "contextmenu|give_access_to": {
+  "why": "Removes 'Give access to' from the right-click menu.",
+  "gain": "A shorter right-click menu.",
+  "cost": "'Give access to' is no longer available from the right-click menu.",
+  "who": "Users who never use 'Give access to'.",
+  "restart": "explorer"
+ },
+ "contextmenu|move_to_folder": {
+  "why": "Removes 'Move to folder' from the right-click menu.",
+  "gain": "A shorter right-click menu.",
+  "cost": "'Move to folder' is no longer available from the right-click menu.",
+  "who": "Users who never use 'Move to folder'.",
+  "restart": "explorer"
+ },
+ "contextmenu|new_bing_search": {
+  "why": "Search sends what you type to Bing.",
+  "gain": "Searches stay local.",
+  "cost": "No web results in search.",
+  "who": "Everyone.",
+  "restart": "signout"
+ },
+ "contextmenu|notepad": {
+  "why": "Adds 'Open with Notepad' to every file.",
+  "gain": "Open any file in Notepad in one click.",
+  "cost": "One more menu entry on every file.",
+  "who": "Power users.",
+  "restart": "none"
+ },
+ "contextmenu|pin_start": {
+  "why": "Removes 'Pin to Start' from the right-click menu.",
+  "gain": "A shorter right-click menu.",
+  "cost": "'Pin to Start' is no longer available from the right-click menu.",
+  "who": "Users who never use 'Pin to Start'.",
+  "restart": "explorer"
+ },
+ "contextmenu|pin_taskbar": {
+  "why": "Removes 'Pin to taskbar' from the right-click menu.",
+  "gain": "A shorter right-click menu.",
+  "cost": "'Pin to taskbar' is no longer available from the right-click menu.",
+  "who": "Users who never use 'Pin to taskbar'.",
+  "restart": "explorer"
+ },
+ "contextmenu|powershell_here": {
+  "why": "Adds 'Open PowerShell here' to folders.",
+  "gain": "A PowerShell window opened in that folder.",
+  "cost": "One more menu entry.",
+  "who": "Power users.",
+  "restart": "none"
+ },
+ "contextmenu|previous_versions": {
+  "why": "Removes 'Previous versions' from the right-click menu.",
+  "gain": "A shorter right-click menu.",
+  "cost": "'Previous versions' is no longer available from the right-click menu.",
+  "who": "Users who never use 'Previous versions'.",
+  "restart": "explorer"
+ },
+ "contextmenu|print": {
+  "why": "Removes 'Print' from the right-click menu.",
+  "gain": "A shorter right-click menu.",
+  "cost": "'Print' is no longer available from the right-click menu.",
+  "who": "Users who never use 'Print'.",
+  "restart": "explorer"
+ },
+ "contextmenu|scan_defender": {
+  "why": "Removes 'Scan with Microsoft Defender' from the right-click menu.",
+  "gain": "A shorter right-click menu.",
+  "cost": "'Scan with Microsoft Defender' is no longer available from the right-click menu.",
+  "who": "Users who never use 'Scan with Microsoft Defender'.",
+  "restart": "explorer"
+ },
+ "contextmenu|send_to": {
+  "why": "Removes 'Send to' from the right-click menu.",
+  "gain": "A shorter right-click menu.",
+  "cost": "'Send to' is no longer available from the right-click menu.",
+  "who": "Users who never use 'Send to'.",
+  "restart": "explorer"
+ },
+ "contextmenu|share": {
+  "why": "Removes 'Share' from the right-click menu.",
+  "gain": "A shorter right-click menu.",
+  "cost": "'Share' is no longer available from the right-click menu.",
+  "who": "Users who never use 'Share'.",
+  "restart": "explorer"
+ },
+ "contextmenu|show_more_options": {
+  "why": "Windows 11 hides most entries behind 'Show more options'.",
+  "gain": "The full right-click menu opens straight away.",
+  "cost": "Loses the new compact menu.",
+  "who": "Everyone used to Windows 10.",
+  "restart": "explorer",
+  "note": "Same setting as 'Use the classic right-click menu' on the File Explorer page."
+ },
+ "contextmenu|take_ownership": {
+  "why": "Adds 'Take ownership' to files and folders.",
+  "gain": "Fix 'access denied' files in one click (asks for admin).",
+  "cost": "Taking ownership of system files can break Windows features; use it only on your own files.",
+  "who": "Power users.",
+  "restart": "none"
+ },
+ "gaming|disable_fullscreen_optimizations": {
+  "why": "Windows runs 'fullscreen' games as optimized borderless windows.",
+  "gain": "Real exclusive fullscreen in older games, which some players prefer.",
+  "cost": "Alt-Tab is slower and overlays may not work.",
+  "who": "Players of older DirectX 9/11 games.",
+  "restart": "app"
+ },
+ "gaming|disable_game_bar": {
+  "why": "Xbox Game Bar is an overlay that opens with Win+G.",
+  "gain": "No overlay or its background process.",
+  "cost": "No Game Bar widgets, performance overlay or Xbox party chat.",
+  "who": "Users who don't use Game Bar.",
+  "restart": "signout"
+ },
+ "gaming|disable_game_dvr": {
+  "why": "Game DVR can record in the background.",
+  "gain": "No background recording overhead.",
+  "cost": "No Win+Alt+G 'record that' clips.",
+  "who": "Everyone who records with other tools.",
+  "restart": "signout"
+ },
+ "gaming|disable_hpet": {
+  "why": "Stops Windows forcing the HPET timer and turns off the dynamic tick.",
+  "gain": "Uses the CPU's faster timers.",
+  "cost": "Results vary; higher idle power use.",
+  "who": "Desktop users who test the difference.",
+  "restart": "reboot"
+ },
+ "gaming|disable_memory_integrity": {
+  "why": "Memory Integrity checks drivers through the hypervisor.",
+  "gain": "Can raise game performance a few percent.",
+  "cost": "Removes protection against malicious drivers.",
+  "who": "Gaming PCs where you accept less protection.",
+  "restart": "reboot",
+  "note": "Some anti-cheat systems and Windows 11 security baselines expect it on."
+ },
+ "gaming|disable_prefetch": {
+  "why": "Prefetch preloads files of apps you use often.",
+  "gain": "Less disk activity at startup.",
+  "cost": "Apps start more slowly; on SSDs the gain is negligible.",
+  "who": "Rarely useful.",
+  "restart": "reboot"
+ },
+ "gaming|disable_spectre_meltdown": {
+  "why": "Spectre and Meltdown fixes cost some CPU performance, mainly on older CPUs.",
+  "gain": "A few percent more speed in some workloads.",
+  "cost": "Your PC becomes vulnerable to these CPU attacks, including from websites.",
+  "who": "Offline benchmarking PCs only.",
+  "restart": "reboot",
+  "note": "Same setting as the one on the Windows page."
+ },
+ "gaming|disable_tpm": {
+  "why": "Credential Guard isolates sign-in secrets with virtualization.",
+  "gain": "Slightly less virtualization overhead.",
+  "cost": "Stolen-credential attacks get easier on domain/work PCs.",
+  "who": "Home gaming PCs.",
+  "restart": "reboot",
+  "note": "This doesn't turn off the TPM chip itself."
+ },
+ "gaming|disable_vbs": {
+  "why": "Virtualization-based security runs part of Windows in a hypervisor.",
+  "gain": "Can raise game performance a few percent.",
+  "cost": "Removes protection against kernel malware; Memory Integrity and Credential Guard stop working.",
+  "who": "Gaming PCs where you accept less protection.",
+  "restart": "reboot",
+  "note": "Same setting as 'Disable virtualization-based security' on the Windows page."
+ },
+ "gaming|enable_vrr": {
+  "why": "Turns on Windows' variable refresh rate for windowed games.",
+  "gain": "Smoother frame pacing on G-Sync/FreeSync monitors.",
+  "cost": "Can cause flicker on some monitors.",
+  "who": "Players with VRR monitors.",
+  "restart": "reboot"
+ },
+ "gaming|game_mode": {
+  "why": "Game Mode gives the game priority and pauses Windows Update installs while you play.",
+  "gain": "Fewer background interruptions in games.",
+  "cost": "Rarely, some games stutter with it; it's on by default in Windows 11.",
+  "who": "Everyone.",
+  "restart": "none"
+ },
+ "gaming|hags": {
+  "why": "Lets the graphics card manage its own memory scheduling.",
+  "gain": "Can lower latency and CPU load; needed for DLSS Frame Generation.",
+  "cost": "Some older games or capture tools behave worse.",
+  "who": "Recent NVIDIA and AMD cards.",
+  "restart": "reboot"
+ },
+ "gaming|msi_mode": {
+  "why": "Message Signaled Interrupts can lower interrupt latency for the GPU and network card.",
+  "gain": "Possibly lower latency on devices that support it.",
+  "cost": "A device that doesn't handle MSI properly can stop working or stop the PC from booting.",
+  "who": "Experienced users who can boot into Safe Mode.",
+  "restart": "reboot"
+ },
+ "gaming|optimize_games": {
+  "why": "The dynamic tick lets the timer stop while idle to save power.",
+  "gain": "Some players report steadier timing.",
+  "cost": "Higher idle power use; results vary.",
+  "who": "Desktop users who test the difference.",
+  "restart": "reboot"
+ },
+ "gaming|timer_resolution": {
+  "why": "Changes how Windows keeps time to reduce timer jitter.",
+  "gain": "Some players report more consistent input timing.",
+  "cost": "Results vary by PC and can make things worse; needs a restart to test.",
+  "who": "Experienced users who benchmark before and after.",
+  "restart": "reboot"
+ },
+ "gpu|disable_defender": {
+  "why": "Microsoft Defender scans files as you use them.",
+  "gain": "Slightly less background scanning.",
+  "cost": "No real-time malware protection unless another antivirus is installed. Tamper Protection usually blocks this.",
+  "who": "Only PCs with another antivirus.",
+  "restart": "reboot",
+  "note": "Same setting as on the Windows page."
+ },
+ "gpu|disable_firewall": {
+  "why": "The firewall blocks unwanted incoming connections.",
+  "gain": "Hosting tools work without firewall rules.",
+  "cost": "Anything on your network can reach services on your PC.",
+  "who": "Only PCs behind another firewall, for troubleshooting.",
+  "restart": "none"
+ },
+ "gpu|disable_fullscreen_opt": {
+  "why": "Windows runs 'fullscreen' games as optimized borderless windows.",
+  "gain": "Real exclusive fullscreen in older games.",
+  "cost": "Alt-Tab is slower and overlays may not work.",
+  "who": "Players of older DirectX 9/11 games.",
+  "restart": "app",
+  "note": "Same setting as on the Gaming page."
+ },
+ "gpu|disable_fxaa": {
+  "why": "Sets a feature-control flag for post-process anti-aliasing.",
+  "gain": "None measurable on current drivers.",
+  "cost": "None.",
+  "who": "Rarely useful.",
+  "restart": "app",
+  "note": "Current graphics drivers don't read this value; set anti-aliasing in your driver panel."
+ },
+ "gpu|disable_gpu_power_save": {
+  "why": "Sets the power plan's graphics preference to performance.",
+  "gain": "The GPU is less likely to clock down on switchable-graphics laptops.",
+  "cost": "More power use on laptops.",
+  "who": "Laptops with two GPUs.",
+  "restart": "none"
+ },
+ "gpu|disable_gpu_timeout": {
+  "why": "Windows resets the graphics driver if the GPU stops responding for 2 seconds.",
+  "gain": "Heavy workloads get 8 seconds before a reset, avoiding false 'driver stopped responding' errors.",
+  "cost": "A real GPU hang takes longer to recover from.",
+  "who": "Rendering, compute and overclocked GPUs.",
+  "restart": "reboot"
+ },
+ "gpu|disable_logon_blur": {
+  "why": "The sign-in screen blurs its background.",
+  "gain": "A sharp sign-in background.",
+  "cost": "None.",
+  "who": "By preference.",
+  "restart": "none"
+ },
+ "gpu|disable_mouse_accel": {
+  "why": "Enhance pointer precision makes pointer distance depend on mouse speed.",
+  "gain": "Consistent aim and muscle memory.",
+  "cost": "Low-DPI mice may need a higher pointer speed.",
+  "who": "Gamers.",
+  "restart": "signout"
+ },
+ "gpu|disable_multiplane_overlay": {
+  "why": "MPO is a display feature linked to flicker and stutter on some setups.",
+  "gain": "Can fix flicker or black screens in some multi-monitor setups.",
+  "cost": "Slightly higher GPU power use.",
+  "who": "Only PCs with MPO-related flicker.",
+  "restart": "reboot",
+  "note": "Recent Windows builds may ignore this value."
+ },
+ "gpu|disable_outlook_new": {
+  "why": "Classic Outlook shows a 'Try the new Outlook' switch.",
+  "gain": "The switch is hidden so you stay on classic Outlook.",
+  "cost": "None.",
+  "who": "Classic Outlook users.",
+  "restart": "app"
+ },
+ "gpu|disable_rdp_warnings": {
+  "why": "Remote Desktop warns before redirecting drives or devices.",
+  "gain": "No warning dialog when you connect.",
+  "cost": "You won't be warned when connecting to an unknown server with drive redirection.",
+  "who": "Users who only connect to their own PCs.",
+  "restart": "app"
+ },
+ "gpu|disable_remote_assist": {
+  "why": "Refuses incoming Remote Desktop connections.",
+  "gain": "Closes the Remote Desktop port.",
+  "cost": "You can't connect to this PC with Remote Desktop.",
+  "who": "PCs nobody connects to remotely.",
+  "restart": "none",
+  "note": "Same setting as 'Disable Remote Desktop'."
+ },
+ "gpu|disable_s0_network": {
+  "why": "Modern Standby can keep the network on while asleep.",
+  "gain": "Better battery life in standby.",
+  "cost": "No email or updates while the laptop sleeps.",
+  "who": "Laptops with Modern Standby.",
+  "restart": "none"
+ },
+ "gpu|disable_settings_home": {
+  "why": "The Settings Home page shows promotions and recommendations.",
+  "gain": "Settings opens on a normal page.",
+  "cost": "None.",
+  "who": "Everyone.",
+  "restart": "app"
+ },
+ "gpu|disable_storage_sense": {
+  "why": "Storage Sense deletes temporary files and Recycle Bin items on a schedule.",
+  "gain": "Nothing is deleted without you asking.",
+  "cost": "Temporary files build up until you clean them (the Cleaner tool can do that).",
+  "who": "Users who clean up by hand.",
+  "restart": "none"
+ },
+ "gpu|disable_tray_notifications": {
+  "why": "Removes the notification centre and calendar flyout.",
+  "gain": "No notification panel.",
+  "cost": "You lose notification history and quick settings.",
+  "who": "Users who never open the notification panel.",
+  "restart": "signout",
+  "note": "Same setting as 'Disable Action Center' on the Windows page."
+ },
+ "gpu|disable_vsync": {
+  "why": "Sets an NVIDIA control-panel flag.",
+  "gain": "Little or none: this flag doesn't turn off VSync.",
+  "cost": "None.",
+  "who": "Rarely useful.",
+  "restart": "app",
+  "note": "Turn off VSync in the game or in the NVIDIA/AMD control panel instead."
+ },
+ "gpu|enable_bsod_verbose": {
+  "why": "Blue screens normally show only a sad face and a stop code.",
+  "gain": "Blue screens show more technical details, which helps troubleshooting.",
+  "cost": "None.",
+  "who": "Everyone.",
+  "restart": "reboot"
+ },
+ "gpu|enable_cross_device": {
+  "why": "Turns on clipboard history (Win+V).",
+  "gain": "Paste things you copied earlier.",
+  "cost": "Copied text, including passwords, is kept in the history.",
+  "who": "Everyone who copies a lot.",
+  "restart": "none"
+ },
+ "gpu|enable_gpu_accel": {
+  "why": "Makes sure WPF apps use the GPU for drawing.",
+  "gain": "Smoother WPF apps if acceleration had been turned off.",
+  "cost": "None; this is the Windows default.",
+  "who": "Everyone.",
+  "restart": "app"
+ },
+ "gpu|enable_logon_verbose": {
+  "why": "Startup and shutdown only say 'Please wait'.",
+  "gain": "Shows which step Windows is on, useful when startup hangs.",
+  "cost": "None.",
+  "who": "Everyone.",
+  "restart": "reboot"
+ },
+ "gpu|enable_s3_sleep": {
+  "why": "Modern Standby keeps the laptop partly awake while sleeping.",
+  "gain": "Classic sleep: no surprise wake-ups or a warm laptop in the bag.",
+  "cost": "Only works if the firmware supports S3; otherwise sleep may disappear.",
+  "who": "Laptops that drain or heat up in standby.",
+  "restart": "reboot"
+ },
+ "gpu|force_multi_gpu": {
+  "why": "Writes a multi-GPU support flag.",
+  "gain": "Little or none: multi-GPU is up to each game.",
+  "cost": "None.",
+  "who": "Rarely useful.",
+  "restart": "reboot"
+ },
+ "gpu|gpu_perf_mode": {
+  "why": "Turns on hardware-accelerated GPU scheduling.",
+  "gain": "Can lower latency and CPU load.",
+  "cost": "Some older games or capture tools behave worse.",
+  "who": "Recent NVIDIA and AMD cards.",
+  "restart": "reboot",
+  "note": "Same setting as 'Enable hardware-accelerated GPU scheduling' on the Gaming page."
+ },
+ "gpu|gpu_priority": {
+  "why": "Writes a graphics-settings preference value.",
+  "gain": "Little or none measurable.",
+  "cost": "None.",
+  "who": "Rarely useful.",
+  "restart": "reboot",
+  "note": "Per-app GPU choice is made in Settings > Display > Graphics."
+ },
+ "gpu|gpu_tdr_delay": {
+  "why": "Gives the driver longer to respond to Windows' GPU checks.",
+  "gain": "Fewer false driver resets under heavy load.",
+  "cost": "A real GPU hang takes longer to recover from.",
+  "who": "Rendering, compute and overclocked GPUs.",
+  "restart": "reboot"
+ },
+ "gpu|set_utc_time": {
+  "why": "Windows keeps the hardware clock in local time, Linux in UTC.",
+  "gain": "No wrong clock after switching between Windows and Linux.",
+  "cost": "Only change this if you dual-boot; otherwise the clock can drift.",
+  "who": "Dual-boot PCs.",
+  "restart": "reboot"
+ },
+ "network|disable_autotuninglevel": {
+  "why": "Auto-tuning grows the TCP receive window on fast connections.",
+  "gain": "Can help with some old routers.",
+  "cost": "Downloads on fast connections can become much slower.",
+  "who": "Troubleshooting only.",
+  "restart": "none"
+ },
+ "network|disable_ecn": {
+  "why": "Explicit Congestion Notification marks packets instead of dropping them.",
+  "gain": "Avoids rare problems with old routers that mishandle ECN.",
+  "cost": "None in most cases.",
+  "who": "Networks with old routers.",
+  "restart": "none"
+ },
+ "network|disable_ipv6": {
+  "why": "Turns off IPv6 entirely.",
+  "gain": "Can fix rare networks with broken IPv6.",
+  "cost": "Microsoft doesn't support it: some Windows features, HomeGroup-era tools and IPv6-only services break, and startup can be slower.",
+  "who": "Only for troubleshooting broken IPv6.",
+  "restart": "reboot",
+  "note": "Prefer 'Prefer IPv4 over IPv6' instead."
+ },
+ "network|disable_nagle": {
+  "why": "Sets TcpAckFrequency=1 on every network interface, acknowledging packets immediately.",
+  "gain": "Can lower latency in older games that use TCP.",
+  "cost": "Slightly more network overhead; most modern games use UDP and see no change.",
+  "who": "Players of older TCP-based games.",
+  "restart": "reboot",
+  "note": "Despite the name, this changes delayed acknowledgement, not Nagle itself."
+ },
+ "network|disable_qos": {
+  "why": "Sets the QoS bandwidth reserve to 0 %.",
+  "gain": "Little: the reserve only applies when an app asks for QoS.",
+  "cost": "None.",
+  "who": "Everyone.",
+  "restart": "reboot"
+ },
+ "network|disable_rsc": {
+  "why": "Receive segment coalescing combines packets to save CPU.",
+  "gain": "Packets reach the app individually, which can lower latency slightly.",
+  "cost": "Slightly higher CPU use on fast downloads.",
+  "who": "Gamers.",
+  "restart": "none"
+ },
+ "network|disable_rss": {
+  "why": "Receive-side scaling spreads network work over CPU cores.",
+  "gain": "Rarely helps a misbehaving adapter driver.",
+  "cost": "Network processing goes onto one core: lower throughput and higher CPU load on fast connections.",
+  "who": "Troubleshooting only.",
+  "restart": "none"
+ },
+ "network|disable_teredo": {
+  "why": "Teredo tunnels IPv6 over IPv4.",
+  "gain": "Less background tunnel traffic.",
+  "cost": "Can break Xbox Live party chat and some peer-to-peer games ('Teredo unable to qualify').",
+  "who": "PCs that don't use Xbox networking.",
+  "restart": "none"
+ },
+ "network|disable_timestamps": {
+  "why": "TCP timestamps add 12 bytes to each packet.",
+  "gain": "Slightly smaller packets.",
+  "cost": "Negligible either way.",
+  "who": "Everyone.",
+  "restart": "none"
+ },
+ "network|enable_tcp_nodelay": {
+  "why": "Writes a global TcpNoDelay value.",
+  "gain": "Little or none: current Windows ignores this global value.",
+  "cost": "None.",
+  "who": "Rarely useful.",
+  "restart": "reboot"
+ },
+ "network|prefer_ipv4": {
+  "why": "Windows normally tries IPv6 first.",
+  "gain": "Connections use IPv4 when both work, which can avoid slow or broken IPv6 routes.",
+  "cost": "None in most cases.",
+  "who": "Networks with poor IPv6.",
+  "restart": "reboot"
+ },
+ "network|use_cloudflare_dns": {
+  "why": "Your provider's DNS servers can be slow or log your lookups.",
+  "gain": "Fast, privacy-focused DNS (1.1.1.1) on all physical adapters.",
+  "cost": "Some provider services or parental controls that rely on their DNS stop working.",
+  "who": "Everyone.",
+  "restart": "none",
+  "note": "OFF sets the adapters back to automatic DNS."
+ },
+ "personalize|accent_blue": {
+  "why": "Sets the accent colour to #0078D7 everywhere Windows uses it.",
+  "gain": "A matching accent colour on the taskbar, Start, window borders and apps.",
+  "cost": "Explorer restarts to apply it, closing open Explorer windows.",
+  "who": "By preference.",
+  "restart": "explorer",
+  "note": "OFF sets Windows blue."
+ },
+ "personalize|accent_gold": {
+  "why": "Sets the accent colour to #FFB900 everywhere Windows uses it.",
+  "gain": "A matching accent colour on the taskbar, Start, window borders and apps.",
+  "cost": "Explorer restarts to apply it, closing open Explorer windows.",
+  "who": "By preference.",
+  "restart": "explorer",
+  "note": "OFF sets Windows blue."
+ },
+ "personalize|accent_gray": {
+  "why": "Sets the accent colour to #4C4A48 everywhere Windows uses it.",
+  "gain": "A matching accent colour on the taskbar, Start, window borders and apps.",
+  "cost": "Explorer restarts to apply it, closing open Explorer windows.",
+  "who": "By preference.",
+  "restart": "explorer",
+  "note": "OFF sets Windows blue."
+ },
+ "personalize|accent_green": {
+  "why": "Sets the accent colour to #107C10 everywhere Windows uses it.",
+  "gain": "A matching accent colour on the taskbar, Start, window borders and apps.",
+  "cost": "Explorer restarts to apply it, closing open Explorer windows.",
+  "who": "By preference.",
+  "restart": "explorer",
+  "note": "OFF sets Windows blue."
+ },
+ "personalize|accent_lime": {
+  "why": "Sets the accent colour to #7FBA00 everywhere Windows uses it.",
+  "gain": "A matching accent colour on the taskbar, Start, window borders and apps.",
+  "cost": "Explorer restarts to apply it, closing open Explorer windows.",
+  "who": "By preference.",
+  "restart": "explorer",
+  "note": "OFF sets Windows blue."
+ },
+ "personalize|accent_orange": {
+  "why": "Sets the accent colour to #CA5010 everywhere Windows uses it.",
+  "gain": "A matching accent colour on the taskbar, Start, window borders and apps.",
+  "cost": "Explorer restarts to apply it, closing open Explorer windows.",
+  "who": "By preference.",
+  "restart": "explorer",
+  "note": "OFF sets Windows blue."
+ },
+ "personalize|accent_pink": {
+  "why": "Sets the accent colour to #E3008C everywhere Windows uses it.",
+  "gain": "A matching accent colour on the taskbar, Start, window borders and apps.",
+  "cost": "Explorer restarts to apply it, closing open Explorer windows.",
+  "who": "By preference.",
+  "restart": "explorer",
+  "note": "OFF sets Windows blue."
+ },
+ "personalize|accent_purple": {
+  "why": "Sets the accent colour to #744DA9 everywhere Windows uses it.",
+  "gain": "A matching accent colour on the taskbar, Start, window borders and apps.",
+  "cost": "Explorer restarts to apply it, closing open Explorer windows.",
+  "who": "By preference.",
+  "restart": "explorer",
+  "note": "OFF sets Windows blue."
+ },
+ "personalize|accent_red": {
+  "why": "Sets the accent colour to #E81123 everywhere Windows uses it.",
+  "gain": "A matching accent colour on the taskbar, Start, window borders and apps.",
+  "cost": "Explorer restarts to apply it, closing open Explorer windows.",
+  "who": "By preference.",
+  "restart": "explorer",
+  "note": "OFF sets Windows blue."
+ },
+ "personalize|accent_teal": {
+  "why": "Sets the accent colour to #038387 everywhere Windows uses it.",
+  "gain": "A matching accent colour on the taskbar, Start, window borders and apps.",
+  "cost": "Explorer restarts to apply it, closing open Explorer windows.",
+  "who": "By preference.",
+  "restart": "explorer",
+  "note": "OFF sets Windows blue."
+ },
+ "personalize|clock_seconds": {
+  "why": "The clock shows hours and minutes only.",
+  "gain": "Seconds in the taskbar clock.",
+  "cost": "Slightly more power use on laptops.",
+  "who": "By preference.",
+  "restart": "none"
+ },
+ "personalize|desk_recyclebin": {
+  "why": "Puts the Recycle Bin on the desktop.",
+  "gain": "One click to the Recycle Bin.",
+  "cost": "A busier desktop.",
+  "who": "By preference.",
+  "restart": "none"
+ },
+ "personalize|desk_thispc": {
+  "why": "Puts This PC on the desktop.",
+  "gain": "One click to This PC.",
+  "cost": "A busier desktop.",
+  "who": "By preference.",
+  "restart": "none"
+ },
+ "personalize|desk_userfiles": {
+  "why": "Puts your user folder on the desktop.",
+  "gain": "One click to your user folder.",
+  "cost": "A busier desktop.",
+  "who": "By preference.",
+  "restart": "none"
+ },
+ "personalize|dwm_tint": {
+  "why": "Some apps and the lock screen read a second copy of the tint flag.",
+  "gain": "Accent colour applied consistently.",
+  "cost": "None.",
+  "who": "Users using the accent tint.",
+  "restart": "none"
+ },
+ "personalize|small_icons": {
+  "why": "Windows 10 can use small taskbar buttons.",
+  "gain": "A thinner taskbar with more room.",
+  "cost": "Explorer restarts to apply it; Windows 11 ignores this setting.",
+  "who": "Windows 10 users.",
+  "restart": "explorer"
+ },
+ "personalize|start_frequent": {
+  "why": "Start can list your most used apps.",
+  "gain": "Your top apps at the top of the list.",
+  "cost": "Shows which apps you use most.",
+  "who": "Single-user PCs.",
+  "restart": "explorer"
+ },
+ "personalize|start_recent": {
+  "why": "Start and jump lists can list recently opened files.",
+  "gain": "Quick access to recent files.",
+  "cost": "Recent file names are visible to anyone using the PC.",
+  "who": "Single-user PCs.",
+  "restart": "explorer"
+ },
+ "personalize|taskbar_no_combine": {
+  "why": "Windows groups windows of the same app into one button.",
+  "gain": "Each window gets its own labelled button.",
+  "cost": "Buttons take more room.",
+  "who": "Users with many windows open.",
+  "restart": "explorer"
+ },
+ "personalize|tb_tint": {
+  "why": "Start and the taskbar are grey by default.",
+  "gain": "Start, taskbar and notification centre in your accent colour.",
+  "cost": "Works only in dark mode for the taskbar on Windows 11.",
+  "who": "By preference.",
+  "restart": "none"
+ },
+ "personalize|tray_all_icons": {
+  "why": "Windows hides new tray icons behind an arrow.",
+  "gain": "Every tray icon is visible.",
+  "cost": "A crowded tray if many apps run.",
+  "who": "By preference.",
+  "restart": "explorer"
+ },
+ "power|disable_adaptive_bright": {
+  "why": "Brightness follows the light sensor.",
+  "gain": "Brightness stays where you set it.",
+  "cost": "No automatic dimming in dark rooms.",
+  "who": "Laptops and tablets with a light sensor.",
+  "restart": "none"
+ },
+ "power|disable_bw_saving": {
+  "why": "Windows limits network packets for non-multimedia apps while media plays.",
+  "gain": "No network throttling during audio/video playback.",
+  "cost": "Slightly more CPU use while media plays.",
+  "who": "Gamers who stream or play music.",
+  "restart": "reboot"
+ },
+ "power|disable_connected_standby": {
+  "why": "Modern Standby keeps the PC partly awake while asleep.",
+  "gain": "Classic sleep behaviour.",
+  "cost": "On PCs without S3 support, sleep may disappear altogether.",
+  "who": "Laptops that drain in standby.",
+  "restart": "reboot"
+ },
+ "power|disable_hiberboot": {
+  "why": "Fast Startup hibernates the kernel instead of fully shutting down.",
+  "gain": "A real full shutdown every time, which avoids some driver and dual-boot problems.",
+  "cost": "Slower startup; hibernation is also turned off.",
+  "who": "Dual-boot PCs and troubleshooting.",
+  "restart": "none"
+ },
+ "power|disable_hibernate": {
+  "why": "Hibernation keeps a large file on the system drive.",
+  "gain": "Frees several GB on C:.",
+  "cost": "No hibernate option, and Fast Startup is turned off.",
+  "who": "Desktop PCs.",
+  "restart": "none"
+ },
+ "power|disable_hybrid_sleep": {
+  "why": "Hybrid sleep also writes memory to disk when sleeping.",
+  "gain": "Faster sleep and less disk writing.",
+  "cost": "Unsaved work is lost if power fails during sleep; hibernation is also turned off.",
+  "who": "Desktop PCs on reliable power.",
+  "restart": "none"
+ },
+ "power|disable_selective_suspend": {
+  "why": "Individual USB devices can be suspended when idle.",
+  "gain": "Mice, headsets and DACs don't drop out.",
+  "cost": "More power use on laptops.",
+  "who": "Users with USB dropouts.",
+  "restart": "reboot"
+ },
+ "power|disable_sleep": {
+  "why": "Stops the PC going to sleep on its own when plugged in.",
+  "gain": "Long tasks keep running when you're away.",
+  "cost": "More power use; hibernation is also turned off.",
+  "who": "Desktop PCs left running on purpose.",
+  "restart": "none"
+ },
+ "power|disable_store_auto": {
+  "why": "Store apps update themselves in the background.",
+  "gain": "No background app downloads.",
+  "cost": "Store apps stop getting fixes until you update them in the Store.",
+  "who": "Users who update by hand.",
+  "restart": "none",
+  "note": "Same setting as on the Windows page."
+ },
+ "power|disable_throttle_state": {
+  "why": "Lets the plan stop using processor throttle states.",
+  "gain": "Less clock slowdown under load.",
+  "cost": "Higher power use and heat.",
+  "who": "Desktop PCs.",
+  "restart": "none"
+ },
+ "power|disable_usb_power_save": {
+  "why": "USB hubs can power down idle ports.",
+  "gain": "Fewer USB disconnects with audio interfaces and controllers.",
+  "cost": "Slightly more power use.",
+  "who": "Desktop PCs with USB audio or controllers.",
+  "restart": "none"
+ },
+ "power|disable_wake_timers": {
+  "why": "Scheduled tasks can wake the PC from sleep.",
+  "gain": "The PC doesn't wake up by itself at night.",
+  "cost": "Updates and maintenance wait until you use the PC.",
+  "who": "Bedroom PCs.",
+  "restart": "none"
+ },
+ "power|disable_wifi_sense": {
+  "why": "Wi-Fi Sense shared hotspot information.",
+  "gain": "No hotspot reporting.",
+  "cost": "None on current Windows.",
+  "who": "Everyone.",
+  "restart": "none"
+ },
+ "power|disk_timeout": {
+  "why": "Hard drives spin down after a while to save power.",
+  "gain": "No delay when a sleeping hard drive spins back up.",
+  "cost": "Slightly more power use and drive wear; no effect on SSDs.",
+  "who": "PCs with hard drives used for games or media.",
+  "restart": "none"
+ },
+ "power|display_timeout": {
+  "why": "The screen turns off after a few idle minutes.",
+  "gain": "The screen stays on during long downloads or while watching.",
+  "cost": "More power use; risk of burn-in on OLED screens.",
+  "who": "Users who turn the screen off themselves.",
+  "restart": "none"
+ },
+ "power|enable_fast_startup": {
+  "why": "Fast Startup hibernates the kernel at shutdown.",
+  "gain": "Faster startup.",
+  "cost": "Some driver updates need a restart rather than a shutdown; dual-boot drives can be locked.",
+  "who": "Single-boot PCs.",
+  "restart": "reboot"
+ },
+ "power|lid_close_action": {
+  "why": "Closing the lid normally sleeps the laptop.",
+  "gain": "Keeps running with the lid closed when plugged in, for external monitors.",
+  "cost": "The laptop can overheat in a bag if you forget.",
+  "who": "Laptops used docked.",
+  "restart": "none"
+ },
+ "power|power_button_action": {
+  "why": "Pressing the power button normally shuts down or sleeps.",
+  "gain": "Accidental presses do nothing.",
+  "cost": "You must shut down from Start.",
+  "who": "PCs with an easy-to-hit power button.",
+  "restart": "none"
+ },
+ "power|ultimate_power": {
+  "why": "Ultimate Performance removes the last power-saving delays.",
+  "gain": "Fastest response to load changes.",
+  "cost": "Highest idle power use and heat.",
+  "who": "Desktop gaming and workstation PCs.",
+  "restart": "none"
+ },
+ "power|usb_dma": {
+  "why": "Kernel DMA Protection policy for external devices.",
+  "gain": "External devices that don't support DMA remapping are blocked until you sign in, protecting against DMA attacks.",
+  "cost": "Some Thunderbolt/USB4 docks and devices may not work until signed in, or at all.",
+  "who": "Laptops used in public places.",
+  "restart": "reboot"
+ },
+ "privacy|privacy_account_info": {
+  "why": "Store apps can ask for your name and picture.",
+  "gain": "No Store app on your account gets your name and picture.",
+  "cost": "Apps can't show your account name or picture.",
+  "who": "Everyone who doesn't use that permission.",
+  "restart": "app"
+ },
+ "privacy|privacy_activity": {
+  "why": "Store apps can ask for your activity history.",
+  "gain": "No Store app on your account gets your activity history.",
+  "cost": "Apps can't read your activity history.",
+  "who": "Everyone who doesn't use that permission.",
+  "restart": "app"
+ },
+ "privacy|privacy_app_diagnostics": {
+  "why": "Store apps can ask for other apps' diagnostic info.",
+  "gain": "No Store app on your account gets other apps' diagnostic info.",
+  "cost": "Some system and support apps can't see which apps are running.",
+  "who": "Everyone who doesn't use that permission.",
+  "restart": "app"
+ },
+ "privacy|privacy_background_apps": {
+  "why": "Store apps keep running in the background.",
+  "gain": "Fewer background processes.",
+  "cost": "Store apps stop notifying you until you open them.",
+  "who": "PCs that don't rely on Store app notifications.",
+  "restart": "none"
+ },
+ "privacy|privacy_bluetooth": {
+  "why": "Store apps can ask for unpaired Bluetooth devices.",
+  "gain": "No Store app on your account gets unpaired Bluetooth devices.",
+  "cost": "Apps can't sync with nearby unpaired devices.",
+  "who": "Everyone who doesn't use that permission.",
+  "restart": "app"
+ },
+ "privacy|privacy_calendar": {
+  "why": "Store apps can ask for your calendar.",
+  "gain": "No Store app on your account gets your calendar.",
+  "cost": "Calendar and Mail apps can't read your appointments.",
+  "who": "Everyone who doesn't use that permission.",
+  "restart": "app"
+ },
+ "privacy|privacy_call_history": {
+  "why": "Store apps can ask for call history.",
+  "gain": "No Store app on your account gets call history.",
+  "cost": "Phone Link can't show call history.",
+  "who": "Everyone who doesn't use that permission.",
+  "restart": "app"
+ },
+ "privacy|privacy_camera": {
+  "why": "Store apps can ask for the camera.",
+  "gain": "No Store app on your account gets the camera.",
+  "cost": "Store apps such as Camera, Teams (new) and WhatsApp can't use the camera; desktop apps may still.",
+  "who": "Everyone who doesn't use that permission.",
+  "restart": "app"
+ },
+ "privacy|privacy_contacts": {
+  "why": "Store apps can ask for your contacts.",
+  "gain": "No Store app on your account gets your contacts.",
+  "cost": "People, Mail and chat apps can't read contacts.",
+  "who": "Everyone who doesn't use that permission.",
+  "restart": "app"
+ },
+ "privacy|privacy_documents": {
+  "why": "Store apps can ask for your Documents library.",
+  "gain": "No Store app on your account gets your Documents library.",
+  "cost": "Store apps can't open your documents without you picking them.",
+  "who": "Everyone who doesn't use that permission.",
+  "restart": "app"
+ },
+ "privacy|privacy_email": {
+  "why": "Store apps can ask for your email.",
+  "gain": "No Store app on your account gets your email.",
+  "cost": "Apps other than your mail app can't read email.",
+  "who": "Everyone who doesn't use that permission.",
+  "restart": "app"
+ },
+ "privacy|privacy_eyetracker": {
+  "why": "Store apps can ask for eye trackers.",
+  "gain": "No Store app on your account gets eye trackers.",
+  "cost": "Eye-tracking accessibility apps stop working.",
+  "who": "Everyone who doesn't use that permission.",
+  "restart": "app"
+ },
+ "privacy|privacy_filesystem": {
+  "why": "Store apps can ask for your whole file system.",
+  "gain": "No Store app on your account gets your whole file system.",
+  "cost": "Store apps that need broad file access (some editors and file managers) stop working.",
+  "who": "Everyone who doesn't use that permission.",
+  "restart": "app"
+ },
+ "privacy|privacy_location": {
+  "why": "Store apps can ask for your location.",
+  "gain": "No Store app on your account gets your location.",
+  "cost": "Maps, weather and Find my device can't locate you.",
+  "who": "Everyone who doesn't use that permission.",
+  "restart": "app"
+ },
+ "privacy|privacy_messaging": {
+  "why": "Store apps can ask for text messages.",
+  "gain": "No Store app on your account gets text messages.",
+  "cost": "Phone Link and messaging apps can't read texts.",
+  "who": "Everyone who doesn't use that permission.",
+  "restart": "app"
+ },
+ "privacy|privacy_microphone": {
+  "why": "Store apps can ask for the microphone.",
+  "gain": "No Store app on your account gets the microphone.",
+  "cost": "Store apps can't record audio; voice chat in Store apps stops working.",
+  "who": "Everyone who doesn't use that permission.",
+  "restart": "app"
+ },
+ "privacy|privacy_notifications": {
+  "why": "Store apps can ask for your notifications.",
+  "gain": "No Store app on your account gets your notifications.",
+  "cost": "Apps that read notifications (e.g. Phone Link, smartwatch apps) stop working.",
+  "who": "Everyone who doesn't use that permission.",
+  "restart": "app"
+ },
+ "privacy|privacy_phone_calls": {
+  "why": "Store apps can ask for phone calls.",
+  "gain": "No Store app on your account gets phone calls.",
+  "cost": "Phone Link can't make calls.",
+  "who": "Everyone who doesn't use that permission.",
+  "restart": "app"
+ },
+ "privacy|privacy_pictures": {
+  "why": "Store apps can ask for your Pictures library.",
+  "gain": "No Store app on your account gets your Pictures library.",
+  "cost": "Photos and other Store apps can't browse your pictures.",
+  "who": "Everyone who doesn't use that permission.",
+  "restart": "app"
+ },
+ "privacy|privacy_radios": {
+  "why": "Store apps can ask for radios.",
+  "gain": "No Store app on your account gets radios.",
+  "cost": "Apps can't turn Bluetooth or Wi-Fi on or off.",
+  "who": "Everyone who doesn't use that permission.",
+  "restart": "app"
+ },
+ "privacy|privacy_screenshots": {
+  "why": "Store apps can ask for borderless screen capture.",
+  "gain": "No Store app on your account gets borderless screen capture.",
+  "cost": "Capture apps must show a yellow border while recording.",
+  "who": "Everyone who doesn't use that permission.",
+  "restart": "app"
+ },
+ "privacy|privacy_tasks": {
+  "why": "Store apps can ask for your tasks.",
+  "gain": "No Store app on your account gets your tasks.",
+  "cost": "To Do and similar apps can't share tasks.",
+  "who": "Everyone who doesn't use that permission.",
+  "restart": "app"
+ },
+ "privacy|privacy_videos": {
+  "why": "Store apps can ask for your Videos library.",
+  "gain": "No Store app on your account gets your Videos library.",
+  "cost": "Store video apps can't browse your videos.",
+  "who": "Everyone who doesn't use that permission.",
+  "restart": "app"
+ },
+ "windows|best_performance": {
+  "why": "Turns every visual effect off at once, like 'Adjust for best performance'.",
+  "gain": "The snappiest desktop on slow PCs.",
+  "cost": "No animations, no thumbnails (icons only), rougher look.",
+  "who": "Low-end PCs.",
+  "restart": "signout",
+  "note": "Overlaps the single-effect tweaks; turn on one or the other."
+ },
+ "windows|disable_actioncenter": {
+  "why": "Removes the notification panel if you never use it.",
+  "gain": "No notification centre or quick settings flyout from the tray.",
+  "cost": "You lose the notification history and the quick toggles (Wi-Fi, Bluetooth, Focus).",
+  "who": "Users who never open the notification panel.",
+  "restart": "signout"
+ },
+ "windows|disable_aero_peek": {
+  "why": "Peek shows the desktop when you hover the corner of the taskbar.",
+  "gain": "No accidental desktop peeks.",
+  "cost": "No quick look at the desktop by hovering.",
+  "who": "Everyone.",
+  "restart": "signout"
+ },
+ "windows|disable_animations": {
+  "why": "Minimise/maximise and taskbar animations add a small delay.",
+  "gain": "Windows open and close instantly.",
+  "cost": "Less visual feedback.",
+  "who": "Users who prefer speed over effects.",
+  "restart": "signout"
+ },
+ "windows|disable_background": {
+  "why": "Store apps keep running in the background to refresh tiles and notifications.",
+  "gain": "Fewer background processes and less CPU and RAM use.",
+  "cost": "Mail, Calendar, Phone Link and similar apps stop notifying you until you open them.",
+  "who": "PCs that don't rely on Store app notifications.",
+  "restart": "none"
+ },
+ "windows|disable_boost": {
+  "why": "Turbo boost raises clocks above base speed when there's thermal room.",
+  "gain": "Lower temperatures and steadier clocks.",
+  "cost": "Noticeably lower performance in games and most apps.",
+  "who": "Laptops that overheat, or silent PCs.",
+  "restart": "none"
+ },
+ "windows|disable_co_creator": {
+  "why": "Turns off one of the suggested-content switches tied to AI features.",
+  "gain": "Fewer suggestions.",
+  "cost": "None.",
+  "who": "Everyone.",
+  "restart": "none",
+  "note": "This value controls suggested content; Paint's own AI tools are set inside Paint."
+ },
+ "windows|disable_combo_anim": {
+  "why": "Drop-down lists slide open.",
+  "gain": "Drop-downs open instantly.",
+  "cost": "None.",
+  "who": "Everyone.",
+  "restart": "signout"
+ },
+ "windows|disable_cooling": {
+  "why": "Active cooling speeds fans up before slowing the CPU.",
+  "gain": "The CPU throttles less under heavy load.",
+  "cost": "Fans run louder sooner.",
+  "who": "Desktop PCs and gaming laptops.",
+  "restart": "none"
+ },
+ "windows|disable_copilot": {
+  "why": "Removes the Copilot sidebar from Windows.",
+  "gain": "No Copilot sidebar or shortcut.",
+  "cost": "You can't use Copilot from the taskbar; the separate Copilot app may still work.",
+  "who": "Everyone who doesn't use Copilot.",
+  "restart": "signout"
+ },
+ "windows|disable_core_parking": {
+  "why": "Core parking puts CPU cores to sleep when load is low.",
+  "gain": "All cores stay ready, avoiding wake-up delays.",
+  "cost": "Higher idle power use and heat.",
+  "who": "Desktop gaming PCs.",
+  "restart": "none"
+ },
+ "windows|disable_cortana": {
+  "why": "Cortana is retired on current Windows but its policy still affects search.",
+  "gain": "Search no longer offers the Cortana assistant.",
+  "cost": "None on current Windows.",
+  "who": "Everyone.",
+  "restart": "signout"
+ },
+ "windows|disable_cstates": {
+  "why": "Core parking can put CPU cores to sleep in the High performance plan.",
+  "gain": "All cores stay available, which can smooth out frame times.",
+  "cost": "Higher idle power and heat. Only affects the High performance plan.",
+  "who": "Desktop gaming PCs using High performance.",
+  "restart": "none"
+ },
+ "windows|disable_cursor_shadow": {
+  "why": "The pointer has a drop shadow.",
+  "gain": "A flat pointer.",
+  "cost": "The setting writes the whole visual-effects bit mask, so other effects change too.",
+  "who": "Users turning off effects.",
+  "restart": "signout",
+  "note": "OFF restores your previous mask exactly."
+ },
+ "windows|disable_defender": {
+  "why": "Microsoft Defender scans files as you use them, which costs some CPU and disk time.",
+  "gain": "Slightly less background scanning.",
+  "cost": "Your PC has no real-time malware protection unless you install another antivirus. Tamper Protection usually blocks this, so it may not take effect.",
+  "who": "Only PCs with another antivirus installed.",
+  "restart": "reboot",
+  "note": "Turning off Tamper Protection first is required on current Windows; Cheetix doesn't do that for you."
+ },
+ "windows|disable_edge_bg_win11": {
+  "why": "Edge can keep running after you close it.",
+  "gain": "Edge fully exits when closed, freeing RAM.",
+  "cost": "Edge starts a little slower and its notifications stop when it's closed.",
+  "who": "Everyone who doesn't need Edge running all the time.",
+  "restart": "app"
+ },
+ "windows|disable_extensions": {
+  "why": "Hides the .txt/.exe part of file names, as Windows does by default.",
+  "gain": "Shorter file names in Explorer.",
+  "cost": "Makes it easier to be tricked by files like 'photo.jpg.exe'.",
+  "who": "Users who prefer the Windows default look.",
+  "restart": "explorer"
+ },
+ "windows|disable_firewall": {
+  "why": "The firewall blocks unwanted incoming connections.",
+  "gain": "Games and tools that host connections work without firewall rules.",
+  "cost": "Anything on your network (or the internet, without a router) can reach services on your PC.",
+  "who": "Only PCs behind another firewall, for troubleshooting.",
+  "restart": "none"
+ },
+ "windows|disable_folder_discovery": {
+  "why": "Explorer guesses a folder's type and changes its columns and view.",
+  "gain": "Folders stop switching to Pictures or Music layouts by themselves.",
+  "cost": "Media folders no longer get media columns automatically.",
+  "who": "Users who like a consistent view.",
+  "restart": "explorer"
+ },
+ "windows|disable_font_smoothing": {
+  "why": "ClearType smooths text edges.",
+  "gain": "Pixel-sharp text without colour fringes.",
+  "cost": "Text looks jagged on most screens.",
+  "who": "Rare cases with colour-fringing problems.",
+  "restart": "signout"
+ },
+ "windows|disable_hetero": {
+  "why": "Changes how Windows spreads threads over different core types.",
+  "gain": "Can help older games on CPUs with performance and efficiency cores.",
+  "cost": "Newer games and apps that rely on Windows' scheduling may run worse; the effect depends on the CPU.",
+  "who": "Intel 12th gen and newer with problem games.",
+  "restart": "reboot",
+  "note": "Little-documented setting; test before and after."
+ },
+ "windows|disable_hibernate": {
+  "why": "Hibernation keeps a file as large as a good part of your RAM on the system drive.",
+  "gain": "Frees several GB on C: (hiberfil.sys is deleted).",
+  "cost": "No hibernate option, and Fast Startup is turned off as well.",
+  "who": "Desktop PCs that only sleep or shut down.",
+  "restart": "none"
+ },
+ "windows|disable_hidden": {
+  "why": "Hides hidden and protected system files, as Windows does by default.",
+  "gain": "A cleaner Explorer view.",
+  "cost": "You can't see hidden folders such as AppData without changing it back.",
+  "who": "Users who prefer the Windows default view.",
+  "restart": "explorer"
+ },
+ "windows|disable_home_gallery": {
+  "why": "Explorer's Home and Gallery show recent files and photos.",
+  "gain": "A simpler navigation pane.",
+  "cost": "No Home or Gallery shortcuts.",
+  "who": "Users who browse by folders.",
+  "restart": "explorer"
+ },
+ "windows|disable_idle": {
+  "why": "CPU idle states save power between bursts of work.",
+  "gain": "Slightly lower wake-up latency.",
+  "cost": "The CPU runs at full power all the time: much more heat and power, and less turbo headroom.",
+  "who": "Benchmarking only.",
+  "restart": "none"
+ },
+ "windows|disable_listbox_smooth": {
+  "why": "Lists scroll smoothly instead of jumping.",
+  "gain": "Instant scrolling in lists.",
+  "cost": "Scrolling looks jumpier.",
+  "who": "Users who prefer instant response.",
+  "restart": "signout"
+ },
+ "windows|disable_maxstate": {
+  "why": "Makes sure the plan allows the CPU to reach full speed.",
+  "gain": "No artificial cap on CPU speed.",
+  "cost": "None if it was already 100 %.",
+  "who": "Everyone.",
+  "restart": "none"
+ },
+ "windows|disable_menu_anim": {
+  "why": "Menus wait a moment before opening sub-menus.",
+  "gain": "Sub-menus open instantly.",
+  "cost": "Sub-menus open as soon as the pointer passes over them, which some find jumpy.",
+  "who": "Fast mouse users.",
+  "restart": "signout",
+  "note": "This sets the menu delay to 0; the fade animation is a separate effect."
+ },
+ "windows|disable_minstate": {
+  "why": "Keeps the CPU at full speed even when idle.",
+  "gain": "No ramp-up delay when load starts.",
+  "cost": "Higher idle power use and heat; on laptops, much shorter battery life.",
+  "who": "Desktop gaming PCs.",
+  "restart": "none"
+ },
+ "windows|disable_mitigations": {
+  "why": "Spectre and Meltdown fixes cost some CPU performance, mainly on older Intel CPUs.",
+  "gain": "A few percent more speed in some workloads.",
+  "cost": "Your PC becomes vulnerable to these CPU attacks, including from websites.",
+  "who": "Offline benchmarking PCs only.",
+  "restart": "reboot"
+ },
+ "windows|disable_onedrive_win11": {
+  "why": "OneDrive syncs files in the background.",
+  "gain": "No OneDrive sync, uploads or background CPU use.",
+  "cost": "Files stop syncing to OneDrive; files that are only in the cloud can't be opened until you turn it back on.",
+  "who": "Users who don't use OneDrive.",
+  "restart": "signout"
+ },
+ "windows|disable_pwrthrottle": {
+  "why": "Power throttling slows down apps Windows thinks are in the background.",
+  "gain": "Background apps (encoders, streaming tools) keep full speed.",
+  "cost": "Higher power use on laptops.",
+  "who": "Streamers and desktop users.",
+  "restart": "reboot"
+ },
+ "windows|disable_recall": {
+  "why": "Recall takes regular snapshots of your screen to make them searchable.",
+  "gain": "Nothing on your screen is recorded.",
+  "cost": "You can't search your past activity with Recall.",
+  "who": "Everyone, especially shared PCs.",
+  "restart": "reboot"
+ },
+ "windows|disable_remote": {
+  "why": "Remote Desktop accepts sign-in connections from other PCs.",
+  "gain": "Closes the Remote Desktop port to the network.",
+  "cost": "You can't connect to this PC with Remote Desktop.",
+  "who": "PCs nobody connects to remotely.",
+  "restart": "none"
+ },
+ "windows|disable_restore": {
+  "why": "System Restore keeps snapshots that use disk space.",
+  "gain": "Frees the space restore points use and stops new ones.",
+  "cost": "You lose the ability to roll Windows back after a bad driver or update. Existing restore points become unusable.",
+  "who": "Only PCs with another backup.",
+  "restart": "reboot"
+ },
+ "windows|disable_search": {
+  "why": "The indexer reads your files in the background to make search fast.",
+  "gain": "Less background disk and CPU activity.",
+  "cost": "Start and Explorer search become much slower and can't search file contents; Outlook search is affected too.",
+  "who": "Users who rarely search for files.",
+  "restart": "reboot"
+ },
+ "windows|disable_search_highlights": {
+  "why": "The search box shows daily trivia and web highlights.",
+  "gain": "A plain search box with no web content.",
+  "cost": "None.",
+  "who": "Everyone.",
+  "restart": "explorer"
+ },
+ "windows|disable_sechealth": {
+  "why": "The Security Health service reports protection status to Windows Security.",
+  "gain": "One fewer service.",
+  "cost": "Windows Security stops warning you when protection is off or out of date.",
+  "who": "Not recommended.",
+  "restart": "reboot"
+ },
+ "windows|disable_shadows": {
+  "why": "Sets the visual effects mode to 'Adjust for best performance'.",
+  "gain": "Windows treats visual effects as set for speed.",
+  "cost": "On its own this only changes the mode marker; individual effects follow when Windows reapplies it.",
+  "who": "Low-end PCs.",
+  "restart": "signout",
+  "note": "For all effects at once use 'Turn off all visual effects'."
+ },
+ "windows|disable_sleep": {
+  "why": "Stops the PC going to sleep on its own when plugged in.",
+  "gain": "Downloads, renders and servers keep running when you're away.",
+  "cost": "More power use; hibernation and Fast Startup are also turned off.",
+  "who": "Desktop PCs left running on purpose.",
+  "restart": "none"
+ },
+ "windows|disable_snap": {
+  "why": "Window snapping arranges windows when you drag them to edges.",
+  "gain": "Windows don't jump when dragged near an edge.",
+  "cost": "No snapping by dragging or with Win+arrow keys.",
+  "who": "Users who arrange windows by hand.",
+  "restart": "none"
+ },
+ "windows|disable_snap_layouts": {
+  "why": "Hovering the maximise button opens a layout picker.",
+  "gain": "No pop-up when you hover maximise.",
+  "cost": "Snap layouts are still available with Win+Z.",
+  "who": "Users who find the pop-up gets in the way.",
+  "restart": "none"
+ },
+ "windows|disable_speech": {
+  "why": "Online speech recognition sends your voice to Microsoft.",
+  "gain": "Voice stays on the PC.",
+  "cost": "Voice typing and voice access work less well or only offline.",
+  "who": "Everyone who doesn't use voice typing.",
+  "restart": "none"
+ },
+ "windows|disable_spotlight": {
+  "why": "Spotlight downloads lock-screen pictures and tips.",
+  "gain": "No downloaded images or ads on the lock screen.",
+  "cost": "The lock screen uses a fixed picture.",
+  "who": "Everyone.",
+  "restart": "none"
+ },
+ "windows|disable_start_bing": {
+  "why": "Start search sends what you type to Bing.",
+  "gain": "Searches stay local and results appear faster.",
+  "cost": "No web results in Start.",
+  "who": "Everyone.",
+  "restart": "signout"
+ },
+ "windows|disable_start_recommended": {
+  "why": "Start shows recommended files and apps.",
+  "gain": "Fewer suggestions in Start.",
+  "cost": "Recently opened files aren't shown in Start.",
+  "who": "Everyone.",
+  "restart": "explorer"
+ },
+ "windows|disable_stickers": {
+  "why": "Desktop stickers is a small decoration feature.",
+  "gain": "Feature switched off.",
+  "cost": "You can't add stickers to the desktop.",
+  "who": "Everyone.",
+  "restart": "explorer"
+ },
+ "windows|disable_sticky_keys": {
+  "why": "Pressing Shift five times opens the Sticky Keys prompt, often during games.",
+  "gain": "No Sticky Keys pop-up in games.",
+  "cost": "The shortcut to turn Sticky Keys on is disabled; turn it on in Settings if you need it.",
+  "who": "Gamers.",
+  "restart": "signout"
+ },
+ "windows|disable_storeauto": {
+  "why": "Store apps update themselves in the background.",
+  "gain": "No background app downloads.",
+  "cost": "Store apps (including Windows parts like Photos and Calculator) stop getting fixes until you update them in the Store.",
+  "who": "Users on slow connections who update by hand.",
+  "restart": "none"
+ },
+ "windows|disable_suggested_content": {
+  "why": "Settings shows suggestions and promotions.",
+  "gain": "A cleaner Settings app.",
+  "cost": "None.",
+  "who": "Everyone.",
+  "restart": "none"
+ },
+ "windows|disable_tabs_explorer": {
+  "why": "Runs each Explorer window in its own process.",
+  "gain": "A crash in one Explorer window doesn't take down the others.",
+  "cost": "More RAM use; the tabs feature may stop working on some builds.",
+  "who": "Users who prefer separate windows.",
+  "restart": "explorer",
+  "note": "This value actually controls separate processes for folder windows."
+ },
+ "windows|disable_taskbar_glow": {
+  "why": "Taskbar buttons glow when active.",
+  "gain": "No glow effect.",
+  "cost": "None.",
+  "who": "Users turning off effects.",
+  "restart": "explorer",
+  "note": "Mostly affects older Windows versions."
+ },
+ "windows|disable_telemetry": {
+  "why": "Windows sends diagnostic data to Microsoft in the background.",
+  "gain": "Less data sent and the Connected User Experiences service no longer runs.",
+  "cost": "Windows Insider builds and some troubleshooters need diagnostic data; Home and Pro still send the minimum 'required' level.",
+  "who": "Everyone who doesn't use Insider builds.",
+  "restart": "reboot"
+ },
+ "windows|disable_thumb_preview": {
+  "why": "Hovering a taskbar button shows a live preview.",
+  "gain": "No preview pop-ups (the hover delay becomes 30 seconds).",
+  "cost": "You can't preview windows from the taskbar.",
+  "who": "Users who find previews distracting.",
+  "restart": "explorer"
+ },
+ "windows|disable_tooltip_anim": {
+  "why": "Tooltips fade in.",
+  "gain": "Tooltips appear instantly.",
+  "cost": "The setting writes the whole visual-effects bit mask, so other effects change too.",
+  "who": "Users turning off effects.",
+  "restart": "signout",
+  "note": "OFF restores your previous mask exactly."
+ },
+ "windows|disable_transparency": {
+  "why": "Acrylic blur costs a little GPU work.",
+  "gain": "Solid colours; slightly less GPU use.",
+  "cost": "Less modern look.",
+  "who": "Low-end PCs, or by preference.",
+  "restart": "none"
+ },
+ "windows|disable_virt": {
+  "why": "Virtualization-based security runs part of Windows in a hypervisor.",
+  "gain": "Can raise game performance a few percent.",
+  "cost": "Removes protection against kernel-level malware; Memory Integrity and Credential Guard stop working.",
+  "who": "Gaming PCs where you accept less protection.",
+  "restart": "reboot"
+ },
+ "windows|disable_widgets_win11": {
+  "why": "The widgets board loads news and weather in the background.",
+  "gain": "No widgets board or its background process.",
+  "cost": "No weather or news widgets.",
+  "who": "Everyone who doesn't use widgets.",
+  "restart": "signout"
+ },
+ "windows|disable_window_border": {
+  "why": "Sets the window border padding to 0.",
+  "gain": "Slightly thinner window frames.",
+  "cost": "Window edges can be harder to grab for resizing.",
+  "who": "Users who want minimal frames.",
+  "restart": "signout"
+ },
+ "windows|disable_xbox": {
+  "why": "Xbox services run even if you never use Xbox apps.",
+  "gain": "Three fewer background services.",
+  "cost": "Xbox app, Game Pass games, Xbox controller accessories over the wireless adapter and Xbox sign-in in games stop working.",
+  "who": "PCs that never use Xbox or Game Pass.",
+  "restart": "reboot"
+ },
+ "windows|enable_battery_pct": {
+  "why": "The tray battery icon doesn't show a number.",
+  "gain": "Battery percentage next to the icon.",
+  "cost": "Takes a little taskbar space.",
+  "who": "Laptop users.",
+  "restart": "explorer"
+ },
+ "windows|enable_classic_menu": {
+  "why": "Windows 11 hides most right-click entries behind 'Show more options'.",
+  "gain": "The full right-click menu opens straight away.",
+  "cost": "Loses the new compact menu.",
+  "who": "Everyone used to Windows 10.",
+  "restart": "explorer"
+ },
+ "windows|enable_compact_mode": {
+  "why": "Explorer adds extra spacing between items for touch.",
+  "gain": "More files fit on screen.",
+  "cost": "Smaller click targets on touch screens.",
+  "who": "Mouse and keyboard users.",
+  "restart": "explorer"
+ },
+ "windows|enable_dark_theme": {
+  "why": "Light mode is the default.",
+  "gain": "Dark apps and system UI, easier on the eyes at night.",
+  "cost": "Some older apps stay light.",
+  "who": "By preference.",
+  "restart": "none"
+ },
+ "windows|enable_end_task": {
+  "why": "Adds End task to the taskbar right-click menu.",
+  "gain": "Close a frozen app without Task Manager.",
+  "cost": "Ending a task loses its unsaved work.",
+  "who": "Everyone.",
+  "restart": "none"
+ },
+ "windows|enable_numlock": {
+  "why": "Num Lock is off at the sign-in screen on many PCs.",
+  "gain": "Number pad works straight away.",
+  "cost": "None.",
+  "who": "Desktop keyboards with a number pad.",
+  "restart": "reboot"
+ },
+ "windows|enable_scrollbars": {
+  "why": "Windows 11 hides thin scrollbars until you hover.",
+  "gain": "Scrollbars are always visible and easier to grab.",
+  "cost": "Slightly less content space.",
+  "who": "Everyone.",
+  "restart": "none"
+ },
+ "windows|enable_start_layout": {
+  "why": "Asks Start to use its earlier Windows 11 layout.",
+  "gain": "Start looks like the earlier version on builds that support it.",
+  "cost": "No effect on builds that don't support the switch.",
+  "who": "Users who prefer the older Start.",
+  "restart": "explorer"
+ },
+ "windows|hide_taskbar_search": {
+  "why": "The search box takes taskbar space.",
+  "gain": "More room for apps; press Win and type to search.",
+  "cost": "No search box to click.",
+  "who": "Keyboard users.",
+  "restart": "explorer"
+ },
+ "windows|hide_taskbar_taskview": {
+  "why": "The Task View button is easy to replace with Win+Tab.",
+  "gain": "One fewer taskbar button.",
+  "cost": "No Task View button to click.",
+  "who": "Keyboard users.",
+  "restart": "explorer"
+ },
+ "windows|high_performance": {
+  "why": "Balanced lets the CPU slow down when idle.",
+  "gain": "Clocks ramp up faster when a game starts.",
+  "cost": "Higher power use and heat at idle; on laptops, shorter battery life.",
+  "who": "Desktop gaming PCs.",
+  "restart": "none"
+ },
+ "windows|left_align_taskbar_win11": {
+  "why": "Windows 11 centres taskbar icons.",
+  "gain": "Start sits in the corner like Windows 10.",
+  "cost": "None.",
+  "who": "Anyone who prefers the classic layout.",
+  "restart": "explorer"
+ },
+ "windows|performance_mode": {
+  "why": "Windows offers 'adjust for best performance' in System Properties.",
+  "gain": "Visual effects follow the performance preset.",
+  "cost": "Fonts can look rougher and windows less polished.",
+  "who": "Low-end PCs.",
+  "restart": "signout"
+ },
+ "windows|processor_priority": {
+  "why": "Tells the scheduler to give the window you're using longer time slices.",
+  "gain": "The app in front gets a bit more CPU time than background work.",
+  "cost": "Background tasks like renders run slightly slower.",
+  "who": "Gamers and general desktop use.",
+  "restart": "none"
+ },
+ "windows|remove_chat": {
+  "why": "The Chat icon promotes Teams.",
+  "gain": "One fewer taskbar icon.",
+  "cost": "None.",
+  "who": "Everyone.",
+  "restart": "explorer"
+ },
+ "windows|remove_dev_home": {
+  "why": "Dev Home is a developer dashboard most people never open.",
+  "gain": "One fewer app.",
+  "cost": "Dev Home is removed; reinstall it from the Store if you want it.",
+  "who": "Non-developers.",
+  "restart": "none",
+  "note": "Removing an app can't be undone automatically: reinstall it from the Microsoft Store."
+ },
+ "windows|remove_phone_link": {
+  "why": "Phone Link runs in the background to connect to your phone.",
+  "gain": "One fewer app and background process.",
+  "cost": "You can't use your phone's messages, calls or photos on the PC.",
+  "who": "Users who don't link a phone.",
+  "restart": "none",
+  "note": "Removing an app can't be undone automatically: reinstall it from the Microsoft Store."
+ },
+ "windows|remove_teams": {
+  "why": "The consumer Teams app ships with Windows 11.",
+  "gain": "One fewer app and startup item.",
+  "cost": "Teams is removed; you'd reinstall it from the Store.",
+  "who": "Users who don't use Teams.",
+  "restart": "none",
+  "note": "Removing an app can't be undone automatically: reinstall it from the Microsoft Store."
+ },
+ "windows|set_taskbar_left": {
+  "why": "Windows 11 centres taskbar icons.",
+  "gain": "Start sits in the corner like Windows 10.",
+  "cost": "None.",
+  "who": "Anyone who prefers the classic layout.",
+  "restart": "explorer",
+  "note": "Same setting as 'Left-align the taskbar'; you only need one."
+ }
+}
