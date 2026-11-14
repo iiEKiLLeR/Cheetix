@@ -483,13 +483,27 @@ mod live_steam {
         panic!("session never reached {phase}");
     }
 
-    /// "Reduce Steam resource usage" against the running Steam: its web helper must be gone
-    /// while the stand-in game runs and come back after. `cargo test live_steam -- --ignored --nocapture`
+    fn ps_out(script: &str) -> String {
+        String::from_utf8_lossy(&crate::sys::ps(script).unwrap().stdout).trim().to_string()
+    }
+
+    /// helper pids, sorted
+    fn helper_ids() -> String {
+        ps_out("(@(Get-Process steamwebhelper -ErrorAction SilentlyContinue).Id | Sort-Object) -join ','")
+    }
+
+    /// "Trim Steam while playing" against the running Steam. With Millennium the same helpers must
+    /// stay alive, frozen and paged out while the stand-in game runs, then run on (no new helper,
+    /// so Millennium keeps its pipe). Without Millennium they close and Steam starts new ones after.
+    /// `cargo test live_steam -- --ignored --nocapture`
     #[test]
     #[ignore]
     fn live_steam_reduce() {
         let before = helpers();
         assert!(before > 0, "start Steam first");
+        let mil = ps_out("[bool](@(Get-Process steam)[0].Modules | Where-Object ModuleName -eq 'millennium.dll')") == "True";
+        let ids_before = helper_ids();
+        let ws_before = ps_out("[int]((Get-Process steamwebhelper | Measure-Object WorkingSet64 -Sum).Sum / 1MB)");
         let folder = std::env::temp_dir().join("cheetix_arena_fakegame2");
         let _ = std::fs::create_dir_all(&folder);
         let exe = folder.join("fakegame.exe");
@@ -500,19 +514,35 @@ mod live_steam {
         let live = wait_phase("active");
         std::thread::sleep(Duration::from_secs(8)); // Steam would respawn the helper within seconds if it could
         let during = helpers();
-        println!("helpers before {before}, during {during}; notes {:?}", live.notes);
+        let ids_during = helper_ids();
+        // frozen = the helpers use no CPU at all over 5 seconds (a thread parked in a kernel wait
+        // shows as "Executive" rather than "Suspended" until it wakes, but it cannot run)
+        let cpu = || ps_out("[int](@(Get-Process steamwebhelper -ErrorAction SilentlyContinue | ForEach-Object { $_.TotalProcessorTime.TotalMilliseconds }) | Measure-Object -Sum).Sum");
+        let c0 = cpu();
+        std::thread::sleep(Duration::from_secs(5));
+        let cpu_ms = cpu().parse::<i64>().unwrap_or(-1) - c0.parse::<i64>().unwrap_or(0);
+        let ws_during = ps_out("[int]((Get-Process steamwebhelper -ErrorAction SilentlyContinue | Measure-Object WorkingSet64 -Sum).Sum / 1MB)");
+        println!("millennium {mil}; helpers before {before} ({ws_before} MB), during {during} ({ws_during} MB, {cpu_ms} ms CPU in 5 s); notes {:?}", live.notes);
         let _ = game.kill();
         println!("ended: {}", wait_phase("ended").msg);
-        let t = Instant::now();
-        let mut after = 0;
-        while t.elapsed() < Duration::from_secs(45) && after == 0 {
-            std::thread::sleep(Duration::from_secs(1));
-            after = helpers();
-        }
-        println!("helpers after: {after} ({} s)", t.elapsed().as_secs());
+        std::thread::sleep(Duration::from_secs(5));
+        let ids_after = helper_ids();
+        let running = ps_out("@(Get-Process steamwebhelper -ErrorAction SilentlyContinue | Where-Object { @($_.Threads | Where-Object { $_.WaitReason -ne 'Suspended' }).Count -gt 0 }).Count");
+        println!("helper pids before [{ids_before}] during [{ids_during}] after [{ids_after}], running after: {running}");
         let _ = std::fs::remove_dir_all(folder);
-        assert_eq!(during, 0);
-        assert!(after > 0, "Steam's web helper did not come back");
+        if mil {
+            assert_eq!(ids_during, ids_before, "helpers must not be closed with Millennium");
+            assert_eq!(cpu_ms, 0, "helpers were not frozen");
+            assert_eq!(ids_after, ids_before, "Steam started a new helper: Millennium would lose Steam's UI");
+            assert_eq!(running, during.to_string(), "helpers still frozen after the game");
+        } else {
+            assert_eq!(during, 0);
+            let t = Instant::now();
+            while t.elapsed() < Duration::from_secs(45) && helpers() == 0 {
+                std::thread::sleep(Duration::from_secs(1));
+            }
+            assert!(helpers() > 0, "Steam's web helper did not come back");
+        }
     }
 }
 

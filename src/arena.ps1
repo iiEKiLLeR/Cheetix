@@ -44,6 +44,19 @@ public static class ArenaNative {
         IntPtr h = OpenThread(2, false, tid); if (h == IntPtr.Zero) return -1;
         int r = suspend ? SuspendThread(h) : ResumeThread(h); CloseHandle(h); return r;
     }
+    [DllImport("kernel32.dll")] static extern IntPtr OpenProcess(int access, bool inherit, int pid);
+    [DllImport("ntdll.dll")] static extern int NtSuspendProcess(IntPtr h);
+    [DllImport("ntdll.dll")] static extern int NtResumeProcess(IntPtr h);
+    [DllImport("psapi.dll")] static extern bool EmptyWorkingSet(IntPtr h);
+    // freeze a process and move its memory out of RAM (0x800 suspend/resume, 0x100 set quota, 0x400 query)
+    public static bool Freeze(int pid) {
+        IntPtr h = OpenProcess(0x800 | 0x100 | 0x400, false, pid); if (h == IntPtr.Zero) return false;
+        bool ok = NtSuspendProcess(h) == 0; if (ok) EmptyWorkingSet(h); CloseHandle(h); return ok;
+    }
+    public static bool Thaw(int pid) {
+        IntPtr h = OpenProcess(0x800, false, pid); if (h == IntPtr.Zero) return false;
+        bool ok = NtResumeProcess(h) == 0; CloseHandle(h); return ok;
+    }
 }
 '@
 [ArenaNative]::Priv(13)  # SeProfileSingleProcessPrivilege: purge the standby list
@@ -66,7 +79,14 @@ function Undo($b) {
         # end helpers that are left, then let Steam's UI run again: it starts a fresh helper
         $sp = Get-Process -Id $b.steam.pid -ErrorAction SilentlyContinue
         if ($sp -and $sp.ProcessName -eq 'steam') {
-            Get-Process steamwebhelper -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+            if ($b.steam.frozen) {
+                # the same helpers carry on, so Millennium keeps its connection to Steam's UI
+                foreach ($e in @($b.steam.frozen)) {
+                    try { $p = Get-Process -Id $e.pid -ErrorAction Stop; if ($p.StartTime.Ticks -eq [long]$e.ticks) { [void][ArenaNative]::Thaw($e.pid) } } catch {}
+                }
+            } else {
+                Get-Process steamwebhelper -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+            }
             [void][ArenaNative]::Thread([uint32]$b.steam.tid, $false)
         }
     }
@@ -207,9 +227,19 @@ if ($procs.Count) {
                 $script:base.steam = @{ pid = $sp.Id; tid = $tid }; Save-Guard
                 if ([ArenaNative]::Thread($tid, $true) -lt 0) { $script:base.steam = $null; Save-Guard; Note "Windows refused access to Steam's UI, so its web helper was left alone." }
                 else {
-                    $n = @(Get-Process steamwebhelper -ErrorAction SilentlyContinue).Count
-                    Get-Process steamwebhelper -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
-                    Note "Steam's web helper closed ($n processes). Steam's window and overlay come back when the game closes."
+                    $helpers = @(Get-Process steamwebhelper -ErrorAction SilentlyContinue)
+                    $mil = $false
+                    try { $mil = [bool]($sp.Modules | Where-Object { $_.ModuleName -eq 'millennium.dll' }) } catch {}
+                    if (-not $mil) { $mil = Test-Path -LiteralPath (Join-Path (Split-Path -LiteralPath $sp.Path) 'millennium\lib\millennium.dll') }
+                    if ($mil) {
+                        $mb = [math]::Round(($helpers | Measure-Object WorkingSet64 -Sum).Sum / 1MB)
+                        $script:base.steam.frozen = @($helpers | ForEach-Object { @{ pid = $_.Id; ticks = $_.StartTime.Ticks } }); Save-Guard
+                        $n = @($helpers | Where-Object { [ArenaNative]::Freeze($_.Id) }).Count
+                        Note "Steam's web helper paused and moved out of memory ($n processes, about $mb MB). Millennium stays loaded; Steam's window and overlay come back when the game closes."
+                    } else {
+                        $helpers | Stop-Process -Force -ErrorAction SilentlyContinue
+                        Note "Steam's web helper closed ($($helpers.Count) processes). Steam's window and overlay come back when the game closes."
+                    }
                 }
             }
         }
