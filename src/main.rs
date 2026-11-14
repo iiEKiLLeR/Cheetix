@@ -1348,26 +1348,44 @@ fn card(ui: &mut egui::Ui, p: &Pal, flash: bool, body: impl FnOnce(&mut egui::Ui
     inner.response
 }
 
-/// "Liquid glass": a translucent pill tinted with the theme's accent, a soft sheen on its top
-/// half, a bright hairline along the top edge and an accent rim (stronger on hover / focus).
+/// Outline of a rounded rect (radius `rad`), clockwise from the top edge.
+fn round_path(r: Rect, rad: f32) -> Vec<Pos2> {
+    let rad = rad.min(r.height() / 2.0).min(r.width() / 2.0);
+    let corners = [(pos2(r.right() - rad, r.top() + rad), -90.0_f32), (pos2(r.right() - rad, r.bottom() - rad), 0.0), (pos2(r.left() + rad, r.bottom() - rad), 90.0), (pos2(r.left() + rad, r.top() + rad), 180.0)];
+    let mut v = Vec::with_capacity(4 * 11);
+    for (c, a0) in corners {
+        for i in 0..=10 {
+            let a = (a0 + 9.0 * i as f32).to_radians();
+            v.push(c + vec2(a.cos(), a.sin()) * rad);
+        }
+    }
+    v
+}
+
+/// "Liquid glass": a nearly clear pill with a crisp dark edge, white glints on the top-right and
+/// bottom-left (tinted with the theme's accent), a faint inner ring and a soft drop shadow.
+/// `h`: hover (0..1); `lit`: focused / open, the glints take the accent.
 fn glass_shapes(r: Rect, p: &Pal, h: f32, lit: bool) -> Vec<Shape> {
     let rad = r.height() / 2.0;
-    let (glass, sheen) = if p.dark { (alpha(mix(p.panel.to_opaque(), p.acc, 0.10 + 0.06 * h), 0.55), 0.07) } else { (alpha(Color32::WHITE, 0.62), 0.45) };
-    // the sheen fades out by the middle, so it never cuts across the text
-    let top = Rect::from_min_max(pos2(r.left() + rad * 0.55, r.top() + 1.0), pos2(r.right() - rad * 0.55, r.center().y));
-    let mut m = egui::Mesh::default();
-    let shine = alpha(Color32::WHITE, sheen * (0.7 + 0.3 * h));
-    for (q, c) in [(top.left_top(), shine), (top.right_top(), shine), (top.right_bottom(), Color32::TRANSPARENT), (top.left_bottom(), Color32::TRANSPARENT)] {
-        m.colored_vertex(q, c);
-    }
-    m.add_triangle(0, 1, 2);
-    m.add_triangle(0, 2, 3);
-    let rim = alpha(p.acc, if lit { 0.85 } else { 0.22 + 0.30 * h });
+    let tint = if lit { mix(Color32::WHITE, p.acc, 0.65) } else { mix(Color32::WHITE, p.acc, if p.dark { 0.22 } else { 0.0 }) };
+    let fill = if p.dark { alpha(Color32::WHITE, 0.035 + 0.035 * h) } else { alpha(Color32::WHITE, 0.30 + 0.15 * h) };
+    let shadow = Shadow { offset: [0, 4], blur: 8, spread: 0, color: alpha(Color32::BLACK, if p.dark { 0.35 } else { 0.12 }) };
+    let strength = 0.8 + 0.2 * h;
+    // the glints: strongest at the bottom-left and top-right corners, clear across the middle
+    let glint = move |q: Pos2, base: f32| {
+        let t = (((q.x - r.left()) / r.width() + (r.bottom() - q.y) / r.height()) / 2.0).clamp(0.0, 1.0);
+        let e = ((0.3 - t.min(1.0 - t)) / 0.3).max(0.0).powf(1.2);
+        alpha(tint, (base + e) * strength)
+    };
+    let inset = |d: f32| Rect::from_min_max(r.min + vec2(d, d), r.max - vec2(d, d));
     vec![
-        Shape::rect_filled(r, rad, glass),
-        Shape::mesh(m),
-        Shape::line_segment([pos2(r.left() + rad, r.top() + 1.0), pos2(r.right() - rad, r.top() + 1.0)], Stroke::new(1.0_f32, alpha(Color32::WHITE, if p.dark { 0.18 } else { 0.9 }))),
-        Shape::rect_stroke(r, rad, Stroke::new(1.0_f32, rim), StrokeKind::Inside),
+        Shape::Rect(shadow.as_shape(r, rad)),
+        Shape::rect_filled(r, rad, fill),
+        // the dark edge (an inset shadow in CSS terms)
+        Shape::closed_line(round_path(r, rad), Stroke::new(1.0_f32, alpha(Color32::BLACK, if p.dark { 0.65 } else { 0.35 }))),
+        Shape::closed_line(round_path(inset(1.5), rad - 1.5), egui::epaint::PathStroke::new_uv(2.0_f32, move |_, q| glint(q, 0.03))),
+        // faint inner ring
+        Shape::closed_line(round_path(inset(4.5), rad - 4.5), Stroke::new(1.0_f32, alpha(tint, if p.dark { 0.05 } else { 0.30 }))),
     ]
 }
 
@@ -1573,19 +1591,17 @@ fn tile(ui: &mut egui::Ui, p: &Pal, size: Vec2, glyph: &str, text: &str) -> egui
 fn field(ui: &mut egui::Ui, p: &Pal, text: &mut String, hint: &str, width: f32) -> egui::Response {
     let id = ui.id().with(("field", hint));
     let focused = ui.memory(|m| m.has_focus(id));
-    Frame::new()
-        .fill(p.bg)
-        .stroke(Stroke::new(1.0_f32, if focused { p.acc } else { p.border }))
-        .corner_radius(R_CTRL)
-        .inner_margin(Margin::symmetric(10, 6))
-        .show(ui, |ui| {
-            ui.horizontal(|ui| {
-                icon(ui, icons::SEARCH, 11.0, p.muted);
-                ui.add(egui::TextEdit::singleline(text).id(id).frame(false).desired_width(width).font(FontId::proportional(12.5)).text_color(p.text).hint_text(RichText::new(hint).size(12.5).color(p.muted)))
-            })
-            .inner
+    let bg = ui.painter().add(Shape::Noop);
+    let resp = Frame::new().inner_margin(Margin::symmetric(14, 7)).show(ui, |ui| {
+        ui.horizontal(|ui| {
+            icon(ui, icons::SEARCH, 11.0, if focused { p.acc } else { p.muted });
+            ui.add(egui::TextEdit::singleline(text).id(id).frame(false).desired_width(width).font(FontId::proportional(12.5)).text_color(p.text).hint_text(RichText::new(hint).size(12.5).color(p.muted)))
         })
         .inner
+    });
+    let h = ui.ctx().animate_bool_with_time(id.with("glass"), focused || ui.rect_contains_pointer(resp.response.rect), 0.12);
+    ui.painter().set(bg, Shape::Vec(glass_shapes(resp.response.rect, p, h, focused)));
+    resp.inner
 }
 
 fn subtitle(view: &str) -> &'static str {
